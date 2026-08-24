@@ -32,3 +32,39 @@ target_link_libraries(params_probe PRIVATE hsma_params)
 
 enable_testing()
 add_test(NAME contract_identity COMMAND params_probe)
+
+# ══ Step 2: generated constants + field/numeric kernels (DEC-102) ══
+set(GEN_DIR ${CMAKE_BINARY_DIR}/generated)
+file(MAKE_DIRECTORY ${GEN_DIR})
+
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+set(GEN_OUTPUTS
+    ${GEN_DIR}/pallas_params_gen.hpp
+    ${GEN_DIR}/vesta_params_gen.hpp
+    ${GEN_DIR}/field_golden.hpp
+    ${GEN_DIR}/rnte_golden.hpp)
+
+add_custom_command(
+    OUTPUT  ${GEN_OUTPUTS}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_constants.py
+            --out ${GEN_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_constants.py
+    COMMENT "[gen] deriving Montgomery constants + golden vectors (DEC-102)"
+    VERBATIM)
+add_custom_target(hsma_generated DEPENDS ${GEN_OUTPUTS})
+
+add_library(hsma_fp INTERFACE)
+target_include_directories(hsma_fp INTERFACE ${GEN_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hsma_fp INTERFACE hsma_params)   # env contracts
+target_compile_features(hsma_fp INTERFACE cxx_std_20)
+add_dependencies(hsma_fp hsma_generated)               # regeneration is forced
+
+add_library(hsma_numcore INTERFACE)
+target_include_directories(hsma_numcore INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hsma_numcore INTERFACE hsma_params)
+
+add_executable(test_step2 conformance/test_step2.cpp)
+target_link_libraries(test_step2 PRIVATE hsma_fp hsma_numcore)
+add_dependencies(test_step2 hsma_generated)
+add_test(NAME step2_conformance COMMAND test_step2)
