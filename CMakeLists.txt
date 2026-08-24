@@ -78,3 +78,16 @@ add_executable(test_step3 conformance/test_step3.cpp)
 target_link_libraries(test_step3 PRIVATE hsma_fp hsma_numcore)
 add_dependencies(test_step3 hsma_generated)
 add_test(NAME step3_conformance COMMAND test_step3)
+
+# ══ Step 4: state vault (DEC-111..113) ══
+set(GEN_OUTPUTS ${GEN_OUTPUTS} ${CMAKE_BINARY_DIR}/generated/smt_golden.hpp)
+
+add_library(hsma_smt INTERFACE)
+target_include_directories(hsma_smt INTERFACE ${CMAKE_BINARY_DIR}/generated
+    ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(hsma_smt INTERFACE hsma_fp hsma_params)
+
+add_executable(test_step4 conformance/test_step4.cpp)
+target_link_libraries(test_step4 PRIVATE hsma_smt)
+add_dependencies(test_step4 hsma_generated)
+add_test(NAME step4_conformance COMMAND test_step4)

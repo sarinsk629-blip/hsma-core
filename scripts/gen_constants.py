@@ -298,6 +298,131 @@ def emit_poseidon_goldens(outdir):
     with open(path, "w") as f: f.write("\n".join(lines) + "\n")
     print(f"[emit] {path}")
 
+
+def emit_smt_scenario(outdir: str):
+    SMT_DEPTH = 64
+    IDX_MASK  = (1 << 64) - 1
+
+    rng = random.Random(0x57A7E5)
+    p   = CURVES["pallas"]["p"]
+    MDS = derive_mds(p, POSEIDON_T)
+    RC  = derive_rc(p, POSEIDON_RC_COUNT, "PALLAS")
+    iv  = {t: iv_derive(p, t) for t in DOMAIN_TAGS}
+    NODE, LEAF, IDENT = iv["IV_STATE_NODE"], iv["IV_STATE_LEAF"], iv["IV_IDENT"]
+
+    E = [poseidon3_ref(p, LEAF, 0, 0, MDS, RC)]
+    for _ in range(SMT_DEPTH):
+        E.append(poseidon3_ref(p, NODE, E[-1], E[-1], MDS, RC))
+
+    def L(k, v):  return poseidon3_ref(p, LEAF, k, v, MDS, RC)
+    def Nn(a, b): return poseidon3_ref(p, NODE, a, b, MDS, RC)
+
+    a0, a1 = rng.randrange(p), rng.randrange(p)
+    b0, b1 = rng.randrange(p), rng.randrange(p)
+    KA = poseidon3_ref(p, IDENT, a0, a1, MDS, RC)
+    KB = poseidon3_ref(p, IDENT, b0, b1, MDS, RC)
+    ia, ib = KA & IDX_MASK, KB & IDX_MASK
+    while ib == ia:
+        b1 = rng.randrange(p)
+        KB = poseidon3_ref(p, IDENT, b0, b1, MDS, RC)
+        ib = KB & IDX_MASK
+
+    def pack(mag, sgn, nonce, fl):
+        assert 0 <= mag < (1 << 120) and sgn in (0, 1) and 0 <= nonce < (1 << 63)
+        return mag | (sgn << 120) | (nonce << 121) | (fl << 184)
+
+    A0, B0 = pack(123456789, 0, 5, 0), pack(987654321, 0, 9, 0)
+    A1, B1 = pack(123456789 - 1000, 0, 6, 0), pack(987654321 + 1000, 0, 9, 0)
+
+    class Tree:
+        def __init__(s): s.d = {}
+        def node(s, h, prefix):
+            items = [(i, kv) for i, kv in s.d.items() if (i >> h) == prefix]
+            if not items:
+                return E[h], False
+            if h == 0:
+                (i, (k, v)), = items
+                return L(k, v), True
+            hl, ha = s.node(h - 1, prefix << 1)
+            hr, hb = s.node(h - 1, (prefix << 1) | 1)
+            if not ha and not hb:
+                return E[h], False
+            return Nn(hl, hr), True
+        def root(s): return s.node(SMT_DEPTH, 0)[0]
+
+    tr  = Tree()
+    ALLOC_SIMPLE = 2 + SMT_DEPTH
+
+    def update(tree, key, packed_new):
+        idx = key & IDX_MASK
+        old = tree.d.get(idx)
+        if old is not None and old[0] == key and old[1] == packed_new:
+            return tree.root(), 0, True
+        tree.d[idx] = (key, packed_new)
+        return tree.root(), ALLOC_SIMPLE, False
+
+    rootA   = update(tr, KA, A0)[0]
+    rootAB  = update(tr, KB, B0)[0]
+    rootA1  = update(tr, KA, A1)[0]
+    rootTX  = update(tr, KB, B1)[0]
+    _, alN, noop = update(tr, KA, A1)
+    assert noop and alN == 0
+
+    sibs = []
+    for h in range(SMT_DEPTH):
+        sib_prefix = (ia >> h) ^ 1
+        hh, _pres = tr.node(h, sib_prefix)
+        sibs.append(hh)
+
+    fold = L(KA, A1)
+    for h in range(SMT_DEPTH):
+        bit = (ia >> h) & 1
+        fold = Nn(sibs[h], fold) if bit else Nn(fold, sibs[h])
+    assert fold == rootTX, "proof fold mismatch"
+
+    L4 = lambda x: "{ " + ", ".join(f"0x{v:016x}ULL" for v in limbs(x)) + " }"
+    
+    lines = [
+        "// GENERATED FILE - smt_golden.hpp",
+        "#pragma once",
+        "#include <array>",
+        "#include <cstdint>",
+        "namespace hsma::golden {",
+        "struct Sib { std::uint64_t h[4]; };",
+        "struct SmtScenario {",
+        "  std::uint64_t pkA0[4], pkA1[4], pkB0[4], pkB1[4];",
+        "  std::uint64_t keyA[4], keyB[4];",
+        "  std::uint64_t packA0[4], packB0[4], packA1[4], packB1[4];",
+        "  std::uint64_t rootA[4], rootAB[4], rootA1[4], rootTX[4];",
+        "  std::uint64_t E0[4], E1[4], E2[4];",
+        "  std::uint64_t allocInsA, allocInsB, allocTxA, allocTxB, allocNoop;",
+        "  unsigned char noopIsNoop;",
+        "  Sib sibs[64];",
+        "  std::uint64_t proofRoot[4];",
+        "  unsigned char proofOccupied;",
+        "};",
+        "inline constexpr SmtScenario SMT_SCENARIO = {",
+        f"  {L4(a0)}, {L4(a1)}, {L4(b0)}, {L4(b1)},",
+        f"  {L4(KA)}, {L4(KB)},",
+        f"  {L4(A0)}, {L4(B0)}, {L4(A1)}, {L4(B1)},",
+        f"  {L4(rootA)}, {L4(rootAB)}, {L4(rootA1)}, {L4(rootTX)},",
+        f"  {L4(E[0])}, {L4(E[1])}, {L4(E[2])},",
+        f"  {ALLOC_SIMPLE}ULL, {ALLOC_SIMPLE}ULL, {ALLOC_SIMPLE}ULL, {ALLOC_SIMPLE}ULL, 0ULL,",
+        "  1,",
+        "  {",
+        ",\n".join("    { " + L4(h) + " }" for h in sibs),
+        "  },",
+        f"  {L4(rootTX)},",
+        "  1",
+        "};",
+        "} // namespace hsma::golden"
+    ]
+    
+    path_out = f"{outdir}/smt_golden.hpp"
+    with open(path_out, "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print(f"[emit] {path_out}  (roots A/AB/A1/TX anchored, proof fold verified)")
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -309,6 +434,7 @@ def main():
     emit_rnte_vectors(a.out)
     emit_poseidon(a.out)
     emit_poseidon_goldens(a.out)
+    emit_smt_scenario(a.out)
     print("[done] all constants derived, validated, emitted.")
 
 if __name__ == "__main__":
