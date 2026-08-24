@@ -1,0 +1,7 @@
+build/
+.cache/
+*.o
+*.a
+__pycache__/
+sim_out/
+golden.json.tmp
