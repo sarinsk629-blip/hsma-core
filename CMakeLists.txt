@@ -91,3 +91,16 @@ add_executable(test_step4 conformance/test_step4.cpp)
 target_link_libraries(test_step4 PRIVATE hsma_smt)
 add_dependencies(test_step4 hsma_generated)
 add_test(NAME step4_conformance COMMAND test_step4)
+
+# ══ Step 5: mempool & transaction gate (DEC-119..122) ══
+add_executable(test_step5 conformance/test_step5.cpp)
+target_link_libraries(test_step5 PRIVATE hsma_smt)
+add_dependencies(test_step5 hsma_generated)
+add_test(NAME step5_conformance COMMAND test_step5)
+
+target_link_libraries(diag_step5 PRIVATE hsma_smt)
+add_dependencies(diag_step5 hsma_generated)
+
+add_executable(diag_step5 conformance/diag_step5.cpp)
+target_link_libraries(diag_step5 PRIVATE hsma_smt)
+add_dependencies(diag_step5 hsma_generated)
