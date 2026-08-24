@@ -24,8 +24,7 @@ static bool root_is(const smt::Vault& v, smt::Handle h, const std::uint64_t cano
     if (h == smt::HEMPTY) return false;
     const smt::Entry* e = v.deref(h);
     if (!e) return false;
-    fp::fe mont = smt::Vault::entry_hash(*e);
-    return fe_eq(mont, canon);
+    return fe_eq(smt::Vault::entry_hash(*e), canon);
 }
 
 int main() {
@@ -82,25 +81,24 @@ int main() {
 
     CHECK(vault.fork_epoch(r4.new_root), "epoch fork commit");
 
+    // DEC-134: proofs verify against the RAW DIGEST — no fe, no conversions,
+    // no domain costumes. G.proofRoot IS the boundary representation.
     smt::Prover pv{vault};
-    const fp::fe rootTXm = [&] {
-        std::byte b[32]; std::memcpy(b, G.proofRoot, 32);
-        return fp::fe_from_le_bytes(b).value;
-    }();
 
     auto pa = pv.open(r4.new_root, keyA);
     CHECK(pa.occupied == bool(G.proofOccupied), "proof occupancy");
-    CHECK(smt::verify_opening(rootTXm, keyA, &A1, pa), "opening A verifies");
+    CHECK(smt::verify_opening(G.proofRoot, keyA, &A1, pa), "opening A verifies");
     auto pb = pv.open(r4.new_root, keyB);
-    CHECK(smt::verify_opening(rootTXm, keyB, &B1, pb), "opening B verifies");
+    CHECK(smt::verify_opening(G.proofRoot, keyB, &B1, pb), "opening B verifies");
+
     smt::AccountState forged = A1; forged.bal_mag += 1;
-    CHECK(!smt::verify_opening(rootTXm, keyA, &forged, pa),
+    CHECK(!smt::verify_opening(G.proofRoot, keyA, &forged, pa),
           "forged payload rejected");
     smt::OpeningProof junk{};
     junk.occupied = true; junk.leaf_hash = pa.leaf_hash;
     junk.sib[0] = fp::fe_zero();
     for (int q = 1; q < int(params::SMT_DEPTH); ++q) junk.sib[q] = pa.sib[q];
-    CHECK(!smt::verify_opening(rootTXm, keyA, &A1, junk),
+    CHECK(!smt::verify_opening(G.proofRoot, keyA, &A1, junk),
           "tampered sibling rejected");
 
     { smt::Vault v2; CHECK(v2.open(dir), v2.last_error().c_str());

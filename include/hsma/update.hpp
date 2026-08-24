@@ -141,7 +141,7 @@ public:
             const bool  bit = (idx >> lvl) & 1;
             if (child == HEMPTY && sr.sib == HEMPTY) {
                 ++res.stats.wedges_elided;
-                child_hash = v_.empty_table()[std::size_t(lvl) + 1];
+                child_hash = v_.empty_table()[std::size_t(lvl)]; // E[lvl]: python-parity height
                 continue;
             }
             const fp::fe cand = bit
@@ -204,7 +204,11 @@ private:
     Vault& v_;
 };
 
-inline bool verify_opening(const fp::fe& expected_root, const fp::fe& key,
+// CONTRACT (DEC-134, supersedes DEC-133): expected_root is a RAW DIGEST —
+// canonical limbs passed as uint64_t[4]. Roots NEVER travel as fe; there is
+// no Montgomery/canonical ambiguity possible at this boundary.
+inline bool verify_opening(const std::uint64_t expected_root[4],
+                           const fp::fe& key,
                            const AccountState* st, const OpeningProof& pr) {
     fp::fe acc;
     if (pr.occupied != (st != nullptr)) return false;
@@ -222,7 +226,8 @@ inline bool verify_opening(const fp::fe& expected_root, const fp::fe& key,
         acc = ((idx >> lvl) & 1)
             ? fp::poseidon3(dom::Dom::IV_STATE_NODE, pr.sib[lvl], acc)
             : fp::poseidon3(dom::Dom::IV_STATE_NODE, acc, pr.sib[lvl]);
-    return acc == fp::fe_to_canonical(expected_root);
+    return std::memcmp(fp::fe_to_canonical(acc).l.data(),
+                       expected_root, 32) == 0;
 }
 
 } // namespace hsma::smt
