@@ -8,7 +8,7 @@
 #include <filesystem>
 
 using namespace hsma;
-static void hex(const char* lbl, const unsigned long long* l) {
+static void hex(const char* lbl, const std::uint64_t* l) {
     std::printf("%s = 0x%016llx%016llx%016llx%016llx\n", lbl,
         (unsigned long long)l[3],(unsigned long long)l[2],
         (unsigned long long)l[1],(unsigned long long)l[0]);

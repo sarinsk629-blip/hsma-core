@@ -98,9 +98,9 @@ target_link_libraries(test_step5 PRIVATE hsma_smt)
 add_dependencies(test_step5 hsma_generated)
 add_test(NAME step5_conformance COMMAND test_step5)
 
-target_link_libraries(diag_step5 PRIVATE hsma_smt)
-add_dependencies(diag_step5 hsma_generated)
 
+
+# ══ Step-5 diagnostic instrument (self-authenticating: prints VERDICT:) ══
 add_executable(diag_step5 conformance/diag_step5.cpp)
 target_link_libraries(diag_step5 PRIVATE hsma_smt)
 add_dependencies(diag_step5 hsma_generated)
