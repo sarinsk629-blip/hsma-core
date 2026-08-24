@@ -45,6 +45,11 @@ set(GEN_OUTPUTS
     ${GEN_DIR}/field_golden.hpp
     ${GEN_DIR}/rnte_golden.hpp)
 
+set(GEN_OUTPUTS ${GEN_OUTPUTS}
+    ${GEN_DIR}/poseidon_params_gen.hpp
+    ${GEN_DIR}/domain_registry_gen.hpp
+    ${GEN_DIR}/poseidon_golden.hpp)
+
 add_custom_command(
     OUTPUT  ${GEN_OUTPUTS}
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_constants.py
@@ -68,3 +73,8 @@ add_executable(test_step2 conformance/test_step2.cpp)
 target_link_libraries(test_step2 PRIVATE hsma_fp hsma_numcore)
 add_dependencies(test_step2 hsma_generated)
 add_test(NAME step2_conformance COMMAND test_step2)
+
+add_executable(test_step3 conformance/test_step3.cpp)
+target_link_libraries(test_step3 PRIVATE hsma_fp hsma_numcore)
+add_dependencies(test_step3 hsma_generated)
+add_test(NAME step3_conformance COMMAND test_step3)

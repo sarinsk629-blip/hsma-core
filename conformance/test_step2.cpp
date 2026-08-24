@@ -1,7 +1,7 @@
 // Step-2 conformance: generated goldens vs kernels. Any mismatch = build fails.
 #include <hsma/params.hpp>
 #include <pallas_params_gen.hpp>
-#include "../libhsma_fp/fe.hpp"
+#include <hsma/fe.hpp>
 #include "../libhsma_numcore/scratch127.hpp"
 #include "field_golden.hpp"
 #include "rnte_golden.hpp"

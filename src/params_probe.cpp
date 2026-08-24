@@ -18,8 +18,6 @@ int main() {
                 (long long)THETA_PER_SEC_NOMINAL,
                 (long long)EXEC_STEPS_NOMINAL, (long long)MAX_BATCH_ENTRIES,
                 (long long)EPOCH_SECONDS);
-    std::printf("registry           : %zu domain names, uniqueness proven\n",
-                DOM_REGISTRY.size());
     std::printf("golden params      : %s\n",
                 GOLDEN_PARAMS_PINNED ? "PINNED" : "AWAITING PHASE-1 SIMULATION");
     // Percentages above are printf cosmetics ONLY — all arithmetic in this

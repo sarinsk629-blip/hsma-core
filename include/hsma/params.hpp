@@ -245,49 +245,12 @@ static_assert(DELTA_FOLD_BP_OF_POOL <= BP_ONE && INFORMER_REWARD_BP <= BP_ONE);
 // §8  DOMAIN-SEPARATION REGISTRY  (PF-5 mechanized — autonomous addition A2)
 //     One registry. One uniqueness theorem. Zero scatter.
 // ─────────────────────────────────────────────────────────────────────────
-enum class DomKind : std::uint8_t { SignatureTag, HashIV };
-
-struct DomName { std::string_view name; DomKind kind; };
-
-inline constexpr std::array<DomName, 33> DOM_REGISTRY{{
-    // signature / transcript tags
-    {"HSM_MSSC_VOTE_v1",   DomKind::SignatureTag},
-    {"HSM_ORDER_v1",       DomKind::SignatureTag},
-    {"HSM_DEC_SHARE_v2",   DomKind::SignatureTag},
-    {"HSM_TX_AUTH_v1",     DomKind::SignatureTag},
-    {"HSM_BEACON_MSG_v1",  DomKind::SignatureTag},
-    {"HSM_BEACON_OUT_v1",  DomKind::SignatureTag},
-    {"HSM_CERT_v1",        DomKind::SignatureTag},
-    {"HSM_BIND_v1",        DomKind::SignatureTag},
-    {"HSM_SORTITION_v1",   DomKind::SignatureTag},
-    {"HSM_PEERSEED_v1",    DomKind::SignatureTag},
-    {"HSM_FOLD_v1",        DomKind::SignatureTag},
-    {"HSM_CYCLEFOLD_v1",   DomKind::SignatureTag},
-    {"HSM_DIGEST_v1",      DomKind::SignatureTag},
-    {"HSM_PT_v1",          DomKind::SignatureTag},
-    {"HSM_MODEL_v1",       DomKind::SignatureTag},
-    {"HSM_DEM_v1",         DomKind::SignatureTag},
-    {"HSM_TXID_v1",        DomKind::SignatureTag},
-    {"HSM_AEAD_AES",       DomKind::SignatureTag},
-    {"HSM_AEAD_CHACHA",    DomKind::SignatureTag},
-    // hash IVs
-    {"IV_STATE_NODE",  DomKind::HashIV}, {"IV_STATE_LEAF", DomKind::HashIV},
-    {"IV_ORDER",       DomKind::HashIV}, {"IV_DECREE",     DomKind::HashIV},
-    {"IV_WEIGHT",      DomKind::HashIV}, {"IV_CONTACT",    DomKind::HashIV},
-    {"IV_REVOCATION",  DomKind::HashIV}, {"IV_TABLE_REG",  DomKind::HashIV},
-    {"IV_SEED",        DomKind::HashIV}, {"IV_IDENT",      DomKind::HashIV},
-    {"IV_CONFLICT",    DomKind::HashIV}, {"IV_TXID",       DomKind::HashIV},
-    {"IV_BREAKER",     DomKind::HashIV}, {"IV_FIDELITY",   DomKind::HashIV},
-}};
-
-constexpr bool registry_names_unique() {
-    for (std::size_t i = 0; i < DOM_REGISTRY.size(); ++i)
-        for (std::size_t j = i + 1; j < DOM_REGISTRY.size(); ++j)
-            if (DOM_REGISTRY[i].name == DOM_REGISTRY[j].name) return false;
-    return true;
-}
-static_assert(registry_names_unique(),
-              "DOMAIN-SEPARATION COLLISION — severity-one defect (PF-5 class)");
+// ─────────────────────────────────────────────────────────────────────────
+// §8  DOMAIN-SEPARATION REGISTRY — RELOCATED (DEC-109)
+//     Sole authority: scripts/gen_constants.py → domain_registry_gen.hpp.
+//     This file intentionally holds NO tag list. Uniqueness is proven in the
+//     generated header; drift between languages is structurally impossible.
+// ─────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────
 // §9  GOLDEN-PARAMETER SLOTS  (DEC-091 — wind-tunnel outputs; NOT yet pinned)
