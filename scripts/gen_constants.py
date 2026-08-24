@@ -423,6 +423,203 @@ def emit_smt_scenario(outdir: str):
         f.write("\n".join(lines) + "\n")
     print(f"[emit] {path_out}  (roots A/AB/A1/TX anchored, proof fold verified)")
 
+# ═══════════════════════════════════════════════════════════════════════════
+#  STEP 6 APPEND — MSSC reference automaton + golden trace (DEC-136..139, E-7)
+# ═══════════════════════════════════════════════════════════════════════════
+import bisect
+
+CONS_NV, CONS_NHON      = 48, 38
+CONS_W_HON, CONS_W_ADV  = 100, 10
+CONS_EPOCH              = 7
+K_BASE, K_ESC, K_ESC_AT = 20, 40, 1000
+BETA, STALL_LIM         = 150, 50
+PHI_BP, ALPHA_BP        = 5000, 7500
+GRACE_MS                = 400
+TAG_SEED   = b"HSM_PEERSEED_v1"
+TAG_BEACON = b"HSM_SIM_BEACON_v1"
+
+K_FLOOR, K_NOQ, K_SWITCH, K_CONF = 0, 1, 2, 3
+F_FINAL, F_SUSP                  = 4, 8
+
+def _u64(x): return x.to_bytes(8, "little")
+def _dw(seed, ctr): return int.from_bytes(
+    hashlib.sha256(seed + _u64(ctr)).digest()[:8], "little")
+
+def _cons_static():
+    vid  = [hashlib.sha256(b"HSMA-VAL" + _u64(i)).digest() for i in range(CONS_NV)]
+    wt   = [CONS_W_HON if i < CONS_NHON else CONS_W_ADV for i in range(CONS_NV)]
+    T    = sum(wt)
+    wr   = hashlib.sha256(b"".join(vid[i] + _u64(wt[i])
+                                   for i in range(CONS_NV))).digest()
+    txh  = hashlib.sha256(b"HSMA-TX"  + _u64(1)).digest()
+    txa  = hashlib.sha256(b"HSMA-TX"  + _u64(2)).digest()
+    cid  = [hashlib.sha256(b"HSMA-CID" + _u64(11 + i)).digest() for i in range(3)]
+    b1   = hashlib.sha256(TAG_BEACON + _u64(CONS_EPOCH)     + bytes(32)).digest()
+    b2   = hashlib.sha256(TAG_BEACON + _u64(CONS_EPOCH + 1) + b1).digest()
+    return vid, wt, T, wr, txh, txa, cid, b1, b2
+
+class RefAuto:
+    """Python mirror of hsma::consensus::Automaton — byte-exact semantics."""
+    def __init__(s):
+        s.vid, s.wt, s.T, s.wroot, s.txh, s.txa, s.cid, s.b1, s.b2 = _cons_static()
+        s.cum, t = [], 0
+        for w in s.wt: t += w; s.cum.append(t)
+        s.self_row = 0                                  # observer = validator 0
+    def draw(s, seed, k):
+        seen, out, ctr = set(), [], 0
+        while len(out) < k:
+            pick = _dw(seed, ctr) % s.T; ctr += 1
+            i = bisect.bisect_right(s.cum, pick)
+            if i == s.self_row or i in seen: continue
+            seen.add(i); out.append(i)
+        return out
+    def tick(s, st, cid, beacon, pool):
+        # st = dict(rounds, pref, conf, stall, state)
+        if st["state"] != "A": return None
+        st["rounds"] += 1
+        rnd = st["rounds"]
+        k = K_ESC if rnd >= K_ESC_AT else K_BASE
+        seed = TAG_SEED + _u64(CONS_EPOCH) + s.wroot + beacon + cid \
+             + _u64(rnd) + s.vid[s.self_row]
+        S, tal = 0, {}
+        for i in s.draw(seed, k):
+            v = pool.get(i)
+            if v is None: continue
+            if v["epoch"] != CONS_EPOCH or v["wroot"] != s.wroot: continue
+            if v["cid"] != cid          or v["round"] != rnd:        continue
+            S += s.wt[i]
+            tal[v["pref"]] = tal.get(v["pref"], 0) + s.wt[i]
+        fl_n, fl_d = PHI_BP * k * s.T, 10000 * CONS_NV      # S*fl_d >= fl_n
+        row_kind = None
+        if S * 10000 * CONS_NV < fl_n:
+            st["conf"] = 0; st["stall"] += 1; row_kind = K_FLOOR
+        else:
+            best = sorted(tal.items(), key=lambda kv: (-kv[1], kv[0]))[0]
+            if best[1] * 10000 >= ALPHA_BP * S:
+                st["stall"] = 0
+                if best[0] == st["pref"]:
+                    st["conf"] += 1; row_kind = K_CONF
+                else:
+                    st["pref"] = best[0]; st["conf"] = 1; row_kind = K_SWITCH
+            else:
+                st["conf"] = 0; st["stall"] += 1; row_kind = K_NOQ
+        fin = st["conf"] >= BETA
+        sus = st["stall"] >= STALL_LIM
+        if fin: st["state"] = "F"
+        elif sus: st["state"] = "S"
+        return (row_kind | (F_FINAL if fin else 0) | (F_SUSP if sus else 0),
+                st["conf"], st["stall"], S, k)
+    @staticmethod
+    def breaker(frozen, beacon):
+        hs = [(hashlib.sha256(beacon + f).digest(), f) for f in frozen]
+        hs.sort(key=lambda p: p[0])                          # byte-lex asc
+        return hs[-1][1]                                     # argmax
+    @staticmethod
+    def stagger(beacon, cid):
+        return int.from_bytes(hashlib.sha256(beacon + cid).digest()[:8],
+                              "little") % GRACE_MS
+
+def emit_consensus_scenario(outdir: str):
+    """Realized-trace goldens (DEC-139) with CA-120 brace law enforced."""
+    au = RefAuto()
+    def H(b): return "".join(f"0x{x:02x}," for x in b).rstrip(",")
+
+    def mkpool(pairs):
+        return {i: {"epoch": CONS_EPOCH, "wroot": au.wroot, "cid": None,
+                    "round": 0, "pref": p} for i, p in pairs}
+
+    st1 = {"rounds": 0, "pref": au.txh, "conf": 0, "stall": 0, "state": "A"}
+    pool1 = mkpool([(i, au.txh if i < CONS_NHON else au.txa)
+                    for i in range(CONS_NV)])
+    tr1, fin_r = [], None
+    for r in range(1, 401):
+        for v in pool1.values(): v["cid"], v["round"] = au.cid[0], r
+        row = au.tick(st1, au.cid[0], au.b1, pool1)
+        tr1.append(row)
+        if st1["state"] == "F": fin_r = r; break
+    assert fin_r and st1["pref"] == au.txh
+
+    st2 = {"rounds": 0, "pref": au.txh, "conf": 0, "stall": 0, "state": "A"}
+    pool2 = mkpool([(i, au.txa) for i in range(CONS_NHON, CONS_NV)])
+    tr2, sus_r = [], None
+    for r in range(1, 151):
+        for v in pool2.values(): v["cid"], v["round"] = au.cid[1], r
+        row = au.tick(st2, au.cid[1], au.b1, pool2)
+        tr2.append(row)
+        if st2["state"] == "S": sus_r = r; break
+    assert sus_r and st2["stall"] >= STALL_LIM
+
+    winner = RefAuto.breaker([au.txh, au.txa], au.b2)
+    delay  = RefAuto.stagger(au.b2, au.cid[1])
+
+    st3 = {"rounds": 0, "pref": au.txh, "conf": 0, "stall": 0, "state": "A"}
+    want = [1, 2, 999, 1000, 1001, 1200]
+    tr3 = []
+    for r in range(1, 1201):
+        pref = au.txh if r % 2 == 1 else au.txa
+        pool3 = mkpool([(i, pref) for i in range(CONS_NHON)])
+        for v in pool3.values(): v["cid"], v["round"] = au.cid[2], r
+        row = au.tick(st3, au.cid[2], au.b1, pool3)
+        if r in want: tr3.append((r, row))
+    assert st3["state"] == "A"
+
+    N = str(CONS_NV)
+    cid_rows = ",".join("{" + H(c) + "}" for c in au.cid)          # '{a},{b},{c}'
+    out = ["// GENERATED FILE - consensus_golden.hpp (realized trace)",
+           "#pragma once", "#include <array>", "#include <cstdint>",
+           "namespace hsma::golden {",
+           "struct TickRow { std::uint8_t kind; std::uint32_t conf, stall;",
+           "                 std::uint64_t s, k; };",
+           "inline constexpr std::uint64_t G_W[" + N + "]{"
+               + ",".join(str(w) for w in au.wt) + "};",
+           "inline constexpr std::uint64_t G_T=" + str(au.T)
+               + ", G_EPOCH=" + str(CONS_EPOCH) + ";",
+           "inline constexpr std::uint8_t G_VID[" + N + "][32]{"
+               + ",".join("{" + H(v) + "}" for v in au.vid) + "};",
+           "inline constexpr std::uint8_t G_WROOT[32]{" + H(au.wroot) + "};",
+           "inline constexpr std::uint8_t G_TXH[32]{" + H(au.txh) + "};",
+           "inline constexpr std::uint8_t G_TXA[32]{" + H(au.txa) + "};",
+           "inline constexpr std::uint8_t G_CID[3][32]{" + cid_rows + "};",
+           "inline constexpr std::uint8_t G_B1[32]{" + H(au.b1) + "};",
+           "inline constexpr std::uint8_t G_B2[32]{" + H(au.b2) + "};",
+           "inline constexpr TickRow G_C1[" + str(len(tr1)) + "]{"]
+    out += ["{%d,%d,%d,%d,%d}," % t for t in tr1]
+    out += ["};",
+            "inline constexpr std::uint32_t G_C1_FIN=" + str(fin_r) + ";",
+            "inline constexpr TickRow G_C2[" + str(len(tr2)) + "]{"]
+    out += ["{%d,%d,%d,%d,%d}," % t for t in tr2]
+    out += ["};",
+            "inline constexpr std::uint32_t G_C2_SUS=" + str(sus_r) + ";",
+            "inline constexpr std::uint32_t G_C3_AT[6]{"
+                + ",".join(str(r) for r, _ in tr3) + "};",
+            "inline constexpr TickRow G_C3[6]{"]
+    out += ["{%d,%d,%d,%d,%d}," % t for _, t in tr3]
+    out += ["};",
+            "inline constexpr std::uint8_t G_WINNER[32]{" + H(winner) + "};",
+            "inline constexpr std::uint64_t G_DELAY=" + str(delay) + "ull;",
+            "} // namespace hsma::golden"]
+
+    text = "\n".join(out) + "\n"
+
+    # ── BRACE LAW v3 (DEC-146): grammar-aware, compiler-aligned ──
+    import re as _re
+    if "{{{" in text:
+        sys.exit("BRACE LAW: triple opener present")
+    for _m in _re.finditer(r"\w+\[\d+\](?:\[\d+\])?\{", text):
+        # 1-D array ([N]{) followed by '{'  -> illegal doubling.
+        # 2-D array ([N][M]{) followed by '{' -> mandatory nesting syntax.
+        if _m.group(0).count("[") == 1 and text[_m.end():_m.end()+1] == "{":
+            _ln = text[:_m.start()].count("\n") + 1
+            sys.exit(f"BRACE LAW: 1-D array doubled opener at line {_ln}")
+    if text.count("{") != text.count("}"):
+        sys.exit("BRACE LAW: unbalanced braces")
+
+    path = f"{outdir}/consensus_golden.hpp"
+    with open(path, "w") as f: f.write(text)
+    print(f"[emit] {path}  (C1 fin@{fin_r}, C2 sus@{sus_r}, "
+          f"winner={'H' if winner==au.txh else 'A'}, delay={delay})")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -435,7 +632,11 @@ def main():
     emit_poseidon(a.out)
     emit_poseidon_goldens(a.out)
     emit_smt_scenario(a.out)
+    emit_consensus_scenario(a.out)
     print("[done] all constants derived, validated, emitted.")
+
 
 if __name__ == "__main__":
     main()
+
+

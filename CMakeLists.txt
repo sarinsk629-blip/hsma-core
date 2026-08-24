@@ -104,3 +104,15 @@ add_test(NAME step5_conformance COMMAND test_step5)
 add_executable(diag_step5 conformance/diag_step5.cpp)
 target_link_libraries(diag_step5 PRIVATE hsma_smt)
 add_dependencies(diag_step5 hsma_generated)
+
+# ══ Step 6: MSSC automaton (DEC-136..139) ══
+set(GEN_OUTPUTS ${GEN_OUTPUTS} ${GEN_DIR}/consensus_golden.hpp)
+
+add_executable(diag_step6 conformance/diag_step6.cpp)
+target_link_libraries(diag_step6 PRIVATE hsma_fp)
+add_dependencies(diag_step6 hsma_generated)
+
+add_executable(test_step6 conformance/test_step6.cpp)
+target_link_libraries(test_step6 PRIVATE hsma_fp)
+add_dependencies(test_step6 hsma_generated)
+add_test(NAME step6_conformance COMMAND test_step6)
