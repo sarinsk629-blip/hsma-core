@@ -167,45 +167,45 @@
 ## Audit Finding Cross-Reference (97 Total)
 
 ### CA-Series (77 findings)
-CA-1 through CA-5: Draft review corrections -> DEC-044
-CA-6 [CRITICAL]: Theorem 2.1 false equality -> DEC-045
-CA-12 [CRITICAL]: APPLY_TO_STATE violates Execution Monopoly -> DEC-050
-CA-13 [HIGH]: A6 residual #1 sampler unpinned -> DEC-048
-CA-18 [CRITICAL]: DEC-039 broke M2 liveness -> DEC-054
-CA-19 [CRITICAL]: No user authorization signature -> DEC-055
-CA-20 [HIGH]: KEM type-invalid -> DEC-056
-CA-28 [HIGH]: L5 budget omitted PCS soundness -> DEC-063
-CA-29 [HIGH]: DEC-005 degree-2 fails certification -> DEC-064
-CA-32 [CRITICAL]: PCS layering contradiction -> DEC-071
-CA-45 [HIGH]: Annualized bound stale -> DEC-081
-CA-50 [CRITICAL]: Stale t=128 in liveness monitor -> DEC-087
-CA-55 [CRITICAL]: Directive hype language violates DEC-085 -> DEC-092
-CA-56 [HIGH]: delta_info incorrectly assigned as baseline yield -> DEC-093
-CA-68 [HIGH]: "Published parameterization" contradicts derivation -> DEC-107
-CA-70 [HIGH]: Dual-source registry drift -> DEC-109
-CA-72 [CRITICAL]: Leaf schema index-collision malleability -> DEC-112
-CA-76 [HIGH]: Missing unchanged-subtree short-circuit -> DEC-113
-(All 77 CA findings resolved)
+- CA-1 through CA-5: Draft review corrections -> DEC-044
+- CA-6 [CRITICAL]: Theorem 2.1 false equality -> DEC-045
+- CA-12 [CRITICAL]: APPLY_TO_STATE violates Execution Monopoly -> DEC-050
+- CA-13 [HIGH]: A6 residual #1 sampler unpinned -> DEC-048
+- CA-18 [CRITICAL]: DEC-039 broke M2 liveness -> DEC-054
+- CA-19 [CRITICAL]: No user authorization signature -> DEC-055
+- CA-20 [HIGH]: KEM type-invalid -> DEC-056
+- CA-28 [HIGH]: L5 budget omitted PCS soundness -> DEC-063
+- CA-29 [HIGH]: DEC-005 degree-2 fails certification -> DEC-064
+- CA-32 [CRITICAL]: PCS layering contradiction -> DEC-071
+- CA-45 [HIGH]: Annualized bound stale -> DEC-081
+- CA-50 [CRITICAL]: Stale t=128 in liveness monitor -> DEC-087
+- CA-55 [CRITICAL]: Directive hype language violates DEC-085 -> DEC-092
+- CA-56 [HIGH]: delta_info incorrectly assigned as baseline yield -> DEC-093
+- CA-68 [HIGH]: "Published parameterization" contradicts derivation -> DEC-107
+- CA-70 [HIGH]: Dual-source registry drift -> DEC-109
+- CA-72 [CRITICAL]: Leaf schema index-collision malleability -> DEC-112
+- CA-76 [HIGH]: Missing unchanged-subtree short-circuit -> DEC-113
+- (All 77 CA findings resolved)
 
 ### PF-Series (9 findings)
-PF-1 [BLOCKER]: LogUp multilinear dimension mismatch -> DEC-006
-PF-2 [BLOCKER]: Self-rejecting eps-gate bounds -> DEC-004, DEC-005
-PF-3 [HIGH]: Accumulator width overflow -> DEC-003
-PF-4 [HIGH]: RNTE tie-breaking underconstrained -> DEC-007
-PF-5 [HIGH]: arch_id string != cryptographic binding -> DEC-008
-(All 9 PF findings resolved)
+- PF-1 [BLOCKER]: LogUp multilinear dimension mismatch -> DEC-006
+- PF-2 [BLOCKER]: Self-rejecting eps-gate bounds -> DEC-004, DEC-005
+- PF-3 [HIGH]: Accumulator width overflow -> DEC-003
+- PF-4 [HIGH]: RNTE tie-breaking underconstrained -> DEC-007
+- PF-5 [HIGH]: arch_id string != cryptographic binding -> DEC-008
+- (All 9 PF findings resolved)
 
 ### SE-Series (10 findings)
-SE-1 [CRITICAL]: Cobb-Douglas Sybil-splitting neutral -> DEC-013
-SE-2 [CRITICAL]: Cap fixpoint non-determinism -> DEC-012
-SE-4 [CRITICAL]: Self-dealing Phi farming -> DEC-014
-SE-6 [CRITICAL]: Non-canonical equivocation preimage slashes honest nodes -> DEC-016
-(All 10 SE findings resolved)
+- SE-1 [CRITICAL]: Cobb-Douglas Sybil-splitting neutral -> DEC-013
+- SE-2 [CRITICAL]: Cap fixpoint non-determinism -> DEC-012
+- SE-4 [CRITICAL]: Self-dealing Phi farming -> DEC-014
+- SE-6 [CRITICAL]: Non-canonical equivocation preimage slashes honest nodes -> DEC-016
+- (All 10 SE findings resolved)
 
 ### PRE-Series (9 findings)
-PRE-1 [CRITICAL]: Phi^6*S^4 overflows scratchpad -> DEC-019
-PRE-M2-1 [CRITICAL]: M1 incompatible with commit-before-decrypt -> DEC-025
-(All 9 PRE findings resolved)
+- PRE-1 [CRITICAL]: Phi^6*S^4 overflows scratchpad -> DEC-019
+- PRE-M2-1 [CRITICAL]: M1 incompatible with commit-before-decrypt -> DEC-025
+- (All 9 PRE findings resolved)
 
 ---
 
