@@ -99,7 +99,7 @@
 | DEC-072 | Storage (P4) | Normative digest schema (fixed offsets, extractable state_root). | Light clients can extract state_root from opaque digest_E. | N/A |
 | DEC-073 | Economics (P4) | Witness-provider bonds; mechanical slash-on-bad-opening. | Witness providers had duties but no bond; now slashable for malformed openings. | DEC-036 (extension) |
 | DEC-074 | Clients (P4) | Wrap mandatory; proof budget 73KB <= cap; conformance bound pre-mainnet. | Proof size claim "<= 128KB" was never budgeted; now line-item budgeted. | N/A |
-| DEC-075 | Incentives (G1) | Shared informer-reward window (60% first / 40% next-seven-in-30s); evidence-hash dedup. | First-submitter bounty was a latency lottery; now softened for fairness. | DEC-023 (distribution clause) |
+| DEC-075 | Incentives (G1) | Shared informer-reward window (60% first / 40% next-seven-in-30s); evidence-hash dedup. | First-submitter bounty was a latency lottery; now softened for fairness. | DEC-023 (distribution_clause) |
 | DEC-076 | Accounting (G1) | All byte budgets restated as rates under epoch = 600s. | Absolute byte budgets predated DEC-070's 600s epoch; dimensionally stale. | G1 Sec 5 absolutes |
 | DEC-077 | Economics (G1) | Normative eps_rate EMA (per-class, 1h half-life, 1%/10min trigger); mechanical vouch-bond claims. | eps_rate had no defined denominator; now per-class EMA with mechanical slashing. | N/A |
 | DEC-078 | Transport (G1) | QUIC-first + hole-punching + Bridge-plane fallback relays; relay multiaddr publication mandatory. | No NAT/firewall traversal spec existed; now QUIC-first with fallback. | N/A |
