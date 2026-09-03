@@ -1,7 +1,39 @@
-build/
-.cache/
+# Prerequisites
+*.d
+# Compiled Object files
+*.slo
+*.lo
 *.o
+*.obj
+# Precompiled Headers
+*.gch
+*.pch
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+# Fortran module files
+*.mod
+*.smod
+# Compiled Static libraries
+*.lai
+*.la
 *.a
+*.lib
+# Executables
+*.exe
+*.out
+*.app
+# Build directories
+build/
+cmake-build-debug/
+cmake-build-release/
+# IDEs
+.vscode/
+.idea/
+# OS
+.DS_Store
+Thumbs.db
+# Python
 __pycache__/
-sim_out/
-golden.json.tmp
+*.pyc
