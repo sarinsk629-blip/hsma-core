@@ -313,8 +313,8 @@ Traditional \textit{Simulate-then-Commit} sequencing requires the committee to r
  $n = 224$ (192 active + 32 standby), $t = 112$. With $f = 0.20$: expected adversary seats $\mu = 44.8$, $\sigma \approx 6.0$.
 
 \begin{itemize}
-    \item Confidentiality breaks at $\ge 128$ colluders ($50\%$): structurally impossible since eligible adversary identities cap at $m \le f/w_{\text{floor}} = 100 < 112$ (DEC-039).
-    \item Decryption halts at $\ge 97$ unavailable seats ($50.4\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 8.7\sigma$ structural margins.
+    \item Confidentiality breaks at $\ge 112$ colluders ($50\%$): structurally impossible since eligible adversary identities cap at $m \le f/w_{\text{floor}} = 100 < 112$ (DEC-039).
+    \item Decryption halts at $\ge 113$ unavailable seats ($50.4\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 12/13-seat (E-2)$ structural margins.
 \end{itemize}
 
 \subsection{Decryption Liveness \& Refund Totality}

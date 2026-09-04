@@ -1,6 +1,6 @@
 # DECISIONS.md — HSMA Protocol Architectural Ledger
 ## Complete Verified Record: DEC-001 through DEC-115
-## Status: RATIFIED v1.0 | A6 CLOSED | GATE GREEN 6/6 (Step 2–6 kernels) | Phase 0 IN PROGRESS | Ledger: DEC-001…115 VERIFIED + Section VII citation-recovered | Reconciled: 2026-09-04
+## Status: RATIFIED v1.0 | A6 CLOSED | GATE GREEN 6/6 (Step 2-6 kernels) | Phase 0 IN PROGRESS | Ledger: DEC-001..115 VERIFIED + Section VII citation-recovered to DEC-180 / CA-135 | Reconciled: 2026-09-04 (2 passes)
 ## Whitepaper: v1.0 Complete (A6 Theory Debt CLOSED)
 ## Audit Trail: 97 audit findings (CA-1 through CA-77, PF-1 through PF-9, SE-1 through SE-10, PRE-1 through PRE-P4-3)
 ## Implementation: GATE GREEN — 6/6 conformance tests passing
@@ -360,3 +360,77 @@ consensus conformance C1/C2/C3, breaker/stagger parity, vault opening-proof nega
 tests, 10th-root engine). Remaining: threshold module (DKG/beacon/order-bound shares),
 G1 transport, HyperNova NIVC circuit, φ₀–φ₇ integration. PHASE 1 NOT ENTERED
 (gate: GOLDEN_PARAMS_PINNED=false, DEC-101). PHASE 3: HSMA-VPIN/markout (DEC-096).
+
+---
+
+## SECTION VII-A — Semantic Anchors (evidence-derived, 2026-09-04, commit 87a3731)
+
+> Derived verbatim from code citations + git commit messages (H1/H2 harvest).
+> Content = exactly what the evidence states; rationale pending source-session ingest.
+> No fabrication (DEC-046/109).
+
+| ID | Anchor | Evidence |
+|---|---|---|
+| DEC-116 | Step-4 hotfix: normative SMT scenario splice; compilable vault/update/test | commit 12389d0 |
+| DEC-119 | Money math = boundedness-proven delta; COST_OVERFLOW / CREDIT_OVERFLOW rejected; all-or-nothing application (no half-applied debit) | tx.hpp:3 · test_step5.cpp:82-100 |
+| DEC-121 | Read binding: stored_key == fe_to_canonical(key) on every read | tx.hpp:51 |
+| DEC-123 | Canonical-at-rest: keys stored canonical, never Montgomery; gate machine-checks the verdict string | update.hpp:125 · diag_step5.cpp:54 · gate.sh:32 · whitepaper.tex:566 |
+| DEC-124 | Batch contract: sorted order == push order | test_step5.cpp:2 |
+| DEC-125 | Whole-file authorship; field proofs BEFORE curve work | bls_derive.cpp:2 |
+| DEC-126 | Slot schema: payload = 126\|1\|64\|1 = 192 bits, exact 24-B window. SUPERSEDES whitepaper 199-bit leaf schema (Errata E-11) | update.hpp:3-4 · commit fc53442 |
+| DEC-127 | Init law: aggregate-init only ({}) — memset after member assignment is a violation (TAG SEVERED) | update.hpp:4,126,132,157 · diag_step5.cpp:51 |
+| DEC-130 | gate.sh institutionalized | commit f9c691c · gate.sh:2 |
+| DEC-131 | Verification-gate authority (v5 header cites DEC-131/132/140/154) | gate.sh:2 |
+| DEC-133 | Superseded root-passing contract (see DEC-134) | update.hpp:207 |
+| DEC-134 | Roots cross module boundaries as RAW DIGESTS — no fe, no conversions; call-site inventory doctrine; kills CA-105 class | update.hpp:207 · test_step4.cpp:84 · commit 75e7227 |
+| DEC-136 | Corrected MSSC automaton family begins (Step 6: DEC-136..141) | consensus.hpp:1 · CMakeLists.txt:108 |
+| DEC-137 | Lead-scan rule | consensus.hpp:145 |
+| DEC-138 | Comparison-branch rule (tied to Step-6 session errata E-7) | consensus.hpp:142 |
+| DEC-139 | Realized-trace goldens in generator (CA-120 brace law enforced) | gen_constants.py:427,523 |
+| DEC-146 | BRACE LAW v3: grammar-aware, compiler-aligned emitted code | gen_constants.py:604 |
+| DEC-153 | Automaton purity: initial opinion is harness input (no internal default) — enables bit-exact golden replay | test_step6.cpp:50,89 |
+| DEC-154 | GATE v5 clean-first — no ghost artifacts survive a run | gate.sh:2 · commit fd9d4c3 |
+| DEC-168 | Silence can never masquerade as a hang — unbuffered stdout mandated | bls_derive.cpp:404 |
+| DEC-172 | Single-division law: /3 folded into constant (xsq->h1) | bls_derive.cpp:180 |
+| DEC-180 | The 8C doubling fix (C8 = madd(QC,C4,C4)) — Root Cause #7 institutionalized as a decision | bls_derive.cpp:359 |
+
+| CA ID | Anchor | Evidence |
+|---|---|---|
+| CA-80 | Naive sum wraps to 0 (HALF+HALF) — COST_OVERFLOW regression | test_step5.cpp:82,90 |
+| CA-81 | Credit crosses ceiling — CREDIT_OVERFLOW regression | test_step5.cpp:83,91 |
+| CA-86 | Reads must work BEFORE any mempool op — early-read regression anchor | test_step5.cpp:48,51 |
+| CA-96 | Step-5: orphan-variable hygiene | commit f9c691c |
+| CA-97 | Step-5: type hygiene | commit f9c691c |
+| CA-105 | Root boundary-conversion defect class — killed by DEC-134 | commit 75e7227 |
+| CA-112 | Beacon seed exactly 159 B, 15-B tag | consensus.hpp:94 |
+| CA-113 | Beacon hash input exactly 57 B (17+8+32) | consensus.hpp:196 |
+| CA-114 | Stagger derives from H(beacon ‖ CONFLICT) — parity fix | consensus.hpp:162 |
+| CA-120 | Brace law enforced on emitted goldens | gen_constants.py:523 |
+| CA-134 | Gate v5 clean-first | commit fd9d4c3 |
+| CA-135 | seedpref (seed-preference) verified idempotent | commit fd9d4c3 |
+
+**Range/slash-implied IDs** (assigned; content pending transcript): DEC-120, DEC-122 (DEC-119..122); DEC-132, DEC-140 (gate.sh v5 header); DEC-141 (DEC-136..141); DEC-162 (DEC-125/162).
+
+**Cross-session consistency:** DEC-112/DEC-113 citations in update.hpp match ledger rows DEC-112/DEC-113 exactly — the 115-row record and Step-4 code agree. Highest cited: **DEC-180 / CA-135**.
+
+---
+
+## RECONCILIATION REGISTER — ADDENDUM (second pass, 2026-09-04)
+
+### Errata E-10 — errata-namespace collision (CA-R8)
+Reconciliation Register E-6/E-7 collide with session-local errata: Step-5 E-6 = 192-bit slot schema (commit fc53442); Step-6 E-7 = automaton erratum (consensus.hpp:142, gen_constants.py:427; content pending). Resolution: reconciliation errata re-designated **ER-6..ER-9** (the earlier labels below stand as history); canonical E-6 = Step-5 slot schema; canonical E-7 = Step-6 erratum.
+
+### Errata E-11 — whitepaper leaf-schema staleness (CA-R9)
+Whitepaper §2.6/§8.3: (mbal[126]‖sbal[1]‖nonce[64]‖flags[8]) = 199 bits. Code DEC-126: 126|1|64|1 = 192 bits, exact 24-B window. Code is authority (DEC-109 doctrine); tex patched in same commit; flags width 8→1.
+
+### CA-R addendum (second pass)
+| ID | Sev | Finding | Resolution |
+|---|---|---|---|
+| CA-R8 | HIGH | Errata ID collision: reconciliation E-6/E-7 vs session-local E-6/E-7 | E-10 re-designation ER-6..ER-9 |
+| CA-R9 | HIGH | Whitepaper leaf schema 199-bit/flags[8] vs code DEC-126 192-bit/flags[1] | E-11 + tex patch |
+| CA-R10 | LOW | Harvest-script SyntaxWarning (\* escape) — cosmetic, output correct | raw strings in future scripts |
+| CA-R11 | LOW | First harvest regex matched only DEC-prefixed tokens; slash/range IDs missed | VII-A range-implied list |
+
+### Status
+Pushed: 87a3731 (Section VII: 22 DEC + 12 CA citation-recovered; ER-6..ER-9; Phase-0 pin; tex t=112 sync).
+True citation ceiling: **DEC-180 / CA-135**. GATE GREEN 6/6 maintained.
