@@ -1,13 +1,50 @@
-# DECISIONS.md — HSMA Protocol Architectural Ledger
-## Complete Verified Record: DEC-001 through DEC-115
-## Status: RATIFIED v1.0 | A6 CLOSED | GATE GREEN 6/6 (Step 2-6 kernels) | Phase 0 IN PROGRESS | Ledger: DEC-001..115 VERIFIED + Section VII citation-recovered to DEC-180 / CA-135 | Reconciled: 2026-09-04 (2 passes)
-## Whitepaper: v1.0 Complete (A6 Theory Debt CLOSED)
-## Audit Trail: 97 audit findings (CA-1 through CA-77, PF-1 through PF-9, SE-1 through SE-10, PRE-1 through PRE-P4-3)
-## Implementation: GATE GREEN — 6/6 conformance tests passing
+<div align="center">
+
+# 🏛 HSMA — DECISION LEDGER
+### Holographic Spin-Manifold Architecture · `DECISIONS.md`
+
+**Every claim traceable to a decision ID · every decision carries its rationale and supersession chain**
+
+*Append-only discipline (DEC-046/109) — corrections travel as errata, never as rewrites*
+
+</div>
 
 ---
 
-### SECTION I: Core Cryptographic Specifications (DEC-001 to DEC-039)
+## LEDGER STATUS
+
+| Field | Value |
+|---|---|
+| Baseline | v1.0 Ratified |
+| Whitepaper | v1.0 — A6 Theory Debt CLOSED (all 6 obligations) |
+| Implementation | GATE GREEN — 6/6 conformance tests (Steps 2–6 kernels) |
+| Phase | **0 — bare-metal core, IN PROGRESS** (Phase 1 gate: `GOLDEN_PARAMS_PINNED=false`, DEC-101) |
+| Verified rows | DEC-001 … DEC-115 |
+| Citation-recovered | Section VII — DEC-116 … DEC-180 · CA-78 … CA-135 |
+| Findings register | CA-001…CA-135 · PF-1…PF-9 · SE-1…SE-10 · PRE series · CA-R series |
+| Errata | E-1 … E-11 |
+| Last restructured | 2026-09-04 |
+
+---
+
+## TABLE OF CONTENTS
+
+| § | Section | IDs | Rows |
+|---|---|---|---|
+| I | Core Cryptographic Specifications | DEC-001–039 | 39 |
+| II | Whitepaper Deep Audit Decisions | DEC-040–068 | 29 |
+| III | Network, Folding & Security Composition | DEC-069–086 | 18 |
+| IV | Implementation & Economics Layer | DEC-087–097 | 11 |
+| V | Bare-Metal Implementation Steps 1–2 | DEC-098–106 | 9 |
+| VI | Poseidon, Vault & State Backend | DEC-107–115 | 9 |
+| VII | Implementation-Session Decisions (citation-recovered) | DEC-116–180 | 22 + 12 CA |
+| — | Audit Finding Cross-Reference (CA · PF · SE · PRE) | — | 97 findings |
+| — | Errata Register · A6 Track · Implementation Verification | — | — |
+| — | Reconciliation Register (Errata · CA-R series · Phase pin) | — | — |
+
+---
+
+## SECTION I — Core Cryptographic Specifications (DEC-001 to DEC-039)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -53,7 +90,7 @@
 
 ---
 
-### SECTION II: Whitepaper Deep Audit Decisions (DEC-040 to DEC-068)
+## SECTION II — Whitepaper Deep Audit Decisions (DEC-040 to DEC-068)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -89,7 +126,7 @@
 
 ---
 
-### SECTION III: Network, Folding, and Security Composition (DEC-069 to DEC-086)
+## SECTION III — Network, Folding, and Security Composition (DEC-069 to DEC-086)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -114,7 +151,7 @@
 
 ---
 
-### SECTION IV: Implementation and Economics Layer (DEC-087 to DEC-097)
+## SECTION IV — Implementation and Economics Layer (DEC-087 to DEC-097)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -132,7 +169,7 @@
 
 ---
 
-### SECTION V: Bare-Metal Implementation Steps (DEC-098 to DEC-106)
+## SECTION V — Bare-Metal Implementation Steps (DEC-098 to DEC-106)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -148,7 +185,7 @@
 
 ---
 
-### SECTION VI: Poseidon, Vault, and State Backend (DEC-107 to DEC-115)
+## SECTION VI — Poseidon, Vault, and State Backend (DEC-107 to DEC-115)
 
 | ID | Component | Decision | Rationale | Supersedes |
 |---|---|---|---|---|
@@ -234,8 +271,6 @@
 
 ---
 
-## Implementation Verification Status
-
 | Component | Test | Status |
 |---|---|---|
 | Field Arithmetic (Pallas/Vesta) | 2,472 golden vectors | PASS |
@@ -256,8 +291,6 @@
 
 ---
 
-## Whitepaper Status
-
 Whitepaper v1.0 is COMPLETE and RATIFIED.
 - A6 Theory Debt: ALL 6 OBLIGATIONS CLOSED
 - eps_sys approx 2^-110 per epoch (assumption-dominated)
@@ -268,7 +301,9 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 
 ---
 
-# SECTION VII — IMPLEMENTATION-SESSION DECISIONS: RECOVERED FROM CODE (2026-09-04)
+---
+
+## SECTION VII — IMPLEMENTATION-SESSION DECISIONS: RECOVERED FROM CODE (2026-09-04)
 
 > Founder sighting of DEC-154/CA-134 RESOLVED: the Step-2…6 implementation sessions numbered
 > decisions past 115 and cited them in C++ sources, git messages, and GATE transcripts —
@@ -277,7 +312,7 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 > (fabrication prohibited: DEC-046/DEC-109). Gap IDs = cited nowhere = unrecoverable
 > until source sessions are pasted. Code is authority (DEC-109); this register indexes it.
 
-## DEC-116 … DEC-180 — recovered: 22 IDs; unrecovered in range: [117, 118, 120, 122, 128, 129, 132, 135, 140, 141, 142, 143, 144, 145, 147, 148, 149, 150, 151, 152, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 169, 170, 171, 173, 174, 175, 176, 177, 178, 179]
+### DEC-116 … DEC-180 — recovered: 22 IDs; unrecovered in range: 117, 118, 120, 122, 128, 129, 132, 135, 140, 141, 142, 143, 144, 145, 147, 148, 149, 150, 151, 152, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 169, 170, 171, 173, 174, 175, 176, 177, 178, 179
 
 | ID | Component (inferred) | Evidence (verbatim from code/git) | Cited in | Status |
 |---|---|---|---|---|
@@ -304,7 +339,7 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 | DEC-172 | Unattributed (pending transcript) | // DEC-172 SINGLE-DIVISION LAW: the /3 already happened (xsq->h1). (CONTEXT) | bls_derive.cpp | CITATION-RECOVERED |
 | DEC-180 | Unattributed (pending transcript) | const fe6 C8=madd(QC,C4,C4);                       // EXACTLY 8C (DEC-180) (CONTEXT) | bls_derive.cpp | CITATION-RECOVERED |
 
-## CA-78 … CA-135 — recovered: 12 IDs
+### CA-78 … CA-135 — recovered: 12 IDs
 
 | ID | Evidence (verbatim) | Cited in | Status |
 |---|---|---|---|
@@ -321,29 +356,29 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 | CA-134 | fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) | git-log | CITATION-RECOVERED |
 | CA-135 | fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) | git-log | CITATION-RECOVERED |
 
-## Semantic anchors (unambiguous, from code evidence)
+### Semantic anchors (unambiguous, from code evidence)
 - **DEC-153** (test_step6.cpp ×2, gist verbatim: "initial opinion is harness input"): consensus Automaton is a PURE function — View.preference is explicit caller input, no internal default — required for bit-exact golden-trace replay (extends DEC-091/102 to consensus).
 - **DEC-123** (GATE verdict: "canonical-at-rest (DEC-123 held)"): vault stores canonical-form entries at rest; invariant machine-verified (extends DEC-105 to storage).
 
-## Restore protocol
+### Restore protocol
 Paste the Step-2…6 implementation-session transcripts (chats that produced these IDs) →
 adversarial verification → full rows replace CITATION-RECOVERED status. Until then, no
 rationale is invented for any row above.
 
-
 ---
 
-# RECONCILIATION REGISTER — 2026-09-04
+## RECONCILIATION REGISTER — 2026-09-04
 
 > APPEND-ONLY (DEC-046/109/043). Historical rows above are never rewritten; corrections
 > travel as errata.
 
-## Errata E-6 — DEC-ID collisions: DEC-038 canonical = floor invariant φ_floor > f/α (whitepaper §4.3); G1 row re-designated **DEC-038-G1**. DEC-039 canonical = structural floor m_adv ≤ 100 < t (§7.3/§10.4); A6 row re-designated **DEC-039-A6**. Historical rows preserved.
-## Errata E-7 — ε line items: authoritative = whitepaper.tex v1.0 final (DEC-063/071): L5=2⁻¹²⁸, L6=2⁻¹²⁷; merged-edition 2⁻¹⁹³/2⁻¹⁹⁶ superseded; ε_sys ≈ 2⁻¹¹⁰/epoch unchanged (H1-dominated).
-## Errata E-8 — committee: **t=112 of n=224, halt=113** (DEC-054→DEC-087); margins 12/13 (E-2). Whitepaper patched same commit; DEC-028 row stands as history.
-## Errata E-9 — notation: DEC-004 sigmoid domain ±2^8 ("±28" = superscript-flattening artifact); RC-#8 canonical: sc-loop Pmul cost > 90s timeout (fixtures 30→3); tonelli_q-loop hypothesis instrumented, NOT confirmed.
+### Errata E-6 — DEC-ID collisions: DEC-038 canonical = floor invariant φ_floor > f/α (whitepaper §4.3); G1 row re-designated **DEC-038-G1**. DEC-039 canonical = structural floor m_adv ≤ 100 < t (§7.3/§10.4); A6 row re-designated **DEC-039-A6**. Historical rows preserved.
+### Errata E-7 — ε line items: authoritative = whitepaper.tex v1.0 final (DEC-063/071): L5=2⁻¹²⁸, L6=2⁻¹²⁷; merged-edition 2⁻¹⁹³/2⁻¹⁹⁶ superseded; ε_sys ≈ 2⁻¹¹⁰/epoch unchanged (H1-dominated).
+### Errata E-8 — committee: **t=112 of n=224, halt=113** (DEC-054→DEC-087); margins 12/13 (E-2). Whitepaper patched same commit; DEC-028 row stands as history.
+### Errata E-9 — notation: DEC-004 sigmoid domain ±2^8 ("±28" = superscript-flattening artifact); RC-#8 canonical: sc-loop Pmul cost > 90s timeout (fixtures 30→3); tonelli_q-loop hypothesis instrumented, NOT confirmed.
 
-## CA-R Series — reconciliation findings
+### CA-R Series — reconciliation findings
+
 | ID | Sev | Finding | Resolution |
 |---|---|---|---|
 | CA-R1 | HIGH | t=128 prose drift vs DEC-054/087 | Errata E-8 + tex patch |
@@ -354,7 +389,7 @@ rationale is invented for any row above.
 | CA-R6 | LOW | Notation ambiguities | Errata E-9 |
 | CA-R7 | HIGH | **Process defect (this session): INSPECT grep filtered \*.md/\*.txt only — missed \*.cpp/\*.hpp citations; produced false "max=DEC-115" conclusion** | Full-spectrum harvest (all file types + git log) is now mandatory for any ledger range query |
 
-## Phase Status Pin (DEC-089/091/094/096/101)
+### Phase Status Pin (DEC-089/091/094/096/101)
 **PHASE 0 — IN PROGRESS.** Done: Steps 1–6 kernels GATE GREEN 6/6 (incl. full-trace
 consensus conformance C1/C2/C3, breaker/stagger parity, vault opening-proof negative
 tests, 10th-root engine). Remaining: threshold module (DKG/beacon/order-bound shares),
@@ -417,13 +452,14 @@ G1 transport, HyperNova NIVC circuit, φ₀–φ₇ integration. PHASE 1 NOT ENT
 
 ## RECONCILIATION REGISTER — ADDENDUM (second pass, 2026-09-04)
 
-### Errata E-10 — errata-namespace collision (CA-R8)
+#### Errata E-10 — errata-namespace collision (CA-R8)
 Reconciliation Register E-6/E-7 collide with session-local errata: Step-5 E-6 = 192-bit slot schema (commit fc53442); Step-6 E-7 = automaton erratum (consensus.hpp:142, gen_constants.py:427; content pending). Resolution: reconciliation errata re-designated **ER-6..ER-9** (the earlier labels below stand as history); canonical E-6 = Step-5 slot schema; canonical E-7 = Step-6 erratum.
 
-### Errata E-11 — whitepaper leaf-schema staleness (CA-R9)
+#### Errata E-11 — whitepaper leaf-schema staleness (CA-R9)
 Whitepaper §2.6/§8.3: (mbal[126]‖sbal[1]‖nonce[64]‖flags[8]) = 199 bits. Code DEC-126: 126|1|64|1 = 192 bits, exact 24-B window. Code is authority (DEC-109 doctrine); tex patched in same commit; flags width 8→1.
 
-### CA-R addendum (second pass)
+#### CA-R addendum (second pass)
+
 | ID | Sev | Finding | Resolution |
 |---|---|---|---|
 | CA-R8 | HIGH | Errata ID collision: reconciliation E-6/E-7 vs session-local E-6/E-7 | E-10 re-designation ER-6..ER-9 |
@@ -431,6 +467,20 @@ Whitepaper §2.6/§8.3: (mbal[126]‖sbal[1]‖nonce[64]‖flags[8]) = 199 bits.
 | CA-R10 | LOW | Harvest-script SyntaxWarning (\* escape) — cosmetic, output correct | raw strings in future scripts |
 | CA-R11 | LOW | First harvest regex matched only DEC-prefixed tokens; slash/range IDs missed | VII-A range-implied list |
 
-### Status
+#### Status
 Pushed: 87a3731 (Section VII: 22 DEC + 12 CA citation-recovered; ER-6..ER-9; Phase-0 pin; tex t=112 sync).
 True citation ceiling: **DEC-180 / CA-135**. GATE GREEN 6/6 maintained.
+
+---
+
+## STRUCTURE NOTE (CA-R12 — closed 2026-09-04)
+
+Rebuilt to one uniform format: single `#` title · `##` sections · `###` subsections ·
+ledger-status table · table of contents · every table isolated by blank lines (GitHub
+render guarantee) · no Python-repr artifacts · no mega-line headers.
+
+**Content unchanged** — every DEC/CA/PF/SE/PRE identifier present before the rebuild is
+present after it (machine-verified; backup kept alongside). Defects closed: three
+authoring generations (original ledger + two append passes) had mixed heading levels
+and table shapes; the status header was one unreadable line; evidence lists printed as
+`[116, 119, 121]`.
