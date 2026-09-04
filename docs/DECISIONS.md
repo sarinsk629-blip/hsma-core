@@ -1,6 +1,6 @@
 # DECISIONS.md — HSMA Protocol Architectural Ledger
 ## Complete Verified Record: DEC-001 through DEC-115
-## Status: INITIALIZED | Baseline: v1.0 Ratified
+## Status: RATIFIED v1.0 | A6 CLOSED | GATE GREEN 6/6 (Step 2–6 kernels) | Phase 0 IN PROGRESS | Ledger: DEC-001…115 VERIFIED + Section VII citation-recovered | Reconciled: 2026-09-04
 ## Whitepaper: v1.0 Complete (A6 Theory Debt CLOSED)
 ## Audit Trail: 97 audit findings (CA-1 through CA-77, PF-1 through PF-9, SE-1 through SE-10, PRE-1 through PRE-P4-3)
 ## Implementation: GATE GREEN — 6/6 conformance tests passing
@@ -265,3 +265,98 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 - All structural zeros (L1/L2/L4) engineered, not inherent
 - C++20 reference implementation: GATE GREEN (6/6 tests)
 - BLS12-377 group law: PROVEN on 3 independent points
+
+---
+
+# SECTION VII — IMPLEMENTATION-SESSION DECISIONS: RECOVERED FROM CODE (2026-09-04)
+
+> Founder sighting of DEC-154/CA-134 RESOLVED: the Step-2…6 implementation sessions numbered
+> decisions past 115 and cited them in C++ sources, git messages, and GATE transcripts —
+> but never persisted the ledger rows. Rows below are EVIDENCE-BACKED reconstructions:
+> gists verbatim from code; rationale/supersedes/finding-severity PENDING transcript ingest
+> (fabrication prohibited: DEC-046/DEC-109). Gap IDs = cited nowhere = unrecoverable
+> until source sessions are pasted. Code is authority (DEC-109); this register indexes it.
+
+## DEC-116 … DEC-180 — recovered: 22 IDs; unrecovered in range: [117, 118, 120, 122, 128, 129, 132, 135, 140, 141, 142, 143, 144, 145, 147, 148, 149, 150, 151, 152, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 169, 170, 171, 173, 174, 175, 176, 177, 178, 179]
+
+| ID | Component (inferred) | Evidence (verbatim from code/git) | Cited in | Status |
+|---|---|---|---|---|
+| DEC-116 | Unattributed (pending transcript) | 12389d0 step4-hotfix: normative SMT scenario splice, compilable vault/update/test (DEC-116) (CONTEXT) | git-log | CITATION-RECOVERED |
+| DEC-119 | Mempool/Tx (Step 5) | # ══ Step 5: mempool & transaction gate (DEC-119..122) ══; //  DEC-119 money math (boundedness-proven delta) · DEC-121/123 read binding (CONTEXT) | CMakeLists.txt, test_step5.cpp, tx.hpp | CITATION-RECOVERED |
+| DEC-121 | Mempool/Tx (Step 5) | //  DEC-119 money math (boundedness-proven delta) · DEC-121/123 read binding; if (!(stored_key == fp::fe_to_canonical(key))) return false;   // DEC-121/123 (CONTEXT) | tx.hpp | CITATION-RECOVERED |
+| DEC-123 | Vault/SMT (Step 4) | // DEC-112 leaf binding · DEC-113 elision · DEC-123 canonical keys at rest; const fp::fe ck = fp::fe_to_canonical(key);        // DEC-123 (CONTEXT) | diag_step5.cpp, whitepaper.tex, update.hpp, +1f | CITATION-RECOVERED |
+| DEC-124 | Conformance | // (DEC-124 contract). Batches designed so sorted order == push order where (CONTEXT) | test_step5.cpp | CITATION-RECOVERED |
+| DEC-125 | Unattributed (pending transcript) | // DEC-125/162: whole-file authorship; field proofs BEFORE curve work. (CONTEXT) | bls_derive.cpp | CITATION-RECOVERED |
+| DEC-126 | Vault/SMT (Step 4) | // DEC-126 slot schema: payload = 126/1/64/1 = 192 bits (exact 24-B window); fc53442 step5-hotfix3: memset-after-tag root cause closed, 192-bit slot schema (E-6), canonical-at-rest restored, tag-aware diagnostics (DEC-126/127) (CONTEXT) | update.hpp, git-log | CITATION-RECOVERED |
+| DEC-127 | Vault/SMT (Step 4) | {} only (GIST) | diag_step5.cpp, update.hpp | CITATION-RECOVERED |
+| DEC-130 | Unattributed (pending transcript) | f9c691c step5-green-final: CA-96 orphan-var + CA-97 type-hygiene fixed, gate.sh institutionalized (DEC-130/131) (CONTEXT) | git-log | CITATION-RECOVERED |
+| DEC-131 | Pipeline/Gate | # HSMA VERIFICATION GATE v5 (DEC-131/132/140/154): (CONTEXT) | gate.sh | CITATION-RECOVERED |
+| DEC-133 | Vault/SMT (Step 4) | // CONTRACT (DEC-134, supersedes DEC-133): expected_root is a RAW DIGEST — (CONTEXT) | update.hpp | CITATION-RECOVERED |
+| DEC-134 | Vault/SMT (Step 4) | proofs verify against the RAW DIGEST — no fe, no conversions, (GIST) | test_step4.cpp, update.hpp, git-log | CITATION-RECOVERED |
+| DEC-136 | Consensus (Step 6) | # ══ Step 6: MSSC automaton (DEC-136..139) ══; // HSMA :: consensus.hpp — MSSC automaton, corrected (DEC-136..141) (CONTEXT) | CMakeLists.txt, consensus.hpp, gen_constants.py | CITATION-RECOVERED |
+| DEC-137 | Consensus (Step 6) | std::size_t lead = 0;                          // DEC-137 (CONTEXT) | consensus.hpp | CITATION-RECOVERED |
+| DEC-138 | Consensus (Step 6) | if (lhs < rhs) {                                   // DEC-138 / E-7 (CONTEXT) | consensus.hpp | CITATION-RECOVERED |
+| DEC-139 | Pipeline | """Realized-trace goldens (DEC-139) with CA-120 brace law enforced.""";  i)Hz@Realized-trace goldens (DEC-139) with CA-120 brace law enforced.c                 P    R P                  R V  4       4      P                  R4    (CONTEXT) | gen_constants.cpython-314.pyc, gen_constants.py | CITATION-RECOVERED |
+| DEC-146 | Pipeline | # ── BRACE LAW v3 (DEC-146): grammar-aware, compiler-aligned ── (CONTEXT) | gen_constants.py | CITATION-RECOVERED |
+| DEC-153 | Conformance | initial opinion is harness input (GIST) | test_step6.cpp | CITATION-RECOVERED |
+| DEC-154 | Unattributed (pending transcript) | fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) | git-log | CITATION-RECOVERED |
+| DEC-168 | Unattributed (pending transcript) | silence can never masquerade as a hang (GIST) | bls_derive.cpp | CITATION-RECOVERED |
+| DEC-172 | Unattributed (pending transcript) | // DEC-172 SINGLE-DIVISION LAW: the /3 already happened (xsq->h1). (CONTEXT) | bls_derive.cpp | CITATION-RECOVERED |
+| DEC-180 | Unattributed (pending transcript) | const fe6 C8=madd(QC,C4,C4);                       // EXACTLY 8C (DEC-180) (CONTEXT) | bls_derive.cpp | CITATION-RECOVERED |
+
+## CA-78 … CA-135 — recovered: 12 IDs
+
+| ID | Evidence (verbatim) | Cited in | Status |
+|---|---|---|---|
+| CA-80 | naive sum wraps to 0 (GIST) | test_step5.cpp | CITATION-RECOVERED |
+| CA-81 | credit crosses ceiling (GIST) | test_step5.cpp | CITATION-RECOVERED |
+| CA-86 | // ── EARLY REGRESSION ANCHOR (CA-86): reads must work BEFORE any mempool op; "post-seed lookup (CA-86 regression anchor)"); (CONTEXT) | test_step5.cpp | CITATION-RECOVERED |
+| CA-96 | f9c691c step5-green-final: CA-96 orphan-var + CA-97 type-hygiene fixed, gate.sh institutionalized (DEC-130/131) (CONTEXT) | git-log | CITATION-RECOVERED |
+| CA-97 | f9c691c step5-green-final: CA-96 orphan-var + CA-97 type-hygiene fixed, gate.sh institutionalized (DEC-130/131) (CONTEXT) | git-log | CITATION-RECOVERED |
+| CA-105 | 75e7227 step4-openings-green-final: roots cross boundaries as raw digests (DEC-134), call-site inventory doctrine, kill CA-105 class (CONTEXT) | git-log | CITATION-RECOVERED |
+| CA-112 | // ---- seed: exactly 159 bytes, 15-byte tag (CA-112/113) ---- (CONTEXT) | consensus.hpp | CITATION-RECOVERED |
+| CA-113 | exact 57 (GIST) | consensus.hpp | CITATION-RECOVERED |
+| CA-114 | /// CA-114 fix: stagger derives from H(beacon ‖ CONFLICT) — matching the (CONTEXT) | consensus.hpp | CITATION-RECOVERED |
+| CA-120 | """Realized-trace goldens (DEC-139) with CA-120 brace law enforced.""";  i)Hz@Realized-trace goldens (DEC-139) with CA-120 brace law enforced.c                 P    R P                  R V  4       4      P                  R4    (CONTEXT) | gen_constants.cpython-314.pyc, gen_constants.py | CITATION-RECOVERED |
+| CA-134 | fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) | git-log | CITATION-RECOVERED |
+| CA-135 | fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) | git-log | CITATION-RECOVERED |
+
+## Semantic anchors (unambiguous, from code evidence)
+- **DEC-153** (test_step6.cpp ×2, gist verbatim: "initial opinion is harness input"): consensus Automaton is a PURE function — View.preference is explicit caller input, no internal default — required for bit-exact golden-trace replay (extends DEC-091/102 to consensus).
+- **DEC-123** (GATE verdict: "canonical-at-rest (DEC-123 held)"): vault stores canonical-form entries at rest; invariant machine-verified (extends DEC-105 to storage).
+
+## Restore protocol
+Paste the Step-2…6 implementation-session transcripts (chats that produced these IDs) →
+adversarial verification → full rows replace CITATION-RECOVERED status. Until then, no
+rationale is invented for any row above.
+
+
+---
+
+# RECONCILIATION REGISTER — 2026-09-04
+
+> APPEND-ONLY (DEC-046/109/043). Historical rows above are never rewritten; corrections
+> travel as errata.
+
+## Errata E-6 — DEC-ID collisions: DEC-038 canonical = floor invariant φ_floor > f/α (whitepaper §4.3); G1 row re-designated **DEC-038-G1**. DEC-039 canonical = structural floor m_adv ≤ 100 < t (§7.3/§10.4); A6 row re-designated **DEC-039-A6**. Historical rows preserved.
+## Errata E-7 — ε line items: authoritative = whitepaper.tex v1.0 final (DEC-063/071): L5=2⁻¹²⁸, L6=2⁻¹²⁷; merged-edition 2⁻¹⁹³/2⁻¹⁹⁶ superseded; ε_sys ≈ 2⁻¹¹⁰/epoch unchanged (H1-dominated).
+## Errata E-8 — committee: **t=112 of n=224, halt=113** (DEC-054→DEC-087); margins 12/13 (E-2). Whitepaper patched same commit; DEC-028 row stands as history.
+## Errata E-9 — notation: DEC-004 sigmoid domain ±2^8 ("±28" = superscript-flattening artifact); RC-#8 canonical: sc-loop Pmul cost > 90s timeout (fixtures 30→3); tonelli_q-loop hypothesis instrumented, NOT confirmed.
+
+## CA-R Series — reconciliation findings
+| ID | Sev | Finding | Resolution |
+|---|---|---|---|
+| CA-R1 | HIGH | t=128 prose drift vs DEC-054/087 | Errata E-8 + tex patch |
+| CA-R2 | HIGH | DEC-038/039 dual assignments | Errata E-6 |
+| CA-R3 | HIGH | Founder sighting DEC-154/CA-134 unexplained | **RESOLVED 2026-09-04**: citations in C++ sources/git (Section VII) |
+| CA-R4 | HIGH | Prior push heredoc truncated | Never executed (parse error pre-write); replaced by this script |
+| CA-R5 | MED | ε line-item drift between editions | Errata E-7 |
+| CA-R6 | LOW | Notation ambiguities | Errata E-9 |
+| CA-R7 | HIGH | **Process defect (this session): INSPECT grep filtered \*.md/\*.txt only — missed \*.cpp/\*.hpp citations; produced false "max=DEC-115" conclusion** | Full-spectrum harvest (all file types + git log) is now mandatory for any ledger range query |
+
+## Phase Status Pin (DEC-089/091/094/096/101)
+**PHASE 0 — IN PROGRESS.** Done: Steps 1–6 kernels GATE GREEN 6/6 (incl. full-trace
+consensus conformance C1/C2/C3, breaker/stagger parity, vault opening-proof negative
+tests, 10th-root engine). Remaining: threshold module (DKG/beacon/order-bound shares),
+G1 transport, HyperNova NIVC circuit, φ₀–φ₇ integration. PHASE 1 NOT ENTERED
+(gate: GOLDEN_PARAMS_PINNED=false, DEC-101). PHASE 3: HSMA-VPIN/markout (DEC-096).

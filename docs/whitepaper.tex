@@ -60,7 +60,7 @@
 \begin{abstract}
 This document presents the formal specification, mathematical proofs, and implementation verification for the HSMA (Holographic Spin-Manifold Architecture) Layer-1 protocol. HSMA introduces a novel cryptoeconomic primitive: \textit{Verifiable AI Inference as Proof of Useful Work (PoUW)}. By binding consensus voting weight to verified GKR matrix multiplications over the Pallas/Vesta Pasta curve cycle, the protocol converts wasted electrical hash-power into useful compute for enterprise AI clients.
 
-HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a threshold-encrypted mempool utilizing a \textit{Commit-then-Simulate} manifest ceremony, where a 224-node committee (192 active + 32 standby, threshold $t=128$) locks a beacon-shuffled ciphertext ordering \textit{before} any decryption share is constructible. State transition integrity and historical data bloat are resolved using a HyperNova/Customizable Constraint Systems (CCS) folding architecture over the Pallas/Vesta 2-cycle, producing a constant-size recursive epoch proof $\pi_E$ verifiable by light clients in milliseconds.
+HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a threshold-encrypted mempool utilizing a \textit{Commit-then-Simulate} manifest ceremony, where a 224-node committee (192 active + 32 standby, threshold $t = 112$) locks a beacon-shuffled ciphertext ordering \textit{before} any decryption share is constructible. State transition integrity and historical data bloat are resolved using a HyperNova/Customizable Constraint Systems (CCS) folding architecture over the Pallas/Vesta 2-cycle, producing a constant-size recursive epoch proof $\pi_E$ verifiable by light clients in milliseconds.
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, and the BLS12-377 group law is mathematically proven on 3 independent points.
 
@@ -86,7 +86,7 @@ HSMA resolves these crises by integrating three breakthrough cryptographic primi
 
 \begin{enumerate}
     \item \textbf{PoUW Consensus:} Validator weight is derived from verified GKR/Sum-Check proofs of AI inference, secured by a Capped Cluster Hybrid weight function that combines compute throughput $\Phi$ and staked capital $S$.
-    \item \textbf{Zero-MEV Encrypted Mempool:} A 192-node threshold committee encrypts transactions and commits to their ordering \textit{before} decrypting them, mathematically eliminating front-running.
+    \item \textbf{Zero-MEV Encrypted Mempool:} A 224-member (t{=}112) threshold committee encrypts transactions and commits to their ordering \textit{before} decrypting them, mathematically eliminating front-running.
     \item \textbf{Holographic State Folding:} HyperNova IVC folds heterogeneous state transitions into a constant-size proof verifiable by light clients in milliseconds.
 \end{enumerate}
 
@@ -120,7 +120,7 @@ HSMA utilizes the Pallas/Vesta 2-cycle over 255-bit primes:
 \textsf{Pallas}: y^2 = x^3 - 17 \;\text{ over } \mathbb{F}_p, \qquad \textsf{Vesta}: y^2 = x^3 + 17 \;\text{ over } \mathbb{F}_q
 \end{equation}
 
-where $p = \texttt{0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001}$ and $\log_2 p \approx 254.18$, satisfying $\#\textsf{Pallas}(\mathbb{F}_p) = q$ and $\#\textsf{Vesta}(\mathbb{F}_q) = p$.
+where $p = \texttt{0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001}$ and $\log_2 p \approx 254.00$, satisfying $\#\textsf{Pallas}(\mathbb{F}_p) = q$ and $\#\textsf{Vesta}(\mathbb{F}_q) = p$.
 
 This cycle natively supports HyperNova/CCS folding without foreign-field overhead. The protocol enforces a strict \textit{Float-Free Numeric Core} (DEC-090), guaranteeing deterministic consensus across heterogeneous hardware (ARM64, x86, GPUs).
 
@@ -310,11 +310,11 @@ Traditional \textit{Simulate-then-Commit} sequencing requires the committee to r
 
 \subsection{Threshold Parameters}
 
- $n = 224$ (192 active + 32 standby), $t = 128$. With $f = 0.20$: expected adversary seats $\mu = 44.8$, $\sigma \approx 6.0$.
+ $n = 224$ (192 active + 32 standby), $t = 112$. With $f = 0.20$: expected adversary seats $\mu = 44.8$, $\sigma \approx 6.0$.
 
 \begin{itemize}
-    \item Confidentiality breaks at $\ge 128$ colluders ($57\%$): structurally impossible since eligible adversary identities cap at $m \le f/w_{\text{floor}} = 100 < 128$ (DEC-039).
-    \item Decryption halts at $\ge 97$ unavailable seats ($43\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 8.7\sigma$ structural margins.
+    \item Confidentiality breaks at $\ge 128$ colluders ($50\%$): structurally impossible since eligible adversary identities cap at $m \le f/w_{\text{floor}} = 100 < 112$ (DEC-039).
+    \item Decryption halts at $\ge 97$ unavailable seats ($50.4\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 8.7\sigma$ structural margins.
 \end{itemize}
 
 \subsection{Decryption Liveness \& Refund Totality}
@@ -475,7 +475,7 @@ The $2^{-80}$ design target is cleared annually with 14 bits of margin.
 The zeros in the $\epsilon$-budget are \textit{engineered}, not inherent:
 \begin{itemize}
     \item \textbf{L1 (Quorum forgery):} $\epsilon = 0$ by authentication + frozen snapshots + $\varphi_{\text{floor}} > f/\alpha$ (DEC-038)
-    \item \textbf{L2 (Committee takeover):} $\epsilon = 0$ by $w_{\text{floor}}$ identity cap: $m_{\text{adv}} \le 100 < t = 128$ (DEC-039)
+    \item \textbf{L2 (Committee takeover):} $\epsilon = 0$ by $w_{\text{floor}}$ identity cap: $m_{\text{adv}} \le 100 < t = 112$ (DEC-039)
     \item \textbf{L4 (Eclipse divergence):} $\epsilon = 0$ by INV-G3 containment
 \end{itemize}
 
@@ -626,7 +626,7 @@ The release-blocking conformance suite validates:
 \textbf{Group} & \textbf{Parameters} \\
 \hline
 Consensus & $k=20 \to 40$ @1000r, $\alpha=0.75$, $\beta=150$, stall 50r $\to$ beacon breaker, $\varphi_{\text{floor}}=0.50 > f/\alpha=0.267$ \\
-Committee & $n=224$ (192+32), $t=128$, $\le 16$ seats/cluster, $w_{\text{floor}}=0.002T \Rightarrow m_{\text{adv}} \le 100 < t$ \\
+Committee & $n=224$ (192+32), $t = 112$, $\le 16$ seats/cluster, $w_{\text{floor}}=0.002T \Rightarrow m_{\text{adv}} \le 100 < t$ \\
 Weight & $\tilde{W} = \text{RNTE}((\Phi^6 S^4)^{1/10})$, width $6a+4b \le 126$, $W_{\max}=0.15 T_0$ single-pass \\
 Mempool & Envelope $\{pk, nonce, escrow\}$ clear; KEM/AEAD bound to $(epoch, sender, nonce)$; order = beacon-shuffled \\
 Circuits & Pasta+CycleFold; CCS/HyperNova multifold; PC matrix $\{head, exec^+, close\}$; SMT $D_S=64$; Poseidon-3 $R_F8/R_P56$ \\
@@ -675,7 +675,7 @@ DEC-016 & Slashing (S1) & Canonical vote preimage \texttt{HSM\_MSSC\_VOTE\_v1} &
 DEC-017 & Exit (S1) & Escrow $+ E_{ev}$; checkpoint sync via P4 proofs & S1-v1 §5 \\
 DEC-019 & Numerics (S1) & Unit normalization: $6a + 4b + \epsilon_g \le 126$ & S1-v2 §2.1 \\
 DEC-025 & Sequencing (M2) & Commit-then-Simulate (inverted pipeline) & M1-v1 core \\
-DEC-028 & Committee (M2) & 192+32, $t=128$; beacon sortition; $\le 16$ seats/cluster & N/A \\
+DEC-028 & Committee (M2) & 192+32, $t = 112$; beacon sortition; $\le 16$ seats/cluster & N/A \\
 DEC-030 & Folding (P4) & Unified trust anchor: \texttt{decree\_root} certified by BLS & N/A \\
 DEC-031 & Folding (P4) & Self-send routing constraint & N/A \\
 DEC-032 & Folding (P4) & Fee underflow protection (LT gate) & N/A \\
