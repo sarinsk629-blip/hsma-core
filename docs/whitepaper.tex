@@ -1,4 +1,5 @@
 \documentclass[11pt, a4paper]{article}
+% [2026-09-04] FINAL-AUDIT PASS (CA-R16..R30): leaf 192-bit exact-string, conf scope-split, DEC-057/075 sync, limitations, v1.0.1. See DECISIONS.md.
 
 % ── Packages ──
 \usepackage[utf8]{inputenc}
@@ -50,9 +51,9 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1}
 \author{\textbf{HSMA Core Engineering}}
-\date{September 2, 2026}
+\date{September 4, 2026}
 
 \begin{document}
 \maketitle
@@ -60,7 +61,7 @@
 \begin{abstract}
 This document presents the formal specification, mathematical proofs, and implementation verification for the HSMA (Holographic Spin-Manifold Architecture) Layer-1 protocol. HSMA introduces a novel cryptoeconomic primitive: \textit{Verifiable AI Inference as Proof of Useful Work (PoUW)}. By binding consensus voting weight to verified GKR matrix multiplications over the Pallas/Vesta Pasta curve cycle, the protocol converts wasted electrical hash-power into useful compute for enterprise AI clients.
 
-HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a threshold-encrypted mempool utilizing a \textit{Commit-then-Simulate} manifest ceremony, where a 224-node committee (192 active + 32 standby, threshold $t = 112$) locks a beacon-shuffled ciphertext ordering \textit{before} any decryption share is constructible. State transition integrity and historical data bloat are resolved using a HyperNova/Customizable Constraint Systems (CCS) folding architecture over the Pallas/Vesta 2-cycle, producing a constant-size recursive epoch proof $\pi_E$ verifiable by light clients in milliseconds.
+HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a threshold-encrypted mempool utilizing a \textit{Commit-then-Simulate} manifest ceremony, where a 224-node committee (192 active + 32 standby, threshold $t = 112$) locks a beacon-shuffled ciphertext ordering \textit{before} any decryption share is constructible. State transition integrity and historical data bloat are resolved using a HyperNova/Customizable Constraint Systems (CCS) folding architecture over the Pallas/Vesta 2-cycle, producing a succinct recursive epoch proof (size independent of transaction count) $\pi_E$ verifiable by light clients in milliseconds.
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, and the BLS12-377 group law is mathematically proven on 3 independent points.
 
@@ -95,7 +96,7 @@ HSMA resolves these crises by integrating three breakthrough cryptographic primi
 HSMA's design rests on three structural invariants:
 
 \begin{definition}[Order-Before-Knowledge (INV-M2-1)]
-No party shall be able to learn transaction payload contents before that transaction's execution position is irreversibly committed, and no party shall be able to alter an execution sequence after learning contents. Enforcement: payload encryption against a threshold committee key whose decryption shares are syntactically bound to the committed ordering root.
+No party shall be able to learn transaction payload contents before that transaction's execution position is irreversibly committed, and no party shall be able to alter an execution sequence after learning contents. Enforcement: payload encryption against a threshold committee key whose decryption shares are bound to the committed ordering root (attribution and replay-freedom), with pre-freeze threshold-scale decryption prevented by counting: adversary identities $\le 100 < t$ (DEC-057).
 \end{definition}
 
 \begin{definition}[Combinatorial Quorum Impossibility]
@@ -183,7 +184,7 @@ Decryption share & \texttt{HSM\_DEC\_SHARE\_v2} \\
 
 Account state is maintained in a Sparse Merkle Tree (SMT) of depth $D_S = 64$.
 
-\textbf{Leaf schema:} $(m_{\text{bal}}[126] \| s_{\text{bal}}[1] \| \text{nonce}[64] \| \text{flags}[8]) = 199$ bits $< 2^{254}$, packed into a single field element, hashed under \texttt{IV\_STATE\_LEAF}; keyed $K_a = \textsf{Poseidon}(\texttt{"HSM\_ACCT"} \| \textsf{sender\_pk})$.
+\textbf{Leaf schema:} $(m_{\text{bal}}[126] \| s_{\text{bal}}[1] \| \text{nonce}[64] \| \text{flags}[1]) = 192$ bits $< 2^{254}$, packed into a single field element, hashed under \texttt{IV\_STATE\_LEAF}; keyed $K_a = \textsf{Poseidon}(\texttt{"HSM\_ACCT"} \| \textsf{sender\_pk})$.
 
 \textbf{Empty-subtree precomputation:} $E_0 = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, 0, 0)$; $E_{d+1} = \textsf{Poseidon}(\texttt{IV\_STATE\_NODE}, E_d, E_d)$. The constants $\{E_d\}_{d \le 64}$ are compile-time circuit constants: untouched branches cost zero constraints.
 
@@ -193,7 +194,7 @@ Account state is maintained in a Sparse Merkle Tree (SMT) of depth $D_S = 64$.
     \item Unchanged-subtree short-circuit: ascent halts when a recomputed hash equals the old spine hash (root-identity theorem).
 \end{enumerate}
 
-\textbf{Leaf binding (CA-72 closure):} $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$, binding the key to the payload to prevent index-collision malleability.
+\textbf{Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf binding (CA-72 closure):} $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$, binding the key to the payload to prevent index-collision malleability.
 
 % ════════════════════════════════════════════════════════════════════
 \section{Metastable Sub-Sampled Consensus (MSSC)}
@@ -433,7 +434,7 @@ P3 Bulk & $\pi_E$, GKR proofs & 128 KB & Pull-only & Content-addressed \\
 \end{tabular}
 \end{center}
 
-\textbf{Informer reward (DEC-023):} $\delta_{\text{info}} = 0.5\%$ of burn (cap 1000 tokens) to first relay of P0 slashing evidence --- converts censorship into an economically losing partition attack.
+\textbf{Informer reward (DEC-023):} $\delta_{\text{info}} = 0.5\%$ of burn (cap 1000 tokens) to the first relay (60\%) and the next seven relays within 30\,s (40\%) of P0 slashing evidence (DEC-075 shared window) --- converts censorship into an economically losing partition attack.
 
 \subsection{Contact Root \& Anti-Churn}
 
@@ -526,7 +527,7 @@ hsma-core/
 +-- README.md
 +-- docs/
     +-- whitepaper.tex      # This document
-    +-- DECISIONS.md        # 39 audited architectural decisions
+    +-- DECISIONS.md        # decision ledger: 115 verified + recovered to DEC-180
 \end{lstlisting}
 
 \subsection{GATE GREEN Verification}
@@ -598,8 +599,13 @@ The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curv
 \textbf{Root Cause \#7 (8C Doubling Bug):} The dbl-2009-l formula required $Y_3 = E \cdot (D - X_3) - 8C$. The v3 implementation computed $C_8 = \text{madd}(QC, \text{madd}(QC, C_c, C_c), C_c)$ producing $6C$ instead of $8C$. Every Y-coordinate from every doubling was off by $+2C$. Fixed: $C_2 = C + C$; $C_4 = C_2 + C_2$; $C_8 = C_4 + C_4$.
 
 \textbf{Root Cause \#9 (rand\_below Infinite Loop):} The scalar field $r$ is 253-bit, so $g_r[5] = 0$. The RNG filled all 6 limbs with random 64-bit values, making $v > g_r$ almost always. Fixed: clear high zero-limbs of the modulus before generating.
+Root Cause #8 (Consensus-Fixture Stall): 30-iteration scalar-multiplication fixture loops exceeded the 90-second timeout; telemetry ruled out Tonelli--Shanks non-termination; fixture counts reduced ($30\to3$). Narrative: DECISIONS.md E-9.
+Root Cause #10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixture generation; resolved in the derivation tool.
+
 
 \subsection{Conformance Suite}
+\textbf{Implementation status (Phase 0).} Items 1--4 and 8 are machine-validated today by the 6/6 conformance binaries. Items 5--7 and 9--11 are release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement, threshold decapsulation, the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
+
 
 The release-blocking conformance suite validates:
 
@@ -637,6 +643,9 @@ Epoch & 600 s nominal; checkpoints $K=6$ (hourly); $T_{\text{fold}} = 120$ s \\
 \end{center}
 
 % ════════════════════════════════════════════════════════════════════
+\section{Limitations and Honest Disclosure}
+Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; threshold, transport, and folding modules are specified, not yet built.
+
 \section{Conclusion}
 % ════════════════════════════════════════════════════════════════════
 
@@ -653,7 +662,7 @@ The C++20 reference implementation passes all 6 conformance tests with \texttt{G
 \section{Decision Ledger Excerpt}
 % ════════════════════════════════════════════════════════════════════
 
-The following table excerpts key decisions from the \texttt{DECISIONS.md} ledger (39 total entries, DEC-001 through DEC-039):
+The following table excerpts key decisions from the \texttt{DECISIONS.md} ledger (115 verified entries DEC-001 through DEC-115, plus citation-recovered decisions through DEC-180):
 
 \begin{center}
 \begin{longtable}{l|l|l|l}

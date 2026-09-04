@@ -1244,3 +1244,27 @@ and table shapes; the status header was one unreadable line; evidence lists prin
 | CA-R24 | LOW | Notation nits (12/13 render, bits/nats, PoW phrasing, δ_fold value) | Applied |
 
 **E-8 verification:** t=112 confirmed at 8 locations in the final PDF. **E-11 status: APPLIED** (was recorded-only).
+
+---
+### PATCH-MECHANICS ERRATUM — CA-R25…R30 (2026-09-04)
+
+Three consecutive whitepaper patch scripts FATALed or mis-wrote the same §2.6 leaf-schema
+line. All root causes auditor-side; forensic diff confirms every exact-string and
+structural-anchor edit landed cleanly while the sole regex-touched line was destroyed.
+- **CA-R25 · 🟠 HIGH** — Sequencing: 18f2472 + register rows declared patches "APPLIED"
+  before the tex write was verified; write then aborted. Corrected by the follow-up commit.
+- **CA-R26 · 🟡 MED** — Patterns authored from PDF-extracted text; source is LaTeX macros.
+- **CA-R27 · 🟠 HIGH** — On-FATAL restore branch was dead code; canonical restore is
+  `git checkout -- <file>`.
+- **CA-R28 · 🟡 MED** — 199-replacement lazy capture ate "bits" and unbalanced math
+  delimiters (forensic-diff confirmed).
+- **CA-R29 · 🟠 HIGH** — `re.sub` with a FUNCTION replacement does not process `\g<1>`
+  backreferences: literal `\text{\g<1>1\]` written into the working file (uncompilable
+  LaTeX). Caught by read-back verify; never reached a commit.
+- **CA-R30 · 🟠 HIGH** — Repair script's idempotency gate keyed on "Errata Sync v1.0.1",
+  a string the aborted write had already inserted — repair would have skipped and pushed
+  the mangled file. Neutralized by truncated paste.
+
+**Doctrine (permanent, three strikes):** exact-literal replacement + whole-phrase read-back
+for known lines; regex only for structural section insertions; `git checkout` as the only
+restore; idempotency gates test the DEFECT, never a version string.
