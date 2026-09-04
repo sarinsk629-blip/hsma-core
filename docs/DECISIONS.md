@@ -1216,3 +1216,13 @@ and table shapes; the status header was one unreadable line; evidence lists prin
 > blocks and severity-badged one-liners (mobile-readable). (3) ID-coverage check is
 > zero-pad-insensitive. Content unchanged: every DEC/CA/PF/SE/PRE identifier present.
 > Backup: `docs/DECISIONS.md.pre-v31.<ts>` (removed after push; git history is canonical).
+
+---
+
+> **RENDER-FORMAT v3.1 (CA-R13/R14/R15 — closed 2026-09-04).** (1) A binary NUL byte —
+> embedded by the code-citation harvest — made GitHub treat this file as binary and show
+> raw unrendered text; all binary/control bytes are now stripped and the file is
+> machine-verified pure text. (2) Wide multi-column tables were replaced by ADR-style
+> blocks and severity-badged one-liners (mobile-readable). (3) ID-coverage check is
+> zero-pad-insensitive. Content unchanged: every DEC/CA/PF/SE/PRE identifier present.
+> Backup: `docs/DECISIONS.md.pre-v31.<ts>` (removed after push; git history is canonical).
