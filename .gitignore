@@ -37,3 +37,5 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
+docs/*.bak.*
+docs/*.pre-*
