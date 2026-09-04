@@ -116,3 +116,8 @@ add_executable(test_step6 conformance/test_step6.cpp)
 target_link_libraries(test_step6 PRIVATE hsma_fp)
 add_dependencies(test_step6 hsma_generated)
 add_test(NAME step6_conformance COMMAND test_step6)
+
+# == Step 7: threshold scalar module F_r (DEC-181..184) ==
+add_executable(test_step7 conformance/test_step7.cpp)
+target_include_directories(test_step7 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step7_conformance COMMAND test_step7)

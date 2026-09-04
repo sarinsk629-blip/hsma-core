@@ -1268,3 +1268,40 @@ structural-anchor edit landed cleanly while the sole regex-touched line was dest
 **Doctrine (permanent, three strikes):** exact-literal replacement + whole-phrase read-back
 for known lines; regex only for structural section insertions; `git checkout` as the only
 restore; idempotency gates test the DEFECT, never a version string.
+
+---
+
+### CA-R36 - BROKEN ASSERT DIAGNOSTIC + DEAD IDEMPOTENCY GATE (2026-09-04, LOW)
+
+FIXDB re-run crashed with TypeError instead of a clean message: the assert message
+contained a literal '%s' ('= { %s };') colliding with %-formatting. Idempotency gate
+checked for the string 'CA-R35', which never exists in gen_constants.py - the gate
+could never trigger, so double-runs crash instead of skip. Also: standalone header
+check wrote to /tmp (not writable in Termux) - checks must use the build/ directory.
+No damage; the brace fix itself had already landed. Doctrine: diagnostics are code -
+format them safely (f-strings), and idempotency gates must test the DEFECT, not a
+marker string.
+
+## SECTION VIII - Phase-0 Threshold Module (Step 7 - 2026-09-04)
+
+#### DEC-181 - Threshold module decomposition (Steps 7-10)
+**Decision:** Step 7: F_r scalar kernel + golden parity. Step 8: promote E(F_q) from tools/bls_derive.cpp into include/hsma/threshold/ + hash-to-curve. Step 9: DKG (Feldman G1), threshold BLS signing, epoch beacon (HSM_BEACON_V1), order-bound shares, DLEQ. Step 10: pairing verifier + epoch-header certificate checks.
+**Rationale:** Pairing deferral sound per DEC-032/034 (out-of-circuit, one check per epoch header); Feldman verification pairing-free; conformance validates vs harness secrets until Step 10.
+**Supersedes:** N/A
+
+#### DEC-182 - F_r representation and constants authority
+**Decision:** 4x64-limb Montgomery, canonical [0,r) (DEC-105 mirror), CIOS multiply with conditional subtraction; constants from gen_constants.py STEP 7: r = documented BLS12-377 scalar, verified against kernel literals via x^4-x^2+1 == r with x = 0x8508c00000000001 (provenance embedded in emitted header), MR-52 validated, 253-bit.
+**Rationale:** No hand transcription (DEC-046/102); value-anchored extraction (CA-R32 doctrine); r < 2^253 gives 3 bits headroom (DEC-045).
+**Supersedes:** N/A
+
+#### DEC-183 - Scalar golden parity is release-blocking
+**Decision:** 64 SHA-256-counter DRBG pairs, add/sub/mul/inv parity vs Python big-int; edges (0, 1, r-1, r rejected); n=5/t=3 DKG scalar trace (shares, Lagrange-at-zero, reconstruction) with tamper divergence asserted at generation.
+**Rationale:** Extends DEC-091/103 golden pipeline: machine ground truth, no prose tuning.
+**Supersedes:** N/A
+
+#### DEC-184 - DKG scalar semantics (Step 7 slice)
+**Decision:** Degree-(t-1) polys over F_r, Horner, id domain {1..n}, Lagrange-at-zero; tamper detection via reconstruction divergence + share re-derivation. Feldman curve side lands Step 9.
+**Rationale:** Separates verifiable scalar kernel from curve integration; both golden-pinned.
+**Supersedes:** N/A
+
+**Build status:** step7_conformance (suite 7/7). consensus.hpp / bls_derive.cpp untouched: sim_beacon replacement = Step 9; E(F_q) promotion = Step 8.
