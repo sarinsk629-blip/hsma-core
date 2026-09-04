@@ -1226,3 +1226,21 @@ and table shapes; the status header was one unreadable line; evidence lists prin
 > blocks and severity-badged one-liners (mobile-readable). (3) ID-coverage check is
 > zero-pad-insensitive. Content unchanged: every DEC/CA/PF/SE/PRE identifier present.
 > Backup: `docs/DECISIONS.md.pre-v31.<ts>` (removed after push; git history is canonical).
+
+---
+
+## WHITEPAPER FINAL-AUDIT PASS — CA-R16 Series (2026-09-04)
+
+| ID | Sev | Finding | Resolution |
+|---|---|---|---|
+| CA-R16 | HIGH | §10.4 listed validations for unbuilt modules (threshold decapsulation, PC-edge SAT, graded-cell repro, light-client sync, HHI guard, σ_user) alongside implemented ones | Status-split inserted: items 1–4, 8 = machine-validated (6/6); 5–7, 9–11 = release gates pending modules |
+| CA-R17 | HIGH | §2.6 leaf schema 199-bit/flags[8] — Errata E-11/DEC-126 never landed in tex | Applied: 192-bit/flags[1], exact 24-B window |
+| CA-R18 | MED | Appendix + repo tree "39 decisions" stale | 115 verified + recovered to DEC-180 |
+| CA-R19 | MED | Abstract "constant-size" vs CA-5/DEC-044 | "Succinct, size independent of transaction count" |
+| CA-R20 | MED | Informer reward pre-DEC-075 | Shared window 60/40 in 30 s |
+| CA-R21 | MED | Version/date not bumped | v1.0.1, 2026-09-04 |
+| CA-R22 | MED | Root causes #8/#10 absent | Evidence-level entries added |
+| CA-R23 | MED | Definition 1 "syntactically bound" vs DEC-057 | Enforcement clause reworded (counting) |
+| CA-R24 | LOW | Notation nits (12/13 render, bits/nats, PoW phrasing, δ_fold value) | Applied |
+
+**E-8 verification:** t=112 confirmed at 8 locations in the final PDF. **E-11 status: APPLIED** (was recorded-only).
