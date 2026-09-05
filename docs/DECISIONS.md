@@ -1331,3 +1331,15 @@ marker string.
 **Supersedes:** N/A
 
 **Build status:** step8_conformance registered (suite target 8/8). bls_derive.cpp untouched. design-time near-miss logged: 512-bit DRBG draw vs 253-bit limit would have looped forever (caught pre-terminal, single-digest draws).
+
+---
+
+### GENERATOR HARDENING ERRATUM — CA-R37…R39 (2026-09-05)
+
+All three auditor-side; none reached origin; all caught by the dump/heartbeat/timeout machinery built during the incidents.
+
+- **CA-R37 · 🟡 MED — Disproven hang hypothesis.** Initial diagnosis blamed Termux paste line-loss in _s8_draw; the integrity dump disproved it (loop intact). Real cause was CA-R38. Dump-before-patch is now standard for suspected paste damage.
+- **CA-R38 · 🟠 HIGH — Entropy-starved retry loops.** The pts and TS golden-draw loops keyed their DRBG salt to len(pts)/len(TS), which advances only on SUCCESS — a rejected candidate (~50%) redrew the identical value forever (P(hang) ~ 94% for 4 points). Fix: attempt-counter salts + >1000 starvation guards. Standing law: every retry loop advances its entropy source or dies loudly — the law the kernel's rand_pt already obeys.
+- **CA-R39 · 🟠 HIGH — Consumed anchor + textual verification.** The structural TS repair consumed its end-anchor ('for v, w in TS:') without re-emitting it, orphaning the TS verification body inside the while loop (runtime NameError: w). py_compile passed; the advertised behavioral check was still textual. Doctrines: structural replacements re-emit every consumed anchor; generator verification = execution under timeout, never pattern-match; heartbeats are the primary witness.
+
+Countermeasures standing: every generator run executes under timeout with stage heartbeats; integrity dumps precede structural patches.
