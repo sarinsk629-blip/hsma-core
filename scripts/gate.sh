@@ -24,7 +24,7 @@ for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp \
          poseidon_golden.hpp smt_golden.hpp consensus_golden.hpp; do
   test -f "build/generated/$h" || { echo "✗ MISSING GENERATED: $h"; exit 1; }
 done
-echo "   all 11 generated headers present"
+echo "   all 13 generated headers present"
 
 echo "── [3/4] diagnostics ────────────────────────────"
 ./build/diag_step5 | tee "$dg5"

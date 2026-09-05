@@ -1305,3 +1305,29 @@ marker string.
 **Supersedes:** N/A
 
 **Build status:** STEP 7 CLOSED - GATE GREEN 7/7 (2026-09-04): 64 DRBG pairs bit-exact vs Python bigint; DKG n=5/t=3 trace green; tamper divergence verified; provenance x=0x8508c00000000001. First Pillar-II code in tree. consensus.hpp / bls_derive.cpp untouched: sim_beacon replacement = Step 9; E(F_q) promotion = Step 8.
+
+---
+
+## SECTION VIII (cont.) — Step 8: E(F_q) Promotion (2026-09-04)
+
+#### DEC-185 — Verbatim promotion doctrine
+**Decision:** tools/bls_derive.cpp §1–2 (bn layer, MCtx, Montgomery core) and §4/§7 (tonelli, Jacobian Pdbl/Padd/Pmul) promoted verbatim into include/hsma/threshold/{mont384,g1}.hpp, in-source laws preserved (CANONICALIZATION LAW, n0 kernel check, 8C/DEC-180, T[i] carry-out, tonelli UNCONDITIONAL R update). Documented deviations: exp_m2 omitted (never read); line-number tripwires dropped (semantic guards kept); fe6 r{} normalization; globals -> initialize-once ctx(); bls_derive.cpp remains the derivation authority (DEC-109).
+**Rationale:** Promotion reproduces the proven kernel under golden parity; the authority is never rewritten.
+**Supersedes:** N/A
+
+#### DEC-186 — q-side constants authority
+**Decision:** bls_q_params_gen.hpp emitted by gen_constants.py STEP 8: q = h1*r + x computed in Python from x = 0x8508c00000000001 (identity-anchored vs SEED_X, CA-R32); validated MR-52 on q and r, widths 377/253, low-limb ancestry, gy^2 = 2 with even-limb law, GEN = [h1](1,sqrt(2)) on-curve, [r]GEN = inf; r cross-checked == step7 _DOCUMENTED_R; C++ ctx() re-verifies n0 kernel, n0 == Q_N0, and R1/R2 == pow2_mod recomputation.
+**Rationale:** Zero hand transcription (DEC-046/102); value-anchored extraction; defense-in-depth at consumption.
+**Supersedes:** N/A
+
+#### DEC-187 — Affine-oracle independence (release-blocking)
+**Decision:** Goldens: 48 F_q arithmetic pairs + roundtrip; 4 addition + 4 doubling + 4 scalar-mult triples in AFFINE canonical form; 8 Tonelli roots (residues only, ± tolerance + w^2 == x). Oracle = Python plain-integer affine EC — a formula family and arithmetic representation independent of the C++ Jacobian/Montgomery promotion. Emission uses one placeholder per line (CA-R33-proof by construction).
+**Rationale:** Two independent implementations agreeing bit-exact is stronger evidence than any single implementation's self-test; extends the bn_mod independent-truth doctrine one level up.
+**Supersedes:** N/A
+
+#### DEC-188 — Algebraic self-proofs per gate run
+**Decision:** test_step8 machine-runs: Padd(P,P) == Pdbl(P); [a+b]P == [a]P + [b]P; [r]GEN = inf (subgroup membership); [h1*r]P = inf (order divisibility — the derivation tool's 3-point discipline, now permanent in the suite).
+**Rationale:** Curve-law violations that parity fixtures might miss are caught structurally, every gate run.
+**Supersedes:** N/A
+
+**Build status:** step8_conformance registered (suite target 8/8). bls_derive.cpp untouched. design-time near-miss logged: 512-bit DRBG draw vs 253-bit limit would have looped forever (caught pre-terminal, single-digest draws).

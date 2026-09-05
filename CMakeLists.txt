@@ -121,3 +121,8 @@ add_test(NAME step6_conformance COMMAND test_step6)
 add_executable(test_step7 conformance/test_step7.cpp)
 target_include_directories(test_step7 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step7_conformance COMMAND test_step7)
+
+# == Step 8: G1 promotion (DEC-185..188) ==
+add_executable(test_step8 conformance/test_step8.cpp)
+target_include_directories(test_step8 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step8_conformance COMMAND test_step8)
