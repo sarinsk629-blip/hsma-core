@@ -1304,4 +1304,4 @@ marker string.
 **Rationale:** Separates verifiable scalar kernel from curve integration; both golden-pinned.
 **Supersedes:** N/A
 
-**Build status:** step7_conformance (suite 7/7). consensus.hpp / bls_derive.cpp untouched: sim_beacon replacement = Step 9; E(F_q) promotion = Step 8.
+**Build status:** STEP 7 CLOSED - GATE GREEN 7/7 (2026-09-04): 64 DRBG pairs bit-exact vs Python bigint; DKG n=5/t=3 trace green; tamper divergence verified; provenance x=0x8508c00000000001. First Pillar-II code in tree. consensus.hpp / bls_derive.cpp untouched: sim_beacon replacement = Step 9; E(F_q) promotion = Step 8.
