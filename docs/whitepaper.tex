@@ -51,9 +51,9 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1 --- Errata Sync v1.0.1 --- Errata Sync v1.0.1 --- Errata Sync v1.0.1}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2}
 \author{\textbf{HSMA Core Engineering}}
-\date{September 4, 2026}
+\date{September 5, 2026}
 
 \begin{document}
 \maketitle
@@ -65,7 +65,7 @@ HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, and the BLS12-377 group law is mathematically proven on 3 independent points.
 
-This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 6/6 conformance tests passing.
+This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 8/8 conformance tests passing.
 \end{abstract}
 
 \tableofcontents
@@ -504,12 +504,19 @@ hsma-core/
 |   +-- params.hpp          # Protocol constants (static_assert enforced)
 |   +-- sha256.hpp          # FIPS-180 SHA-256
 |   +-- update.hpp          # SMT updates + proofs
-+-- conformance/            # Test suite (6/6 passing)
+|   +-- threshold/          # Pillar-II threshold module (Steps 7-8)
+|   +-- scalar_r.hpp       # BLS12-377 F_r Montgomery CIOS kernel
+|   +-- poly.hpp           # DKG scalar semantics (Horner, Lagrange)
+|   +-- mont384.hpp        # 384-bit Montgomery engine (promoted)
+|   +-- g1.hpp             # G1 Jacobian arithmetic (promoted)
++-- conformance/            # Test suite (8/8 passing)
 |   +-- test_step2.cpp      # Field arithmetic tests
 |   +-- test_step3.cpp      # Numeric kernel tests
 |   +-- test_step4.cpp      # State vault tests
 |   +-- test_step5.cpp      # Mempool tests
 |   +-- test_step6.cpp      # Consensus tests
+|   +-- test_step7.cpp    # Threshold F_r kernel conformance
+|   +-- test_step8.cpp    # G1 promotion parity conformance
 |   +-- diag_step5.cpp      # Mempool diagnostics
 |   +-- diag_step6.cpp      # Consensus diagnostics
 +-- libhsma_numcore/        # 127-bit scratchpad accumulator
@@ -584,6 +591,30 @@ Total Test time (real) =   0.60 sec
 == GATE GREEN ==
 \end{lstlisting}
 
+\textbf{Implementation sync v1.0.2 (2026-09-05): threshold module, Steps 7--8.}
+The conformance suite now stands at \textbf{8/8} with \textbf{13 generated headers}
+(machine-checked per gate run). \texttt{step7\_conformance} proves the BLS12-377
+scalar-field $F_r$ kernel (4$\times$64-limb Montgomery CIOS, canonical range
+ $[0,r)$): 64 DRBG pairs bit-exact against a Python big-integer oracle, edge cases,
+and a full DKG $n{=}5,\,t{=}3$ scalar trace (share derivation, Lagrange-at-zero,
+secret reconstruction, tamper divergence). \texttt{step8\_conformance} proves the
+G1 promotion --- the 384-bit Montgomery engine and Jacobian
+\texttt{Pdbl}/\texttt{Padd}/\texttt{Pmul} promoted verbatim from the derivation
+kernel with in-source laws preserved --- via 48 $F_q$ golden pairs,
+addition/doubling/scalar-multiplication triples against a Python \emph{affine} EC
+oracle, 8 Tonelli roots, and algebraic self-proofs
+($\mathtt{Padd}(P,P)=\mathtt{Pdbl}(P)$, $[a{+}b]P=[a]P+[b]P$, $[r]G=\infty$,
+ $[\#E]P=\infty$). Constants provenance: $r$ is verified against the kernel literals
+through the family identity $x^4 - x^2 + 1 = r$ with
+ $x=\texttt{0x8508c00000000001}$; $q = h_1 r + x$ carries MR-52 primality, widths
+ $377/253$, and low-limb ancestry; the generator is cofactor-cleared and
+ $[r]G=\infty$ is machine-checked every gate run. New module:
+\texttt{include/hsma/threshold/} (\texttt{scalar\_r.hpp}, \texttt{poly.hpp},
+\texttt{mont384.hpp}, \texttt{g1.hpp}); \texttt{tools/bls\_derive.cpp} remains the
+derivation authority (DEC-109) --- the promoted module reproduces its outputs
+under golden parity. The verbatim gate log above records the v1.0 baseline
+(6/6); the suite and the gate have since grown together.
+
 \subsection{BLS12-377 Group Law Verification}
 
 The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curve group law:
@@ -604,7 +635,7 @@ Root Cause #10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixtu
 
 
 \subsection{Conformance Suite}
-\textbf{Implementation status (Phase 0).} Items 1--4 and 8 are machine-validated today by the 6/6 conformance binaries. Items 5--7 and 9--11 are release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement, threshold decapsulation, the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
+\textbf{Implementation status (Phase 0).} Items 1--4, 8, and 12--13 are machine-validated today by the 8/8 conformance binaries. Items 5--7 and 9--11 are release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement, threshold decapsulation, the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
 
 
 The release-blocking conformance suite validates:
@@ -621,6 +652,8 @@ The release-blocking conformance suite validates:
     \item Graded-cell certification bit-exact reproducibility
     \item Light-client rejection of genesis-sync requests
     \item Envelope-guard trip on injected HHI violation
+\item $F_r$ scalar-kernel golden parity vs Python big-integer oracle (step 7; implemented)
+\item G1 promotion: affine-EC oracle triples + algebraic self-proofs (step 8; implemented)
 \end{enumerate}
 
 % ════════════════════════════════════════════════════════════════════
@@ -653,7 +686,7 @@ HSMA's contribution is not any single primitive but a composition discipline: ev
 
 The result is a ledger whose safety argument fits on one line --- $\epsilon_{\text{sys}} \approx 2^{-110}$, assumption-dominated --- and whose liveness recovers from every network-level attack by construction. Continuous-state throughput, MEV-immune ordering, and useful-work security stop being trade-offs when ordering is separated from knowledge, safety is separated from statistics, and history is separated from verification.
 
-The C++20 reference implementation passes all 6 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking.
+The C++20 reference implementation passes all 8 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking.
 
 \textbf{The architecture's one-line soul:} \textit{ordering separated from knowledge (structural), safety separated from statistics (zeros, not probabilities), history separated from verification (one 73 KB proof), security priced in burned capital rather than probabilistic goodwill.}
 
