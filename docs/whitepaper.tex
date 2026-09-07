@@ -51,7 +51,7 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2 --- Errata Sync v1.0.1, Impl Sync v1.0.2}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.2}
 \author{\textbf{HSMA Core Engineering}}
 \date{September 5, 2026}
 
@@ -194,7 +194,7 @@ Account state is maintained in a Sparse Merkle Tree (SMT) of depth $D_S = 64$.
     \item Unchanged-subtree short-circuit: ascent halts when a recomputed hash equals the old spine hash (root-identity theorem).
 \end{enumerate}
 
-\textbf{Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf binding (CA-72 closure):} $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$, binding the key to the payload to prevent index-collision malleability.
+\textbf{Leaf width is the exact 24-byte window of DEC-126 (Errata E-11). Leaf binding (CA-72 closure):} $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$, binding the key to the payload to prevent index-collision malleability.
 
 % ════════════════════════════════════════════════════════════════════
 \section{Metastable Sub-Sampled Consensus (MSSC)}
@@ -315,7 +315,7 @@ Traditional \textit{Simulate-then-Commit} sequencing requires the committee to r
 
 \begin{itemize}
     \item Confidentiality breaks at $\ge 112$ colluders ($50\%$): structurally impossible since eligible adversary identities cap at $m \le f/w_{\text{floor}} = 100 < 112$ (DEC-039).
-    \item Decryption halts at $\ge 113$ unavailable seats ($50.4\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 12/13-seat (E-2)$ structural margins.
+    \item Decryption halts at $\ge 113$ unavailable seats ($50.4\%$): adversary controls $\le 100$; halt requires $\ge 13$ simultaneous honest failures --- both extremes carry $\ge 12/13-seat margins (Errata E-2)gins.
 \end{itemize}
 
 \subsection{Decryption Liveness \& Refund Totality}
@@ -630,8 +630,10 @@ The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curv
 \textbf{Root Cause \#7 (8C Doubling Bug):} The dbl-2009-l formula required $Y_3 = E \cdot (D - X_3) - 8C$. The v3 implementation computed $C_8 = \text{madd}(QC, \text{madd}(QC, C_c, C_c), C_c)$ producing $6C$ instead of $8C$. Every Y-coordinate from every doubling was off by $+2C$. Fixed: $C_2 = C + C$; $C_4 = C_2 + C_2$; $C_8 = C_4 + C_4$.
 
 \textbf{Root Cause \#9 (rand\_below Infinite Loop):} The scalar field $r$ is 253-bit, so $g_r[5] = 0$. The RNG filled all 6 limbs with random 64-bit values, making $v > g_r$ almost always. Fixed: clear high zero-limbs of the modulus before generating.
-Root Cause #8 (Consensus-Fixture Stall): 30-iteration scalar-multiplication fixture loops exceeded the 90-second timeout; telemetry ruled out Tonelli--Shanks non-termination; fixture counts reduced ($30\to3$). Narrative: DECISIONS.md E-9.
-Root Cause #10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixture generation; resolved in the derivation tool.
+
+Root Cause \#8 (Consensus-Fixture Stall): 30-iteration scalar-multiplication fixture loops exceeded the 90-second timeout; telemetry ruled out Tonelli--Shanks non-termination; fixture counts reduced ($30\to3$). Narrative: DECISIONS.md E-9.
+
+Root Cause \#10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixture generation; resolved in the derivation tool.
 
 
 \subsection{Conformance Suite}

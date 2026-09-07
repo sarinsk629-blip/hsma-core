@@ -1343,3 +1343,15 @@ All three auditor-side; none reached origin; all caught by the dump/heartbeat/ti
 - **CA-R39 · 🟠 HIGH — Consumed anchor + textual verification.** The structural TS repair consumed its end-anchor ('for v, w in TS:') without re-emitting it, orphaning the TS verification body inside the while loop (runtime NameError: w). py_compile passed; the advertised behavioral check was still textual. Doctrines: structural replacements re-emit every consumed anchor; generator verification = execution under timeout, never pattern-match; heartbeats are the primary witness.
 
 Countermeasures standing: every generator run executes under timeout with stage heartbeats; integrity dumps precede structural patches.
+
+### CA-R40 — NON-IDEMPOTENT APPEND-REPLACEMENTS (2026-09-07, HIGH)
+
+The string-replace helpers checked 'old in s' BEFORE 'new in s'. For prefix-preserving
+replacements (old is a substring of new — version strings, the E-11 leaf note) the
+old-check fires on EVERY re-run, appending one more copy each time. Across the
+crash-recovery re-runs and rebase re-applications, the whitepaper title version string
+and the section 2.6 E-11 note each accumulated x4. Caught by the founder's PDF compile
+- the compile IS a verification instrument. Fix: runs collapsed to 1. Doctrine:
+(1) idempotency guards test the RESULT first; (2) blocks declared re-runnable must be
+re-entrant by construction; (3) a PDF compile of whitepaper.tex joins the verification
+loop after every documentation change.
