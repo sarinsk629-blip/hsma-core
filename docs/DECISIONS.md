@@ -1355,3 +1355,35 @@ and the section 2.6 E-11 note each accumulated x4. Caught by the founder's PDF c
 (1) idempotency guards test the RESULT first; (2) blocks declared re-runnable must be
 re-entrant by construction; (3) a PDF compile of whitepaper.tex joins the verification
 loop after every documentation change.
+
+---
+
+## SECTION VIII (cont.) — Step 9: Threshold Protocol Layer (2026-09-07)
+
+#### DEC-189 — Hash-to-G1
+**Decision:** h2g1 = SHA-256 counter preimage (HSM_H2G1_v1 ‖ u32le len ‖ m ‖ u32le counter) → 256-bit x (canonical, < q) → QR gate → tonelli → even-y law → cofactor-clear [h1]. Counter advances entropy + 1024-starvation guard (CA-R38 law). Tag length derived via sizeof-1 (CA-R43 law). [r]H(m) = inf by construction. Grind-resistance = SHA-256 preimage resistance (Phase-0 scope; RFC-9380 SSWU = Phase-1+ hardening candidate).
+**Rationale:** Kernel try-and-increment pattern; promoted-machinery reuse.
+**Supersedes:** N/A
+
+#### DEC-190 — Feldman DKG in G1 (pairing-free)
+**Decision:** C_k = [a_k]G; share verification [s_j]G == Σ_k [j^k]C_k as a pure G1 point equation; Y = Σ C_{i,0} = [S]G. Committee = the Step 7 DKG trace (same DRBG salt → same polys/shares/lambdas/secret as G7_*): scalar and curve goldens cross-validate one committee. Full DKG state machine (complaints, resharing) is later-phase; arithmetic core proven now.
+**Rationale:** DEC-181: Feldman verification needs no pairings.
+**Supersedes:** N/A
+
+#### DEC-191 — Threshold BLS signing; harness-secret law
+**Decision:** σ_j = [S_j]H(m); σ = Σ [λ_j]σ_j via Step 7 lagrange_zero. Release-blocking law: σ == [S]H(m), aggregate independently recomputed from the known secret. Pairing verification deferred to Step 10 (DEC-032/181).
+**Rationale:** Full t-of-n pipeline proven in G1 alone.
+**Supersedes:** N/A
+
+#### DEC-192 — HSM_BEACON_V1 epoch beacon
+**Decision:** Preimage HSM_BEACON_V1 (13-char tag, sizeof-derived) ‖ epoch LE64 ‖ prev = 53 B → h2g1 → threshold-sign over t-subset → SHA-256(affine σ: x‖y, 48-B LE limbs) → consensus::Digest. Same (epoch, prev)→Digest interface as sim_beacon (types; values differ by design). sim_beacon REMAINS in force; retirement = explicit swap decision + consensus-golden regeneration. Phase-0 API: Committee carries t-subset shares (harness model); production = per-member partials + permissionless aggregation. Tags HSM_H2G1_v1/HSM_BEACON_V1 are header-local constexpr; registry insertion (33→35, DEC-099) documented for next full regen.
+**Rationale:** Unpredictability = threshold-BLS uniqueness pre-reveal; interface parity makes the eventual swap one auditable decision.
+**Supersedes:** N/A
+
+**Build status:** STEP 9 CLOSED - GATE GREEN 9/9 (2026-09-07): h2g1 ×4 + laws, feldman 25/25 + tamper, threshold sigs ×3 + [S]H law, beacon chain ×4 + determinism. consensus.hpp untouched; sim_beacon intact.
+
+### STEP 9 ERRATA — CA-R41..44 (2026-09-07)
+- **CA-R41 · LOW** — Mixed accessors (.d[k] on std::array fe6, 3 lines). Compiler-caught.
+- **CA-R42 · LOW** — sig.hpp authored, sign.hpp included. Compiler-caught; syntax-only loop now mandatory pre-gate.
+- **CA-R43 · 🟠 HIGH** — Hand-counted tag: "HSM_BEACON_V1" = 13 chars, memcpy'd as 14 → phantom NUL in every preimage; comment/DEC draft said "54 B" where the generator used 53. All 6 beacon FAILs shared one root. Bilingual byte-level probe localized it (P.pre0 vs D.pre0; P.dig == G.bcn0 proved the golden right, the C++ wrong). Doctrine: tag lengths DERIVED (sizeof-1), never hand-counted. Golden unchanged.
+- **CA-R44 · LOW** — Debug-anchor in the test independently rebuilt the preimage it was debugging (hand-maintained construction in two places). Retired: digest parity subsumes σ-parity. Doctrine: tests exercise the public API, never duplicate preimage construction.

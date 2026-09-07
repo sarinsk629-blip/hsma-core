@@ -126,3 +126,8 @@ add_test(NAME step7_conformance COMMAND test_step7)
 add_executable(test_step8 conformance/test_step8.cpp)
 target_include_directories(test_step8 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step8_conformance COMMAND test_step8)
+
+# == Step 9: threshold protocol layer (DEC-189..192) ==
+add_executable(test_step9 conformance/test_step9.cpp)
+target_include_directories(test_step9 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step9_conformance COMMAND test_step9)
