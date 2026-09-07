@@ -1330,7 +1330,7 @@ marker string.
 **Rationale:** Curve-law violations that parity fixtures might miss are caught structurally, every gate run.
 **Supersedes:** N/A
 
-**Build status:** step8_conformance registered (suite target 8/8). bls_derive.cpp untouched. design-time near-miss logged: 512-bit DRBG draw vs 253-bit limit would have looped forever (caught pre-terminal, single-digest draws).
+**Build status:** STEP 8 CLOSED - GATE GREEN 8/8 (2026-09-05): 48 Fq pairs + 12 curve triples + 8 tonelli roots bit-exact vs Python affine-EC oracle; [r]GEN=inf, [#E]P=inf, homomorphism machine-proven every gate run; 13 headers; provenance x=0x8508c00000000001; q=377b MR-52. bls_derive.cpp untouched. design-time near-miss logged: 512-bit DRBG draw vs 253-bit limit would have looped forever (caught pre-terminal, single-digest draws).
 
 ---
 
