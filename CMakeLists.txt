@@ -131,3 +131,8 @@ add_test(NAME step8_conformance COMMAND test_step8)
 add_executable(test_step9 conformance/test_step9.cpp)
 target_include_directories(test_step9 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step9_conformance COMMAND test_step9)
+
+# == Step 10: F_q2 + E twist (DEC-193..196) ==
+add_executable(test_step10 conformance/test_step10.cpp)
+target_include_directories(test_step10 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step10_conformance COMMAND test_step10)

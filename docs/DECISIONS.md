@@ -1387,3 +1387,34 @@ loop after every documentation change.
 - **CA-R42 · LOW** — sig.hpp authored, sign.hpp included. Compiler-caught; syntax-only loop now mandatory pre-gate.
 - **CA-R43 · 🟠 HIGH** — Hand-counted tag: "HSM_BEACON_V1" = 13 chars, memcpy'd as 14 → phantom NUL in every preimage; comment/DEC draft said "54 B" where the generator used 53. All 6 beacon FAILs shared one root. Bilingual byte-level probe localized it (P.pre0 vs D.pre0; P.dig == G.bcn0 proved the golden right, the C++ wrong). Doctrine: tag lengths DERIVED (sizeof-1), never hand-counted. Golden unchanged.
 - **CA-R44 · LOW** — Debug-anchor in the test independently rebuilt the preimage it was debugging (hand-maintained construction in two places). Retired: digest parity subsumes σ-parity. Doctrine: tests exercise the public API, never duplicate preimage construction.
+
+---
+
+## SECTION VIII (cont.) — Step 10-A: F_q2 + E' Twist Curve (2026-09-08)
+
+#### DEC-193 — F_q2 construction and authority
+**Decision:** F_q2 = F_q[u]/(u²-β), β=5 (smallest non-square, generator-discovered). Elements (c0,c1). Arithmetic: mul(a,b) = (a0·b0 + β·a1·b1, a0·b1 + a1·b0); inverse via norm N(a) = c0²-β·c1² and conjugate. First authority class: β is value-anchored (CA-R32 doctrine).
+**Rationale:** Smallest non-square gives the simplest constants; generator-discovered, not hand-picked.
+**Supersedes:** N/A
+
+#### DEC-194 — E' twist curve
+**Decision:** E': y² = x³ + b' over F_q2, b'=(5,1) (generator-discovered via computational search: [h2]P ∈ E'[r] verified). Jacobian coordinates over Fq2, same formula structure as G1 (Pdbl/Padd/Pmul).
+**Rationale:** b' found by search over 6 candidates; verified by [r]([h2]P) = ∞ for a random point.
+**Supersedes:** N/A
+
+#### DEC-195 — h2 cofactor (external reference)
+**Decision:** h2 = (x⁸−4x⁷+5x⁶−4x⁴+6x³−4x²−4x+13)/9, 502 bits. Authority: BLS12 literature (first external-reference DEC). Verified: Hasse bound |h2·r−q²−1| ≤ 2q AND [r]([h2]P)=∞ computationally.
+**Rationale:** Not derivable from SEED_X; honest external citation with dual verification.
+**Supersedes:** N/A
+
+#### DEC-196 — G2 generator
+**Decision:** G2 = [h2](random point on E'), order exactly r. [r]G2 = ∞ machine-verified in generator and conformance. Affine canonical form emitted in bls_g2_params_gen.hpp.
+**Rationale:** Cofactor-cleared; deterministic from DRBG seed.
+**Supersedes:** N/A
+
+**Build status:** STEP 10-A CLOSED — GATE GREEN 10/10: Fq2 parity ×32, E' triples ×12, G2 subgroup. Step 10-B (pairing) is next.
+
+### STEP 10-A ERRATA — CA-R45..47
+- **CA-R45 · LOW** — _s10_row6 format string: sixth placeholder missing '%'; fix script's "already fixed" check matched Step 8's correct string (false positive).
+- **CA-R46 · LOW** — fq2p (point formatter, [4][6]) applied to F_q2 elements ([2][6]) — type confusion in emission.
+- **CA-R47 · LOW** — Bare `fe6` in test (missing `mont::` namespace prefix); compiler-caught at syntax-only stage.
