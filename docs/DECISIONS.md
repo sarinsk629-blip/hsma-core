@@ -1448,3 +1448,19 @@ loop after every documentation change.
 - **CA-R53** — single-element golden emissions DOUBLE-WRAP the initializer (row helpers already carry the element brace; '= { row }' adds a level, so inner groups initialize scalars -> 'excess elements in scalar initializer'). Also: per-case constants vs indexed test access. Fixed: BLS joined arrays [4][2][6]/[4][4][6]/bool[4]; singles unwrapped ('= row;'). Doctrine: multi-element rows are ELEMENTS of the array brace; single-element rows ARE the initializer.
 - **CA-R54** — the dimension-truncation misdiagnosis: asserts verified declarations, not initializer structure; the dump (CA-R37 law) overturned it. New law: generated headers get a STANDALONE clang syntax probe, not test-only validation.
 - **Perf** — tower-norm inverse (~2000x), ported to C++.
+
+---
+
+## SECTION IX — Step 11: The sim_beacon Retirement (2026-09-09)
+
+#### DEC-200 — The real randomness takes command
+**Decision:** The consensus golden path consumes HSM_BEACON_V1: G_B1/G_B2 are the real threshold-beacon chain (h2g1 -> t-subsect sign -> SHA-256) over the G7 committee at epochs CONS_EPOCH/CONS_EPOCH+1. Generator: value-injection (_cons_static patched post-hoc; emit_consensus_scenario re-invoked unmodified - append-only, zero duplication; the within-run sim emission is superseded). sim_beacon/sim_beacon_genesis DELETED from consensus.hpp; consumers migrated (test_step6: producer parity = the real beacon + G7 committee; diag_step6: real input; test_step9: interop stub removed - the interop is now the production path). All traces regenerate (the beacon feeds the sampler seed); G_WINNER/G_DELAY derive from the real b2.
+**Rationale:** DEC-192's retirement clause executed. The FIRST CROSS-PILLAR GOLDEN LINKAGE: one G7 committee now testifies across DKG (7), threshold signing + beacon (9), the pairing (10), AND consensus (11). The automaton untouched: a pure consumer by construction.
+**Supersedes:** DEC-192 (the 'sim_beacon remains in force' clause)
+
+**Build status:** STEP 11 CLOSED - GATE GREEN 11/11: consensus goldens real-beacon; sim_beacon deleted; the pillars shake hands.
+
+### STEP 11 ERRATA — CA-R55..R57 (2026-09-09)
+- **CA-R55** — FIXS9 dead-code bug: the comment back-track computed but never used; stale interop comments survived the code removal; the release assert caught the residue; fixed surgically.
+- **CA-R56 (revised)** — the 'partial append' was a MISDIAGNOSIS read from a garbled terminal display; R1's file-state check found the append complete. Lesson (CA-R54's, recurring): diagnose from FILE STATE, never from display. Doctrine kept as prevention: file-mutating appends via python heredocs (atomic - a cut means nothing runs).
+- **CA-R57** — self-defeating assert: the retirement comment itself contains 'sim_beacon', so the text-level completeness check failed on my own comment. The deletion was correct. Fix: code-level (non-comment) checks for symbol retirement. Same family as CA-R51.

@@ -2,6 +2,9 @@
 #include <hsma/consensus.hpp>
 #include <cstdio>
 #include <cstring>
+#include <hsma/threshold/scalar_r.hpp>
+#include <hsma/threshold/beacon.hpp>
+#include "threshold_golden.hpp"
 using namespace hsma;
 using namespace consensus;
 int main() {
@@ -18,7 +21,15 @@ int main() {
 
     Automaton aut(s, 1, {});
     View v; std::uint8_t cb[32]{9}; v.conflict = Digest::from_bytes(cb);
-    const Digest b1 = sim_beacon_genesis(1);
+    // STEP 11 (DEC-200): real beacon input (HSM_BEACON_V1, G7 committee)
+    threshold::beacon::Committee dbc;
+    dbc.ids = { golden::G7_IDS[0], golden::G7_IDS[1], golden::G7_IDS[2] };
+    threshold::Fr dsh[5];
+    for (unsigned j = 0; j < 5; ++j) { dsh[j] = threshold::Fr{}; threshold::Fr dv{};
+        for (unsigned i = 0; i < 5; ++i) { threshold::fr_from_limbs(dv, golden::G7_SHARE[i][j]);
+            dsh[j] = threshold::fr_add(dsh[j], dv); } }
+    dbc.shares = { dsh[1], dsh[2], dsh[4] };
+    const Digest b1 = threshold::beacon::genesis(1, dbc);
 
     Pool empty;
     auto t1 = aut.tick(v, b1, empty);

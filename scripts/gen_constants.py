@@ -1741,3 +1741,46 @@ def _step10b():
                 MIL=MIL, PAP=PAP, BLS=BLS)
 
 _step10b()
+
+# ═══ STEP 11 APPEND — sim_beacon retirement: consensus goldens consume HSM_BEACON_V1 (DEC-200) ═══
+import hashlib as _h11
+
+def _step11():
+    P8 = _step8_params()
+    q, r, h1 = P8["q"], P8["r"], P8["h1"]
+    co = _step7_draw(15, r, b"HSM_G7_DRBG_v1P")
+    polys = [co[i*3:(i+1)*3] for i in range(5)]
+    share = [[_s7_pe(polys[i], j, r) for j in range(1, 6)] for i in range(5)]
+    S = [sum(share[i][j-1] for i in range(5)) % r for j in range(1, 6)]
+    lam = _s9_lam([2, 3, 5], r)
+
+    def _chain11(e, prev):
+        pre = b"HSM_BEACON_V1" + e.to_bytes(8, "little") + prev
+        H = _s9_h2g1(pre, q, h1)
+        sg = None
+        for l, j in zip(lam, [2, 3, 5]):
+            sg = _s8_add(sg, _s8_mul(_s8_mul(H, S[j-1], q), l, q), q)
+        return _h11.sha256(_s9_ser(sg)).digest()
+
+    b1r = _chain11(CONS_EPOCH, bytes(32))       # HSM_BEACON_V1 genesis @ CONS_EPOCH
+    b2r = _chain11(CONS_EPOCH + 1, b1r)         # chain @ CONS_EPOCH+1
+
+    # value-injection: RefAuto.__init__ resolves _cons_static via module globals,
+    # so the patch redirects it; then re-invoke the UNMODIFIED emission machinery.
+    _orig_cs = _cons_static
+    def _cons_static_real():
+        vid, wt, T, wr, txh, txa, cid, _b1, _b2 = _orig_cs()
+        return vid, wt, T, wr, txh, txa, cid, b1r, b2r
+    globals()["_cons_static"] = _cons_static_real
+
+    cdirs = set()
+    for root, dirs, files in _os8.walk("."):
+        if ".git" in root.split(_os8.sep): continue
+        if "pallas_params_gen.hpp" in files: cdirs.add(root)
+    if len(cdirs) != 1:
+        print("[step11] FATAL: ambiguous dirs"); raise SystemExit(1)
+    emit_consensus_scenario(cdirs.pop())
+    print("[step11] sim_beacon RETIRED from the golden path (DEC-200):")
+    print("[step11] consensus_golden.hpp re-emitted with HSM_BEACON_V1 over the G7 committee")
+
+_step11()

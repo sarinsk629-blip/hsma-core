@@ -107,9 +107,8 @@ int main() {
           consensus::Digest::from_bytes(golden::G9_BEACON[1]), "beacon determinism");
     // (sigma debug anchor retired: digest parity subsumes it; production path
     //  proven by genesis/chain/determinism. CA-R44 note.)
-    // 5. Interface parity: threshold beacon feeds sim_beacon as prev —
-    //    type-level interop with consensus (sim_beacon itself untouched).
-    (void)consensus::sim_beacon(9, prev);
+    // STEP 11 (DEC-200): sim_beacon retired - the interop IS the production
+    // path now (beacon::epoch_beacon consumes consensus::Digest directly).
 
     if (failures) { std::printf("\n%d FAILURE(S) IN STEP 9\n", failures); return 1; }
     std::printf("step9 conformance: ALL GREEN (h2g1 x4 + laws, feldman 25/25 + "

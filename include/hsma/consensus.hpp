@@ -192,19 +192,8 @@ private:
     std::uint64_t epoch_; std::vector<std::size_t> revoked_;
 };
 
-inline Digest sim_beacon_genesis(std::uint64_t epoch) noexcept {
-    std::uint8_t in[17 + 8 + 32];                      // CA-113: exact 57
-    std::memcpy(in, "HSM_SIM_BEACON_v1", 17);
-    for (int i = 0; i < 8; ++i) in[17+i] = std::uint8_t(epoch >> (8*i));
-    std::memset(in + 25, 0, 32);
-    return sha256d(in, 57);
-}
-inline Digest sim_beacon(std::uint64_t epoch, const Digest& prev) noexcept {
-    std::uint8_t in[17 + 8 + 32];
-    std::memcpy(in, "HSM_SIM_BEACON_v1", 17);
-    for (int i = 0; i < 8; ++i) in[17+i] = std::uint8_t(epoch >> (8*i));
-    prev.to_bytes(in + 25);
-    return sha256d(in, 57);
-}
-
+// STEP 11 (DEC-200): sim_beacon / sim_beacon_genesis RETIRED.
+// The sole beacon producer is threshold::beacon (HSM_BEACON_V1). The
+// automaton was always a pure consumer: Tick / resolve_breaker take the
+// beacon as an input - the producer/consumer separation held throughout.
 } // namespace hsma::consensus
