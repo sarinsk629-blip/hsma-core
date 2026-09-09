@@ -1464,3 +1464,29 @@ loop after every documentation change.
 - **CA-R55** — FIXS9 dead-code bug: the comment back-track computed but never used; stale interop comments survived the code removal; the release assert caught the residue; fixed surgically.
 - **CA-R56 (revised)** — the 'partial append' was a MISDIAGNOSIS read from a garbled terminal display; R1's file-state check found the append complete. Lesson (CA-R54's, recurring): diagnose from FILE STATE, never from display. Doctrine kept as prevention: file-mutating appends via python heredocs (atomic - a cut means nothing runs).
 - **CA-R57** — self-defeating assert: the retirement comment itself contains 'sim_beacon', so the text-level completeness check failed on my own comment. The deletion was correct. Fix: code-level (non-comment) checks for symbol retirement. Same family as CA-R51.- **CA-R58** — the DEC-200 ledger verify used case-sensitive 'cross-pillar' against the uppercase 'CROSS-PILLAR' text; the write preceded the assert, so the ledger was complete and committed (4a983b2); cosmetic. Verification-string family (CA-R51/R57/R58) doctrine completed: checks must be code-level AND case-exact.
+
+---
+
+## SECTION X — Step 12: M2 Order-Bound Decryption Shares (2026-09-09)
+
+#### DEC-201 — Phase-0 M2 construction
+**Decision:** G2-plane threshold KEM with the unified anchor X_E = Y2 = [S]G2gen (DEC-030): sender r, R = [r]G2gen, shared = [r]X_E; k = SHA256(HSM_KDF_V1 || ser(shared) || ser(X_E) || header). Phase-0 DEM: SHA-256 counter keystream (HSM_DEM_V1) + tag (HSM_DEM_TAG_V1) over (k, header, ct); DEC-088's AES-GCM/ChaCha profiles deferred to the production step. Header AAD: epoch LE64 | sender_pk(32) | nonce | fee (bound per DEC-026).
+**Rationale:** The KEM input is the SHARED secret (CA-R61's lesson machine-checked: k2==k is the end-to-end assert); the DEM is deterministic and Python-identical.
+**Supersedes:** N/A
+
+#### DEC-202 — The order-bound share record
+**Decision:** D_j = [S_j]R in G2, verified by the pairing identity e(G1gen, D_j) == e(Y1_j, R) (whitepaper item 6, G1 Feldman publics). Attestation sigma_j = [S_j]H(HSM_DEC_SHARE_V2 || epoch || order_root || ct_hash || ser(D_j)) - a BLS partial over the order-bound preimage; verified by e(sigma_j, G2gen) == e(H(pre), Y2_j) (bls_verify_aff, 10-B reuse). Aggregate: D = Sum lambda_j D_j = [S]R (the Lagrange reconstruction - the same identity carrying the beacon, threshold sigs, and the BLS law). Canonical shares golden-pinned as G12M_SJ (Fr is Montgomery; g2::Pmul needs canonical bits).
+**Rationale:** DEC-057 doctrine: binding = attribution/replay-freedom (the record cannot form before order_root exists); impossibility = counting (m_adv <= 100 < t).
+**Supersedes:** N/A
+
+#### DEC-203 — The ordering lock
+**Decision:** ct_hash = SHA256(HSM_CT_V1 || ser(R) || ct); sort_key = SHA256(HSM_ORDER_V1 || beacon_E || ct_hash) with beacon_E = the REAL HSM_BEACON_V1 chain (Step 11); order_root = SHA256(HSM_ORDROOT_V1 || sorted ct_hashes) - Phase-0 form; the production committee-signed root is the M2 production step.
+**Rationale:** The MEV freeze consumes the real beacon; the first real shuffle: [0,3,2,1].
+**Supersedes:** N/A
+
+**Build status:** STEP 12 CLOSED - GATE GREEN 12/12: KEM/DEM parity x4, ordering lock (real beacon), shares x12 + pairing identities, attestations + order-bound verifies, aggregate + decrypt roundtrip (the derivations meet), 3 negatives rejected.
+
+### STEP 12 ERRATA — CA-R59..R61 (2026-09-09)
+- **CA-R59** — _s10_e2_add called with 2 args (needs P, Q, q, beta) in the aggregate loop; the traceback named it; one fix.
+- **CA-R60** — the aggregate's first-iteration branch assigned D_j RAW, skipping lambda_2 (the house pattern applies lambda BEFORE the None-check - Step 11's sigma_agg is the reference); the aggregate identity assert caught it.
+- **CA-R61** — the sender's KDF consumed ser(R) (PUBLIC - the KEM was broken, key publicly derivable) instead of ser(shared = [r]X_E); the end-to-end assert k2 == k caught it. The goldens-do-the-proving doctrine: all three died inside the oracle, before any golden shipped.
