@@ -51,9 +51,9 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.2}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.3}
 \author{\textbf{HSMA Core Engineering}}
-\date{September 5, 2026}
+\date{September 9, 2026}
 
 \begin{document}
 \maketitle
@@ -63,9 +63,9 @@ This document presents the formal specification, mathematical proofs, and implem
 
 HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a threshold-encrypted mempool utilizing a \textit{Commit-then-Simulate} manifest ceremony, where a 224-node committee (192 active + 32 standby, threshold $t = 112$) locks a beacon-shuffled ciphertext ordering \textit{before} any decryption share is constructible. State transition integrity and historical data bloat are resolved using a HyperNova/Customizable Constraint Systems (CCS) folding architecture over the Pallas/Vesta 2-cycle, producing a succinct recursive epoch proof (size independent of transaction count) $\pi_E$ verifiable by light clients in milliseconds.
 
-The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, and the BLS12-377 group law is mathematically proven on 3 independent points.
+The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, the BLS12-377 group law is mathematically proven on 3 independent points, the BLS verification law is pairing-proven secret-free, and the M2 order-bound core is golden-proven end to end.
 
-This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 8/8 conformance tests passing.
+This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 12/12 conformance tests passing.
 \end{abstract}
 
 \tableofcontents
@@ -177,6 +177,12 @@ Revocation root & \texttt{IV\_REVOCATION} \\
 Vote preimage & \texttt{HSM\_MSSC\_VOTE\_v1} \\
 Ordering lock & \texttt{HSM\_ORDER\_v1} \\
 Decryption share & \texttt{HSM\_DEC\_SHARE\_v2} \\
+Epoch beacon & \texttt{HSM\_BEACON\_V1} \\
+Hash-to-G1 & \texttt{HSM\_H2G1\_V1} \\
+M2 key derivation & \texttt{HSM\_KDF\_V1} \\
+M2 DEM keystream/tag & \texttt{HSM\_DEM\_V1} / \texttt{HSM\_DEM\_TAG\_V1} \\
+M2 ciphertext hash & \texttt{HSM\_CT\_V1} \\
+M2 order root & \texttt{HSM\_ORDROOT\_V1} \\
 \end{tabular}
 \end{center}
 
@@ -232,6 +238,8 @@ If a conflict set stalls for 50 rounds, it suspends until the next epoch's thres
 \end{equation}
 
 Because the beacon does not exist when the conflict is created, offline grinding of transaction identities against the breaker is \textbf{impossible}. Membership freezes at suspension (DEC-051); ties resolved by lexicographic $tx_{id}$ (DEC-052).
+
+\textbf{Implementation (Step 11, DEC-200):} \texttt{sim\_beacon} is retired: the consensus goldens consume the real \texttt{HSM\_BEACON\_V1} threshold chain over the DKG committee --- the first cross-pillar golden linkage (one committee testifies across DKG, threshold signing, the pairing, and the consensus sampler seed). The stagger delay is now computed by real threshold cryptography ($22 \to 376$ in the golden trace).
 
 \subsection{Liveness Analysis}
 
@@ -308,6 +316,8 @@ Traditional \textit{Simulate-then-Commit} sequencing requires the committee to r
     \item \textbf{Simulate:} Deterministic re-simulation; insolvent entries $\to$ SKIP records.
     \item \textbf{Execute \& Fold:} \texttt{exec\_root} committed; Pillar \#4 consumes $(order\_root, decree\_root, exec\_root)$.
 \end{enumerate}
+
+\textbf{Implementation (Phase 0, Step 12, DEC-201..203):} the G2-plane threshold KEM with the unified trust anchor $X_E = Y_2 = [S]G_{2,\mathrm{gen}}$ (DEC-030): the sender picks $r$, publishes $R = [r]G_{2,\mathrm{gen}}$, and derives $k = \texttt{SHA256}(\texttt{HSM\_KDF\_V1} \| \mathrm{ser}([r]X_E) \| \mathrm{ser}(X_E) \| \texttt{header})$ --- from the shared secret, never the public $R$ (the $k_2 = k$ end-to-end golden is the machine check of exactly this). Members release order-bound records: $D_j = [S_j]R$, verified by the pairing identity $e(G_1, D_j) = e(Y_{1,j}, R)$ against the Feldman G1 publics (item 6: closed), with attestations $\sigma_j = [S_j]H(\texttt{HSM\_DEC\_SHARE\_V2} \| \texttt{epoch} \| \texttt{order\_root} \| \texttt{ct\_hash} \| \mathrm{ser}(D_j))$ verified by $e(\sigma_j, G_{2,\mathrm{gen}}) = e(H(\textit{pre}), Y_{2,j})$. The aggregate $D = \sum_j \lambda_j D_j = [S]R$ re-derives $k$ and opens the Phase-0 DEM (SHA-256-CTR keystream + tag; DEC-088's AES-GCM/ChaCha profiles deferred to the production step). All golden-proven on both sides of the language boundary: encrypt, order under the real beacon (first shuffle), verify, aggregate, decrypt --- plus three negative cases (malformed share, wrong \texttt{order\_root}, tampered ciphertext).
 
 \subsection{Threshold Parameters}
 
@@ -504,12 +514,22 @@ hsma-core/
 |   +-- params.hpp          # Protocol constants (static_assert enforced)
 |   +-- sha256.hpp          # FIPS-180 SHA-256
 |   +-- update.hpp          # SMT updates + proofs
-|   +-- threshold/          # Pillar-II threshold module (Steps 7-8)
-|   +-- scalar_r.hpp       # BLS12-377 F_r Montgomery CIOS kernel
-|   +-- poly.hpp           # DKG scalar semantics (Horner, Lagrange)
-|   +-- mont384.hpp        # 384-bit Montgomery engine (promoted)
-|   +-- g1.hpp             # G1 Jacobian arithmetic (promoted)
-+-- conformance/            # Test suite (8/8 passing)
+|   +-- threshold/          # Pillar-II threshold module (Steps 7-12)
+|   +-- scalar_r.hpp # BLS12-377 F_r Montgomery CIOS kernel
+|   +-- poly.hpp # DKG scalar semantics (Horner, Lagrange)
+|   +-- mont384.hpp # 384-bit Montgomery engine (promoted)
+|   +-- g1.hpp # G1 Jacobian arithmetic (promoted)
+|   +-- interop.hpp # Fr <-> fe6 interop
+|   +-- h2g1.hpp # Hash-to-G1 (DEC-189)
+|   +-- sig.hpp # Threshold BLS partials + aggregate (DEC-191)
+|   +-- beacon.hpp # HSM_BEACON_V1 epoch beacon (DEC-192)
+|   +-- dkg.hpp # Feldman DKG commitments (DEC-190)
+|   +-- fq2.hpp # F_q2 arithmetic, beta = 5 (DEC-193)
+|   +-- g2.hpp # E' twist curve over F_q2 (DEC-194..196)
+|   +-- fq12.hpp # F_q12 tower + tower-norm inverses (DEC-197)
+|   +-- pairing.hpp # twist + Miller + Tate + BLS verify (DEC-198/199)
+|   +-- m2.hpp # M2 order-bound decryption shares (DEC-201..203)
++-- conformance/            # Test suite (12/12 passing)
 |   +-- test_step2.cpp      # Field arithmetic tests
 |   +-- test_step3.cpp      # Numeric kernel tests
 |   +-- test_step4.cpp      # State vault tests
@@ -517,6 +537,10 @@ hsma-core/
 |   +-- test_step6.cpp      # Consensus tests
 |   +-- test_step7.cpp    # Threshold F_r kernel conformance
 |   +-- test_step8.cpp    # G1 promotion parity conformance
+|   +-- test_step9.cpp # Threshold protocol layer (h2g1, DKG, beacon)
+|   +-- test_step10.cpp # F_q2 + E' twist + G2 conformance
+|   +-- test_step10b.cpp # Pairing layer: Miller, Tate, BLS law
+|   +-- test_step12.cpp # M2 order-bound decryption shares
 |   +-- diag_step5.cpp      # Mempool diagnostics
 |   +-- diag_step6.cpp      # Consensus diagnostics
 +-- libhsma_numcore/        # 127-bit scratchpad accumulator
@@ -534,7 +558,7 @@ hsma-core/
 +-- README.md
 +-- docs/
     +-- whitepaper.tex      # This document
-    +-- DECISIONS.md        # decision ledger: 115 verified + recovered to DEC-180
+    +-- DECISIONS.md        # decision ledger: DEC-001..203 (Sections I-X)
 \end{lstlisting}
 
 \subsection{GATE GREEN Verification}
@@ -615,6 +639,29 @@ derivation authority (DEC-109) --- the promoted module reproduces its outputs
 under golden parity. The verbatim gate log above records the v1.0 baseline
 (6/6); the suite and the gate have since grown together.
 
+\textbf{Implementation sync v1.0.3 (2026-09-09): Steps 9--12.} The conformance
+suite now stands at \textbf{12/12} with \textbf{18 generated headers}.
+\texttt{step9\_conformance} proves the threshold protocol layer (DEC-189..192): hash-to-G1
+(SHA-256 counter preimage, even-y law, cofactor-clear, $[r]H=\infty$), Feldman DKG
+pairing-free (25/25 share equations), threshold signing with the $\sigma = [S]H$ harness
+law, and the \texttt{HSM\_BEACON\_V1} epoch beacon (53-byte preimage, chain $\times$4
+golden). \texttt{step10\_conformance} proves $F_{q2}$ ($\beta{=}5$, generator-discovered),
+the twist $E': y^2 = x^3 + (5,1)$ over $F_{q2}$ (search-discovered, $[r]G_2=\infty$), and
+the G2 generator (DEC-193..196). \texttt{step10b\_conformance} proves the pairing layer
+(DEC-197..199): the $F_{q12}$ tower ($v^3 = \gamma = (5,1)$, $w^2 = v$), the twist map,
+the Miller loop (final-vertical skip by denominator elimination, $r \mid q^6{+}1$), the
+reduced Tate pairing, and the BLS law $e(\sigma, G_{2,\mathrm{gen}}) = e(H, Y)$ ---
+\textbf{secret-free: the DEC-191 harness-secret law is RETIRED} --- with tower-norm
+inverses (${\sim}2000\times$ vs.\ Fermat). Step 11 (DEC-200) retires
+\texttt{sim\beacon}: the consensus goldens consume the real \texttt{HSM\_BEACON\_V1}
+chain over the G7 committee --- the first cross-pillar golden linkage (the beacon feeds
+the sampler seed; the stagger moved $22 \to 376$, the first consensus constant computed
+by real threshold cryptography). \texttt{step12\_conformance} proves the M2 order-bound
+decryption core (DEC-201..203): the G2-plane threshold KEM (unified $X_E = Y_2$), the
+Phase-0 DEM, the real-beacon ordering lock (first shuffle), order-bound share records
+verified by the pairing identity and BLS attestations, the Lagrange aggregate, the
+decrypt roundtrip, and three negative cases.
+
 \subsection{BLS12-377 Group Law Verification}
 
 The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curve group law:
@@ -637,7 +684,7 @@ Root Cause \#10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixt
 
 
 \subsection{Conformance Suite}
-\textbf{Implementation status (Phase 0).} Items 1--4, 8, and 12--13 are machine-validated today by the 8/8 conformance binaries. Items 5--7 and 9--11 are release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement, threshold decapsulation, the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
+\textbf{Implementation status (Phase 0).} Items 1--4, 6, 8, and 12--13 are machine-validated today by the 12/12 conformance binaries --- item 6 (malformed partial decapsulation caught by pairing identity) closed by step 12's \texttt{verify\_share}; item 4's header-bound DEM golden-proven in step 12's tag checks --- together with the step 9--12 modules (threshold protocol layer, $F_{q2}$, $E'$, $G_2$, the pairing, the M2 order-bound core). Items 5, 7, and 9--11 remain release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement ($\sigma_{\mathrm{user}}$), the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
 
 
 The release-blocking conformance suite validates:
@@ -679,7 +726,7 @@ Epoch & 600 s nominal; checkpoints $K=6$ (hourly); $T_{\text{fold}} = 120$ s \\
 
 % ════════════════════════════════════════════════════════════════════
 \section{Limitations and Honest Disclosure}
-Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; threshold, transport, and folding modules are specified, not yet built.
+Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing and the M2 order-bound core (Steps 7--12, suite 12/12); the transport and folding modules are specified, not yet built.
 
 \section{Conclusion}
 % ════════════════════════════════════════════════════════════════════
@@ -688,7 +735,7 @@ HSMA's contribution is not any single primitive but a composition discipline: ev
 
 The result is a ledger whose safety argument fits on one line --- $\epsilon_{\text{sys}} \approx 2^{-110}$, assumption-dominated --- and whose liveness recovers from every network-level attack by construction. Continuous-state throughput, MEV-immune ordering, and useful-work security stop being trade-offs when ordering is separated from knowledge, safety is separated from statistics, and history is separated from verification.
 
-The C++20 reference implementation passes all 8 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking.
+The C++20 reference implementation passes all 12 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking, now consuming the real threshold beacon. The BLS verification law $e(\sigma, G_2) = e(H, Y)$ is pairing-proven secret-free. The M2 order-bound core encrypts, orders under the real beacon, and decrypts by threshold shares.
 
 \textbf{The architecture's one-line soul:} \textit{ordering separated from knowledge (structural), safety separated from statistics (zeros, not probabilities), history separated from verification (one 73 KB proof), security priced in burned capital rather than probabilistic goodwill.}
 
@@ -697,7 +744,7 @@ The C++20 reference implementation passes all 8 conformance tests with \texttt{G
 \section{Decision Ledger Excerpt}
 % ════════════════════════════════════════════════════════════════════
 
-The following table excerpts key decisions from the \texttt{DECISIONS.md} ledger (115 verified entries DEC-001 through DEC-115, plus citation-recovered decisions through DEC-180):
+The following table excerpts key decisions from the \texttt{DECISIONS.md} ledger (115 verified entries DEC-001 through DEC-115, plus citation-recovered decisions through DEC-180, and full rationale-bearing Sections VIII--X: DEC-181 through DEC-203):
 
 \begin{center}
 \begin{longtable}{l|l|l|l}
@@ -726,6 +773,15 @@ DEC-032 & Folding (P4) & Fee underflow protection (LT gate) & N/A \\
 DEC-033 & Folding (P4) & PAD routing bypass & N/A \\
 DEC-034 & Folding (P4) & Certificate assumption (BLS verified out-of-circuit) & N/A \\
 DEC-039 & Theory (A6) & Sequential quorum accumulation & N/A \\
+DEC-181 & Threshold (P-II) & Steps 7--10 decomposition; pairing deferred per DEC-032/034 & N/A \\
+DEC-189 & Hash-to-G1 & Counter preimage, even-y, cofactor-clear; $[r]H=\infty$ & N/A \\
+DEC-192 & Beacon & \texttt{HSM\_BEACON\_V1}: 53-B preimage, threshold-signed chain & N/A \\
+DEC-197 & $F_{q12}$ tower & $v^3=\gamma=(5,1)$, $w^2=v$; tower-norm inverses & N/A \\
+DEC-199 & BLS law & $e(\sigma,G_2)=e(H,Y)$ secret-free; retires DEC-191 deferral & DEC-191 \\
+DEC-200 & Retirement & sim\_beacon retired; consensus goldens consume the real beacon & DEC-192 \\
+DEC-201 & M2 KEM & G2-plane threshold KEM, unified $X_E=Y_2$; Phase-0 DEM & N/A \\
+DEC-202 & M2 records & $D_j=[S_j]R$ + order-bound attestations; pairing identity & N/A \\
+DEC-203 & M2 ordering & ct\_hash, sort\_key, order\_root over the real beacon & N/A \\
 \end{longtable}
 \end{center}
 

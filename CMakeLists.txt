@@ -142,6 +142,9 @@ add_executable(test_step10b conformance/test_step10b.cpp)
 target_include_directories(test_step10b PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step10b_conformance COMMAND test_step10b)
 
+# == Step 11: sim_beacon retirement (DEC-200) - values-only swap, no new target. ==
+# == test_step6/diag_step6/test_step9 migrated to threshold::beacon; consensus  ==
+# == goldens regenerated with HSM_BEACON_V1 (beacon feeds the sampler seed).  ==
 # == Step 12: M2 order-bound shares (DEC-201..203) ==
 add_executable(test_step12 conformance/test_step12.cpp)
 target_include_directories(test_step12 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
