@@ -136,3 +136,8 @@ add_test(NAME step9_conformance COMMAND test_step9)
 add_executable(test_step10 conformance/test_step10.cpp)
 target_include_directories(test_step10 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step10_conformance COMMAND test_step10)
+
+# == Step 10-B: pairing layer (DEC-197..199) ==
+add_executable(test_step10b conformance/test_step10b.cpp)
+target_include_directories(test_step10b PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step10b_conformance COMMAND test_step10b)

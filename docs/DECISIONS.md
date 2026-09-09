@@ -1418,3 +1418,33 @@ loop after every documentation change.
 - **CA-R45 · LOW** — _s10_row6 format string: sixth placeholder missing '%'; fix script's "already fixed" check matched Step 8's correct string (false positive).
 - **CA-R46 · LOW** — fq2p (point formatter, [4][6]) applied to F_q2 elements ([2][6]) — type confusion in emission.
 - **CA-R47 · LOW** — Bare `fe6` in test (missing `mont::` namespace prefix); compiler-caught at syntax-only stage.
+
+---
+
+## SECTION VIII (cont.) — Step 10-B: The Pairing Layer (2026-09-09)
+
+#### DEC-197 — F_q12 tower (C++)
+**Decision:** fq12.hpp: Fq6 = F_q2[v]/(v^3-gamma), gamma = b' = (5,1); Fq12 = F_q6[w]/(w^2-v). Mirrors the Python oracle exactly. Tower-norm inverses (fq12_inv conj/norm; fq6_inv cubic adjugate) - the ~2000x-vs-Fermat law. fq12_pow_limbs MSB-first.
+**Rationale:** Structural promotion of the proven Python tower (DEC-109 pattern).
+**Supersedes:** N/A
+
+#### DEC-198 — Reduced Tate pairing (C++)
+**Decision:** pairing.hpp: twist psi(x',y') = (x'/v, y'/(v*w)); Miller double-and-line with the final-vertical skip (i>0; denominator elimination, r | q^6+1 verified); final exp via G12_FEXP limbs DEC-102-pinned.
+**Rationale:** Mirrors the oracle line-for-line; the skip is proven.
+**Supersedes:** N/A
+
+#### DEC-199 — BLS verification law; suite 11/11
+**Decision:** bls_verify_aff: e(sigma, G2gen) == e(H(m), Y) - RETIRES the DEC-191 harness-secret law. Conformance (step10b): miller x8, pairings x4, BLS x4 (3 pass + 1 tamper), threshold pipeline, e_1 + non-degeneracy, bilinearity.
+**Rationale:** Pillar II keystone; DEC-053 light-client story executable.
+**Supersedes:** DEC-191 (verification deferral clause)
+
+**Build status:** STEP 10-B CLOSED - GATE GREEN 11/11 (2026-09-09).
+
+### STEP 10-B ERRATA — CA-R48..R54 (2026-09-09)
+- **CA-R48..R50** — representation-layering family (gamma-as-F_q2 at comparison; P10 dict mislevel; embed raw int in F_q2 slot). One probe each.
+- **Near-miss (design-time)** — final Miller addition is the vertical line; skipped via i>0 (denominator elimination).
+- **CA-R51** — over-broad verification substring; cosmetic.
+- **CA-R52 (dormant, fixed)** — _s12_e_add zero-vs-one infinity check.
+- **CA-R53** — single-element golden emissions DOUBLE-WRAP the initializer (row helpers already carry the element brace; '= { row }' adds a level, so inner groups initialize scalars -> 'excess elements in scalar initializer'). Also: per-case constants vs indexed test access. Fixed: BLS joined arrays [4][2][6]/[4][4][6]/bool[4]; singles unwrapped ('= row;'). Doctrine: multi-element rows are ELEMENTS of the array brace; single-element rows ARE the initializer.
+- **CA-R54** — the dimension-truncation misdiagnosis: asserts verified declarations, not initializer structure; the dump (CA-R37 law) overturned it. New law: generated headers get a STANDALONE clang syntax probe, not test-only validation.
+- **Perf** — tower-norm inverse (~2000x), ported to C++.

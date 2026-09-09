@@ -1314,6 +1314,15 @@ def _step10():
     hp += "inline constexpr std::uint64_t G2_GEN_X_C1[6] = " + _s10_row6(G2[0][1]) + ";\n"
     hp += "inline constexpr std::uint64_t G2_GEN_Y_C0[6] = " + _s10_row6(G2[1][0]) + ";\n"
     hp += "inline constexpr std::uint64_t G2_GEN_Y_C1[6] = " + _s10_row6(G2[1][1]) + ";\n"
+    # STEP 10-B: final-exponent limbs (DEC-102 mechanical pinning): (q^12-1)//r
+    e_exp = (q**12 - 1) // r
+    _limbs = []
+    _v = e_exp
+    while _v:
+        _limbs.append(_v & 0xFFFFFFFFFFFFFFFF); _v >>= 64
+    hp += "inline constexpr unsigned G12_FEXP_N = %du;\n" % len(_limbs)
+    hp += "inline constexpr std::uint64_t G12_FEXP[%d] = {\n    " % len(_limbs)
+    hp += ", ".join("0x%016xull" % _x for _x in _limbs) + "\n};\n"
     hp += "}\n"
 
     def fq2p(P): return "{ " + _s10_row6(P[0][0]) + ", " + _s10_row6(P[0][1]) + \
@@ -1480,7 +1489,7 @@ def _s12_e_add(P, Q, q, beta, gamma):
     if Q is None: return P
     x1, y1 = P; x2, y2 = Q
     if _s12_eq(x1, x2):
-        if _s12_eq(_s12_add(y1, y2, q), _s12_one()):
+        if _s12_eq(_s12_add(y1, y2, q), (((0,0),(0,0),(0,0)),((0,0),(0,0),(0,0)))):  # CA-R52: zero, not one
             return None
         # Doubling
         three = (((3,0),(0,0),(0,0)),((0,0),(0,0),(0,0)))
@@ -1704,34 +1713,25 @@ def _step10b():
           "// e0.c2.x, e0.c2.y, e1.c0.x, ..., e1.c2.y) - canonical integers.\n"
           "#pragma once\n#include <cstdint>\nnamespace hsma::golden {\n")
     hg += "inline constexpr unsigned G12_MILLER = 8u;\n"
-    hg += "inline constexpr std::uint64_t G12_MILLER_P[8][2][6] = {\n    " + \
-          ",\n    ".join(row_pt(t[0]) for t in MIL) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_MILLER_Q[8][4][6] = {\n    " + \
-          ",\n    ".join(row_e2(t[1]) for t in MIL) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_MILLER_F[8][12][6] = {\n    " + \
-          ",\n    ".join(fq12_row(t[2]) for t in MIL) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_MILLER_P[8][2][6] = {\n    " + ",\n    ".join(row_pt(t[0]) for t in MIL) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_MILLER_Q[8][4][6] = {\n    " + ",\n    ".join(row_e2(t[1]) for t in MIL) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_MILLER_F[8][12][6] = {\n    " + ",\n    ".join(fq12_row(t[2]) for t in MIL) + "\n};\n"
     hg += "inline constexpr unsigned G12_PAIR = 4u;\n"
-    hg += "inline constexpr std::uint64_t G12_PAIR_P[4][2][6] = {\n    " + \
-          ",\n    ".join(row_pt(t[0]) for t in PAP) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_PAIR_Q[4][4][6] = {\n    " + \
-          ",\n    ".join(row_e2(t[1]) for t in PAP) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_PAIR_E[4][12][6] = {\n    " + \
-          ",\n    ".join(fq12_row(t[2]) for t in PAP) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_PAIR_P[4][2][6] = {\n    " + ",\n    ".join(row_pt(t[0]) for t in PAP) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_PAIR_Q[4][4][6] = {\n    " + ",\n    ".join(row_e2(t[1]) for t in PAP) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_PAIR_E[4][12][6] = {\n    " + ",\n    ".join(fq12_row(t[2]) for t in PAP) + "\n};\n"
     hg += "inline constexpr unsigned G12_BLS = 4u;\n"
-    for idx, (sg, hh, yy, exp) in enumerate(BLS):
-        hg += "inline constexpr std::uint64_t G12_BLS_S%d[2][6] = {\n    " % idx + row_pt(sg) + "\n};\n"
-        hg += "inline constexpr std::uint64_t G12_BLS_H%d[2][6] = {\n    " % idx + row_pt(hh) + "\n};\n"
-        hg += "inline constexpr std::uint64_t G12_BLS_Y%d[4][6] = {\n    " % idx + row_e2(yy) + "\n};\n"
-        hg += "inline constexpr bool G12_BLS_OK%d = %s;\n" % (idx, "true" if exp else "false")
-    hg += "inline constexpr std::uint64_t G12_THR_S[3][2][6] = {\n    " + \
-          ",\n    ".join(row_pt(pp) for pp in parts) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_THR_LAM[3][4] = {\n    " + \
-          ",\n    ".join(_s7_row(l_) for l_ in lam) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_THR_AGG[2][6] = {\n    " + row_pt(sigma_agg) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_THR_H[2][6] = {\n    " + row_pt(Hm) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_THR_Y[4][6] = {\n    " + row_e2(Y) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_E1[12][6] = {\n    " + fq12_row(e_1) + "\n};\n"
-    hg += "inline constexpr std::uint64_t G12_E1_Q[4][6] = {\n    " + row_e2(Q_gen) + "\n};\n}\n"
+    hg += "inline constexpr std::uint64_t G12_BLS_S[4][2][6] = {\n    " + ",\n    ".join(row_pt(t[0]) for t in BLS) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_BLS_H[4][2][6] = {\n    " + ",\n    ".join(row_pt(t[1]) for t in BLS) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_BLS_Y[4][4][6] = {\n    " + ",\n    ".join(row_e2(t[2]) for t in BLS) + "\n};\n"
+    hg += "inline constexpr bool G12_BLS_OK[4] = { %s };\n" % ", ".join("true" if t[3] else "false" for t in BLS)
+    hg += "inline constexpr std::uint64_t G12_THR_S[3][2][6] = {\n    " + ",\n    ".join(row_pt(pp) for pp in parts) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_THR_LAM[3][4] = {\n    " + ",\n    ".join(_s7_row(l_) for l_ in lam) + "\n};\n"
+    hg += "inline constexpr std::uint64_t G12_THR_AGG[2][6] = " + row_pt(sigma_agg) + ";\n"
+    hg += "inline constexpr std::uint64_t G12_THR_H[2][6] = " + row_pt(Hm) + ";\n"
+    hg += "inline constexpr std::uint64_t G12_THR_Y[4][6] = " + row_e2(Y) + ";\n"
+    hg += "inline constexpr std::uint64_t G12_E1[12][6] = " + fq12_row(e_1) + ";\n"
+    hg += "inline constexpr std::uint64_t G12_E1_Q[4][6] = " + row_e2(Q_gen) + ";\n}\n"
     open(_os8.path.join(outdir, "pairing_golden.hpp"), "w").write(hg)
     print("[step10b][emit] pairing_golden.hpp (miller x8, pairings x4, BLS x4, threshold x1, e_1)")
 
