@@ -159,3 +159,8 @@ add_test(NAME step13_conformance COMMAND test_step13)
 add_executable(test_step14 conformance/test_step14.cpp)
 target_include_directories(test_step14 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step14_conformance COMMAND test_step14)
+
+# == Step 15: CCS constraint layer (DEC-208) ==
+add_executable(test_step15 conformance/test_step15.cpp)
+target_include_directories(test_step15 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step15_conformance COMMAND test_step15)

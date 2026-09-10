@@ -1528,3 +1528,21 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 **Supersedes:** N/A
 
 **Build status:** STEP 14 CLOSED - GATE GREEN 14/14 (2026-09-10): honest epoch (4 EXEC + 1 SKIP + 1 PAD) folded, final states verified, padding-neutrality (identical final digest), chain dependency (different prev -> different final), 3 negatives (binding/nonce/insolvent-EXEC) rejected. THE FOLDING ARC'S FIRST LAYER: the semantics; the CCS representation (Step 15) and the NIVC multifold (Step 16) follow.
+
+---
+
+## SECTION XIII — Step 15: The CCS Constraint Layer (2026-09-10)
+
+#### DEC-208 — The Phase-0 CCS constraint layer
+**Decision:** A named, machine-checkable constraint system over the fold witness: binding (hash oracle: poseidon3(HSM_PT_v1, e1, e2) == pt_hash), nonce (linear: e.nonce == leaf_nonce+1), LT gate (range: bal >= cost, boundedness-proven by DEC-119), debit/credit (linear arithmetic), PAD selector (conditional bypass), and the PC matrix ({HEAD->EXEC, EXEC->EXEC, EXEC->CLOSE, HEAD->CLOSE} valid; 5 transitions unsat). SKIP_USER: LT gate failure is the skip TRIGGER, not a constraint violation (binding+nonce+skip_burn only). Whitepaper item 7 (SAT-proof: illegal PC edges unsatisfiable) closed. Full CCS matrix representation lands with the NIVC multifold (Step 16); the Poseidon in-circuit decomposition is deferred to the folding implementation.
+**Rationale:** The constraint layer is the bridge between the executable semantics (Step 14, golden-proven) and the folding protocol (Step 16). Phase-0 proves the semantic content: which constraints fire, when they are satisfied, and why the PC matrix has no satisfying witness for illegal transitions.
+**Supersedes:** N/A
+
+**Build status:** STEP 15 CLOSED - GATE GREEN 15/15 (2026-09-10): 24 constraints on the honest epoch (5 EXEC x [binding+nonce+LT+debit+credit] + 1 SKIP x [binding+nonce+skip_burn] + 1 PAD), all satisfied; 4 adversarial traces (binding/nonce/LT/LT-EXEC) each violate exactly the named constraint; PC matrix 4 valid / 5 unsat (SAT-proof machine-checked).
+
+### STEP 15 ERRATA - CA-R67..R71 (2026-09-10)
+- **CA-R67** - Same function-local `p` issue as Step 14 (the derivation auto-extraction fix applied identically).
+- **CA-R68** - Design correction: the SKIP_USER LT gate is the skip TRIGGER, not a constraint violation. The oracle initially marked it as failed; corrected to fire binding+nonce only for SKIP entries.
+- **CA-R69** - `feq_golden` undefined in test (referenced but never defined); replaced with the direct canonical limb comparison.
+- **CA-R70** - `fp::` namespace used outside `using namespace hsma;` scope; fixed by adding the using declaration before the function.
+- **CA-R71** - test_step15 not registered in CMakeLists (gate showed 14/14); CMake entry + header count (20->21) applied.
