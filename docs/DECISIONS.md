@@ -1496,7 +1496,7 @@ loop after every documentation change.
 ## SECTION XI — Step 13: M2 Production Hardening (2026-09-09)
 
 #### DEC-204 — sigma_user: the sender's envelope authorization
-**Decision:** Preimage HSM_SIG_USER_V1(16) || header(56: epoch | sender_pk | nonce | fee) || ser(R)(192) = 264 B. sigma_user = [sk_u]hash_to_g1(pre) in G1 (48 B); PK_u = [sk_u]G2gen (96 B, DEC-053 orientation). Verification at intake: e(sigma_user, G2gen) == e(H(pre), PK_u) - the 10-B law, direct reuse. Binding: the header (the anti-debit channel, DEC-055) PLUS ser(R) (anti-substitution: the authorization is for THIS ciphertext). Whitepaper item 5 closed (third-party fabrication rejected, golden-proven).
+**Decision:** Preimage HSM_SIG_USER_V1(15, sizeof-derived) || header(56: epoch | sender_pk | nonce | fee) || ser(R)(192) = 263 B (CA-R64: the 16/264 draft figures were the miscount itself). sigma_user = [sk_u]hash_to_g1(pre) in G1 (48 B); PK_u = [sk_u]G2gen (96 B, DEC-053 orientation). Verification at intake: e(sigma_user, G2gen) == e(H(pre), PK_u) - the 10-B law, direct reuse. Binding: the header (the anti-debit channel, DEC-055) PLUS ser(R) (anti-substitution: the authorization is for THIS ciphertext). Whitepaper item 5 closed (third-party fabrication rejected, golden-proven).
 **Rationale:** DEC-055 executed; the BLS-style construction reuses the proven pairing machinery; the user signs alone, exactly as the members now do.
 **Supersedes:** N/A
 
@@ -1510,9 +1510,10 @@ loop after every documentation change.
 **Rationale:** The mechanism existed (step 12); the explicit negative makes it release-blocking forever.
 **Supersedes:** N/A
 
-**Build status:** STEP 13 CLOSED - GATE GREEN 13/13 (2026-09-09): sigma_user x4 + forgery rejected, partials x2 subsets + beacon cross-check + 2-of-5 rejection, replay negative.# - CA-R63 - namespace misresolution (threshold::serialize -> beacon::serialize); compiler-caught.
-# - CA-R64 - the phantom byte AGAIN: "HSM_SIG_USER_V1" is 15 chars; the memcpy used
-#   sizeof-1 correctly but the LAYOUT OFFSETS (16/72/264) were hand-counted from a
-#   miscount of 16 - leaving out[15] UNINITIALIZED (a heisenbug: different garbage per
-#   frame, which also explained the verify failure with zero Fr involvement). Doctrine
-#   completed: sizeof-1 applies to the copy AND to every derived offset and total. THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circuit, graded-cell, light-client, and HHI gates remain. Zero oracle errata - the first clean-first-run oracle in project history.
+**Build status:** STEP 13 CLOSED - GATE GREEN 13/13 (2026-09-09): sigma_user x4 + forgery rejected, partials x2 subsets + beacon cross-check + 2-of-5 rejection, replay negative.
+
+### STEP 13 ERRATA - CA-R63/64 (2026-09-09)
+- **CA-R63** - Namespace misresolution (threshold::serialize -> beacon::serialize); compiler-caught; one line.
+- **CA-R64** - The phantom byte AGAIN: "HSM_SIG_USER_V1" is 15 chars; the memcpy used sizeof-1 correctly but the LAYOUT OFFSETS (16/72/264) were hand-counted from a miscount of 16 - leaving out[15] UNINITIALIZED (a heisenbug: different garbage per frame, which also explained the verify-failure symptom with zero Fr involvement). Doctrine completed: sizeof-1 applies to the copy AND to every derived offset and total.
+
+THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circuit, graded-cell, light-client, and HHI gates remain. Zero oracle errata - the first clean-first-run oracle in project history.
