@@ -149,3 +149,8 @@ add_test(NAME step10b_conformance COMMAND test_step10b)
 add_executable(test_step12 conformance/test_step12.cpp)
 target_include_directories(test_step12 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step12_conformance COMMAND test_step12)
+
+# == Step 13: M2 production hardening (DEC-204..206) ==
+add_executable(test_step13 conformance/test_step13.cpp)
+target_include_directories(test_step13 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step13_conformance COMMAND test_step13)
