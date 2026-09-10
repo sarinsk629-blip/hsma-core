@@ -154,3 +154,8 @@ add_test(NAME step12_conformance COMMAND test_step12)
 add_executable(test_step13 conformance/test_step13.cpp)
 target_include_directories(test_step13 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step13_conformance COMMAND test_step13)
+
+# == Step 14: fold step family (DEC-207) ==
+add_executable(test_step14 conformance/test_step14.cpp)
+target_include_directories(test_step14 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step14_conformance COMMAND test_step14)

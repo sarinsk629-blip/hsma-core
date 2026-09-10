@@ -1517,3 +1517,14 @@ loop after every documentation change.
 - **CA-R64** - The phantom byte AGAIN: "HSM_SIG_USER_V1" is 15 chars; the memcpy used sizeof-1 correctly but the LAYOUT OFFSETS (16/72/264) were hand-counted from a miscount of 16 - leaving out[15] UNINITIALIZED (a heisenbug: different garbage per frame, which also explained the verify-failure symptom with zero Fr involvement). Doctrine completed: sizeof-1 applies to the copy AND to every derived offset and total.
 
 THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circuit, graded-cell, light-client, and HHI gates remain. Zero oracle errata - the first clean-first-run oracle in project history.
+
+---
+
+## SECTION XII — Step 14: The Fold Step Family (2026-09-10)
+
+#### DEC-207 — The fold step family {F_head, F_exec, F_close}
+**Decision:** The step family over the existing mempool semantics (apply_rules, Step 5): F_head absorbs (prev_digest, decree_root) via poseidon3(HSM_FOLD_v1); F_exec processes each decree entry through the gate sequence (binding: poseidon3(HSM_PT_v1, amount, fee*2^64+nonce) == pt_hash; nonce: leaf_nonce+1; LT gate: bal >= cost) then apply_rules + set_account, updating digest via poseidon3(HSM_FOLD_v1, digest, pt_hash); F_close absorbs the folded count. PAD rows: total neutrality (no state, no digest). SKIP_USER: 25% fee burn, no nonce. Domains: HSM_FOLD_v1 and HSM_PT_v1 from the existing registry (no new entries). The PC matrix (head->exec+->close) enforced at the API level; the SAT-proof lands with the CCS layer (Step 15).
+**Rationale:** The fold wraps the PROVEN Step-5 semantics (apply_rules, 5/5 conformance since Step 5) — the new code is the step typing, the digest chain, the PAD bypass, and the certified-entry gates. The registry domains existed from day one.
+**Supersedes:** N/A
+
+**Build status:** STEP 14 CLOSED - GATE GREEN 14/14 (2026-09-10): honest epoch (4 EXEC + 1 SKIP + 1 PAD) folded, final states verified, padding-neutrality (identical final digest), chain dependency (different prev -> different final), 3 negatives (binding/nonce/insolvent-EXEC) rejected. THE FOLDING ARC'S FIRST LAYER: the semantics; the CCS representation (Step 15) and the NIVC multifold (Step 16) follow.
