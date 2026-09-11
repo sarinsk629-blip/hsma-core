@@ -164,3 +164,8 @@ add_test(NAME step14_conformance COMMAND test_step14)
 add_executable(test_step15 conformance/test_step15.cpp)
 target_include_directories(test_step15 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step15_conformance COMMAND test_step15)
+
+# == Step 16: NIVC fold accumulator (DEC-209) ==
+add_executable(test_step16 conformance/test_step16.cpp)
+target_include_directories(test_step16 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step16_conformance COMMAND test_step16)

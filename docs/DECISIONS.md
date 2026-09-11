@@ -1546,3 +1546,17 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 - **CA-R69** - `feq_golden` undefined in test (referenced but never defined); replaced with the direct canonical limb comparison.
 - **CA-R70** - `fp::` namespace used outside `using namespace hsma;` scope; fixed by adding the using declaration before the function.
 - **CA-R71** - test_step15 not registered in CMakeLists (gate showed 14/14); CMake entry + header count (20->21) applied.
+
+---
+
+## SECTION XIV — Step 16: The NIVC Fold Accumulator (2026-09-10)
+
+#### DEC-209 — The NIVC fold accumulator: bounded-size proof carrier
+**Decision:** The NIVC accumulator is {digest (32B, 4 Pallas limbs) + count (8B) + pc (1B)} = 41 bytes — CONSTANT regardless of entry count. This is the succinctness mechanism: π_E's representation is O(1) in the number of folded entries. The accumulator delegates to the fold machinery (Step 14, DEC-207) and the constraint layer (Step 15, DEC-208). Cross-epoch chaining: epoch E's final digest = epoch E+1's prev_digest — the chain is continuous. The NIVC selector: the PC state machine {HEAD→EXEC, EXEC→EXEC, EXEC→CLOSE, HEAD→CLOSE} selects which step function fires. Full HyperNova multifold (sum-check, multilinear PCS, relaxed CCS) is the production folding protocol — Phase-0 proves the accumulator's bounded representation, the chain, and the selector.
+**Rationale:** Without the bounded accumulator, the proof grows linearly with entries — defeating the "succinct" claim. The 41-byte accumulator is the mathematical core of the Holographic Boundary: one 73 KB proof for an entire epoch.
+**Supersedes:** N/A
+
+**Build status:** STEP 16 CLOSED - GATE GREEN 16/16 (2026-09-10): accumulator 41 bytes constant (6-entry, 2-entry cross-epoch, and 20-entry epochs all O(1)); cross-epoch chain verified; NIVC selector 4 valid / 5 unsat; digest chain matches Step-14 goldens.
+
+### STEP 16 ERRATA - CA-R72 (2026-09-10)
+- **CA-R72** - The Step-16 oracle required the same p-is-local derivation fix as Steps 14/15, plus a line-splitting bug (the derivation lines were inserted without newlines, concatenating into a single syntax-error line). Fixed by direct line insertion with proper newlines.
