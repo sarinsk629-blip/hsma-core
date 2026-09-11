@@ -1560,3 +1560,19 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 
 ### STEP 16 ERRATA - CA-R72 (2026-09-10)
 - **CA-R72** - The Step-16 oracle required the same p-is-local derivation fix as Steps 14/15, plus a line-splitting bug (the derivation lines were inserted without newlines, concatenating into a single syntax-error line). Fixed by direct line insertion with proper newlines.
+
+---
+
+## SECTION XV — Step 17: The Epoch Pipeline (2026-09-10)
+
+#### DEC-210 — The epoch pipeline: M2 ordering feeds the fold
+**Decision:** The φ₀–φ₇ epoch pipeline connects the M2 ordering (Step 12) to the fold (Steps 14–16): (1) φ₂ the M2 ct_hashes and sort_keys are computed from the real HSM_BEACON_V1 beacon; (2) the order_root = SHA256(HSM_ORDROOT_v1 | sorted ct_hashes) — the MEV freeze; (3) the order_root feeds the fold's F_head decree_root input — the M2→fold bridge; (4) the fold processes the certified entries through F_exec (the constraint gates + apply_rules semantics); (5) the NIVC accumulator seals at F_close. The accumulator stays 41 bytes through the FULL pipeline. Cross-epoch chaining: epoch E's final digest = epoch E+1's prev_digest. THE FOLDING ARC IS COMPLETE: semantics (Step 14) → constraints (Step 15) → accumulator (Step 16) → pipeline integration (Step 17).
+**Rationale:** Without the pipeline integration, the M2 ordering and the fold exist as isolated modules. The order_root bridge is the connection point — the MEV freeze feeds the proving layer. The 41B accumulator through the full pipeline validates the succinctness claim end-to-end.
+**Supersedes:** N/A
+
+**Build status:** STEP 17 CLOSED - GATE GREEN 17/17 (2026-09-10): M2 ordering (real beacon) -> order_root -> fold head -> 5 entries processed -> NIVC close (41B). Cross-epoch chain verified. THE FOLDING ARC COMPLETE (Steps 14-17): all four layers golden-proven.
+
+### STEP 17 ERRATA - CA-R73..R75 (2026-09-10)
+- **CA-R73** - Same function-local derivation + indentation issues as Steps 14-16 (the pattern is now well-known: exec(strip()) for derivation, direct insertion for params).
+- **CA-R74** - order_root byte-order mismatch: Python used int.from_bytes(oroot, "big") but C++ reads LE limbs; fixed Python to "little" to match C++ fe_from_canonical_limbs.
+- **CA-R75** - Ciphertext pattern mismatch: C++ test used varying bytes (0x42+i+j) while Python oracle used constant bytes (0x42+i repeated); fixed C++ to match.

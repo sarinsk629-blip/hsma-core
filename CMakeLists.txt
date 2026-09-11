@@ -169,3 +169,8 @@ add_test(NAME step15_conformance COMMAND test_step15)
 add_executable(test_step16 conformance/test_step16.cpp)
 target_include_directories(test_step16 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step16_conformance COMMAND test_step16)
+
+# == Step 17: epoch pipeline (DEC-210) ==
+add_executable(test_step17 conformance/test_step17.cpp)
+target_include_directories(test_step17 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step17_conformance COMMAND test_step17)
