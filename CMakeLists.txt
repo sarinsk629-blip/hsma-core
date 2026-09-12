@@ -179,3 +179,8 @@ add_test(NAME step17_conformance COMMAND test_step17)
 add_executable(test_step18 conformance/test_step18.cpp)
 target_include_directories(test_step18 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step18_conformance COMMAND test_step18)
+
+# == Step 19: sum-check engine (DEC-212) ==
+add_executable(test_step19 conformance/test_step19.cpp)
+target_include_directories(test_step19 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step19_conformance COMMAND test_step19)
