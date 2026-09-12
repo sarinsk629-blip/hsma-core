@@ -65,7 +65,7 @@ HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, the BLS12-377 group law is mathematically proven on 3 independent points, the BLS verification law is pairing-proven secret-free, and the M2 order-bound core is golden-proven end to end.
 
-This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 17/17 conformance tests passing.
+This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 18/18 conformance tests passing.
 \end{abstract}
 
 \tableofcontents
@@ -512,6 +512,7 @@ hsma-core/
 |   +-- ccs.hpp # CCS constraint layer (DEC-208)
 |   +-- nivc.hpp # NIVC fold accumulator, 41B bounded (DEC-209)
 |   +-- epoch.hpp # Epoch pipeline driver (DEC-210)
+| +-- g1net.hpp # G1 transport skeleton (DEC-211)
 |   +-- mempool.hpp         # Transaction gate
 |   +-- tx.hpp              # Transaction structure
 |   +-- params.hpp          # Protocol constants (static_assert enforced)
@@ -533,7 +534,7 @@ hsma-core/
 |   +-- pairing.hpp # twist + Miller + Tate + BLS verify (DEC-198/199)
 |   +-- m2.hpp # M2 order-bound decryption shares (DEC-201..203)
 |   +-- m2prod.hpp # sigma_user + per-member partials (DEC-204..206)
-+-- conformance/            # Test suite (17/17 passing)
++-- conformance/            # Test suite (18/18 passing)
 |   +-- test_step2.cpp      # Field arithmetic tests
 |   +-- test_step3.cpp      # Numeric kernel tests
 |   +-- test_step4.cpp      # State vault tests

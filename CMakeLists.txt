@@ -174,3 +174,8 @@ add_test(NAME step16_conformance COMMAND test_step16)
 add_executable(test_step17 conformance/test_step17.cpp)
 target_include_directories(test_step17 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step17_conformance COMMAND test_step17)
+
+# == Step 18: G1 transport skeleton (DEC-211) ==
+add_executable(test_step18 conformance/test_step18.cpp)
+target_include_directories(test_step18 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step18_conformance COMMAND test_step18)
