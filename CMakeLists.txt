@@ -189,3 +189,8 @@ add_test(NAME step19_conformance COMMAND test_step19)
 add_executable(test_step20 conformance/test_step20.cpp)
 target_include_directories(test_step20 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step20_conformance COMMAND test_step20)
+
+# == Step 21: NIFS fold (DEC-214) ==
+add_executable(test_step21 conformance/test_step21.cpp)
+target_include_directories(test_step21 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step21_conformance COMMAND test_step21)
