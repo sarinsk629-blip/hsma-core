@@ -184,3 +184,8 @@ add_test(NAME step18_conformance COMMAND test_step18)
 add_executable(test_step19 conformance/test_step19.cpp)
 target_include_directories(test_step19 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step19_conformance COMMAND test_step19)
+
+# == Step 20: multilinear PCS (DEC-213) ==
+add_executable(test_step20 conformance/test_step20.cpp)
+target_include_directories(test_step20 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step20_conformance COMMAND test_step20)

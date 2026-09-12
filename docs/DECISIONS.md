@@ -1598,3 +1598,16 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 - **CA-R79** - d=2 round sums p0/p1 computed as Sum A[2j] / Sum A[2j+1] (A alone) instead of the products Sum A[2j]B[2j] / Sum A[2j+1]B[2j+1] (Python only; the C++ BLOCK C text was already correct here) — the oracle's own _verify died at round 0 (crash #2: AssertionError: 0 at S2). Pre-empted a CA-R61-class C++<->oracle golden divergence.
 - **CA-R80** - p2 = A_j(-1) instead of A_j(2): the line through (0, a[2j]), (1, a[2j+1]) evaluates at 2 to 2a[2j+1] - a[2j], not 2a[2j] - a[2j+1] — in BOTH languages. Caught by the pre-gate audit; crash #3 predicted before it could happen; the Lagrange nodes {0,1,2} and INV2 needed no change.
 **Zero wrong goldens shipped; zero C++ runs wasted on oracle defects. The engine policed its author — the property a proof engine must have.**
+---
+## SECTION XVIII — Step 20: The Phase-0 Multilinear PCS (2026-09-11)
+#### DEC-213 — The commitment layer: commit, derive, open, verify
+**Decision:** The Phase-0 multilinear PCS over the Step-19 engine: Commit C = Sponge(HSM_SUMCHECK_v1, evals).squeeze() — the C++ Sponge and the Python sponge_ref proven line-identical (Q3 read); point derivation r_i = P3(HSM_SUMCHECK_v1, C, i) — verifier-derivable from C alone; Open = the Step-19 fold machinery at the FIXED r (LSB-first folds, d=2 products, p2 = g(2) — the CA-R78/79/80 laws inherited); Verify = Step-19 round checks + Lagrange@{0,1,2} (INV2 golden-pinned). The engine's own check: v == direct_eval(MLE, r). HONEST BOUNDARY: the Phase-0 commitment is binding (collision resistance) but NOT homomorphic and NOT hiding — the production dual-layer (homomorphic Pedersen for HyperNova's commitment folds + WHIR-class wrap lambda=128, DEC-063/071) is deferred; the transcript machinery and check structure are production-faithful. Step 21 folds WITNESSES directly with commitments for pinning.
+**Rationale:** The sum-check (Step 19) IS the opening-proof engine of a multilinear PCS; Step 20 adds only the commitment, the verifier-fixed point, and the anchor — maximal reuse of golden-proven machinery.
+**Supersedes:** N/A
+**Build status:** STEP 20 CLOSED - GATE GREEN 20/20 (2026-09-11): commits/determinism/binding, point derivation x11, 3 openings bit-exact C++<->oracle, negatives at the pinned rounds.
+### STEP 20 ERRATA - CA-R81..R84 (2026-09-11)
+- **CA-R81** - The eval-tamper negative also tampered a claim as if it were a tuple ('int' object is not subscriptable); the eval tamper alone does the rejecting (p0+p1 != claims[1]).
+- **CA-R82** - The C++ verify compared claims[0] (the SUM) against C (the COMMITMENT) — never equal, every ACCEPT would have died at round 0. Caught by the pre-gate audit; C is used only for point derivation, exactly as the oracle's verifier does.
+- **CA-R83** - Sentinel collision: verify returned nv on ACCEPT and on final-mismatch. PCS_REJECT_FINAL (0xFFFFFFFF) introduced; ACCEPT == nv, unambiguous.
+- **CA-R84** - feq unqualified inside namespace pcs (the CA-R70 family) + fe-vs-fe comparisons in the test written against fe-vs-golden helpers — compiler-caught, 6 errors, one class.
+**Four defects, three machine layers (oracle assert, pre-gate audit, compiler), zero wrong goldens shipped.**
