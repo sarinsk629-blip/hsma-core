@@ -51,9 +51,9 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.3}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.4}
 \author{\textbf{HSMA Core Engineering}}
-\date{September 9, 2026}
+\date{September 11, 2026}
 
 \begin{document}
 \maketitle
@@ -183,6 +183,8 @@ M2 key derivation & \texttt{HSM\_KDF\_V1} \\
 M2 DEM keystream/tag & \texttt{HSM\_DEM\_V1} / \texttt{HSM\_DEM\_TAG\_V1} \\
 M2 ciphertext hash & \texttt{HSM\_CT\_V1} \\
 M2 order root & \texttt{HSM\_ORDROOT\_V1} \\
+M2 user authorization & \texttt{HSM\_SIG\_USER\_V1} \\
+Sum-check transcript & \texttt{HSM\_SUMCHECK\_v1} \\
 \end{tabular}
 \end{center}
 
@@ -354,7 +356,11 @@ Committee collusion $\ge t$ & Structurally zero (Thm 4.6) \\
 
 Proof of Useful Work is scoped to Verifiable AI Inference (GEMM). The prover runs in $O(N \log N)$; the verifier runs in $O(\log N)$ (sub-millisecond). Per-proof soundness $\approx 2^{-128}$ with WHIR-class multilinear PCS at $\lambda = 128$ and mandatory per-epoch batched verification.
 
-\subsection{Activation Layer \& Lookup Tables (P5-v2)}
+\textbf{Implementation (Steps 19--20, DEC-212/213):} the shared sum-check engine (dense MLEs,
+degree 1--2, chained-Poseidon transcript over \texttt{HSM\_SUMCHECK\_v1}) and the Phase-0
+commitment layer are golden-proven; the GKR/GEMM wiring consumes them.
+
+
 
 Neural network non-linearities (GELU, Sigmoid, Tanh) are evaluated via Degree-2 chunked LogUp-in-CCS lookup tables:
 
@@ -391,7 +397,12 @@ Out-of-bounds accumulators clamp to $\pm(2^{31}-1)$ and increment a verifiable s
     \item Non-uniform IVC: SuperNova-style NIVC over $\mathcal{F} = \{F_{\text{head}}, F_{\text{exec}}, F_{\text{close}}\}$     \item Program counter: constrained variable with explicit transition matrix ($\text{head} \to \text{exec}^+ \to \text{close}$; all other edges unsatisfiable)
 \end{itemize}
 
-\subsection{$F_{\text{exec}}$ Constraints}
+\textbf{Implementation (Phase 0, Steps 14--21, DEC-207..214):} the fold step family, the CCS
+constraint layer, the 41-byte NIVC accumulator, the epoch pipeline, the sum-check engine, the
+Phase-0 commitment layer, and the NIFS fold are golden-proven end to end; the production
+homomorphic PCS and HyperNova multifold fold \emph{commitments} and are the remaining layer.
+
+
 
 Per decree entry $\ell$ with certified tuple $(ct\_hash_\ell, pt\_hash_\ell, \text{status}_\ell)$:
 
@@ -431,7 +442,12 @@ Queries dispatch over the direct link plus $R_{\text{rel}} = 2$ beacon-selected 
 
 \textbf{Containment (INV-G3):} An adversary who fully eclipses $u$ can only deliver data its weight already entitles it to emit. Eclipse $\Rightarrow$ stall/suspend, never divergent finalization.
 
-\subsection{Message Taxonomy \& Bandwidth Accounting}
+\textbf{Implementation (Step 18, DEC-211):} the transport's cryptographic layer is golden-proven:
+sampler determinism + weight proportionality (2000-draw histogram), taxonomy caps, the key-bound
+contact root with the 1-epoch rebind cooldown, and fixed-point EMA scoring (24h half-life, both
+directions); the socket adapter is the production transport step.
+
+
 
 \begin{center}
 \begin{tabular}{l|l|l|l|l}
@@ -509,6 +525,7 @@ hsma-core/
 |   +-- poseidon.hpp        # SNARK-friendly hashing
 |   +-- vault.hpp           # Sparse Merkle Tree state
 |   +-- consensus.hpp       # MSSC automaton
+|   +-- fold.hpp            # Fold step family (DEC-207)
 |   +-- ccs.hpp # CCS constraint layer (DEC-208)
 |   +-- nivc.hpp # NIVC fold accumulator, 41B bounded (DEC-209)
 |   +-- epoch.hpp # Epoch pipeline driver (DEC-210)
@@ -521,7 +538,7 @@ hsma-core/
 |   +-- params.hpp          # Protocol constants (static_assert enforced)
 |   +-- sha256.hpp          # FIPS-180 SHA-256
 |   +-- update.hpp          # SMT updates + proofs
-|   +-- threshold/          # Pillar-II threshold module (Steps 7-12)
+|   +-- threshold/          # Pillar-II threshold module (Steps 7-13)
 |   +-- scalar_r.hpp # BLS12-377 F_r Montgomery CIOS kernel
 |   +-- poly.hpp # DKG scalar semantics (Horner, Lagrange)
 |   +-- mont384.hpp # 384-bit Montgomery engine (promoted)
@@ -554,6 +571,10 @@ hsma-core/
 |   +-- test_step15.cpp # CCS constraint layer conformance
 |   +-- test_step16.cpp # NIVC fold accumulator conformance
 |   +-- test_step17.cpp # Epoch pipeline conformance
+|   +-- test_step18.cpp # G1 transport skeleton
+|   +-- test_step19.cpp # Sum-check engine
+|   +-- test_step20.cpp # Multilinear PCS
+|   +-- test_step21.cpp # NIFS fold
 |   +-- diag_step5.cpp      # Mempool diagnostics
 |   +-- diag_step6.cpp      # Consensus diagnostics
 +-- libhsma_numcore/        # 127-bit scratchpad accumulator
@@ -571,7 +592,7 @@ hsma-core/
 +-- README.md
 +-- docs/
     +-- whitepaper.tex      # This document
-    +-- DECISIONS.md        # decision ledger: DEC-001..203 (Sections I-X)
+    +-- DECISIONS.md        # decision ledger: DEC-001..214 (Sections I-XIX)
 \end{lstlisting}
 
 \subsection{GATE GREEN Verification}
@@ -579,53 +600,34 @@ hsma-core/
 The full diagnostic gate (\texttt{./scripts/gate.sh}) produces:
 
 \begin{lstlisting}[language=bash]
--- [1/4] configure -----  clean
--- [2/4] build (CLEAN-FIRST -- no ghosts survive) --
-[1/1] Cleaning all built files...  Cleaning... 23 files.
-[1/18] DEC-090: enforcing float-free numeric core
 [lint] DEC-090 clean: numeric core is float-free.
-[2/18] [gen] deriving Montgomery constants + golden vectors (DEC-102)
-[validate] pallas: prime bits=255  2-adicity=32  log2(p)=254.000000000000
-[emit] pallas_params_gen.hpp
-[validate] vesta: prime bits=255  2-adicity=32  log2(p)=254.000000000000
-[emit] vesta_params_gen.hpp
-[emit] field_golden.hpp (2472 cases)
-[emit] rnte_golden.hpp (32 cases)
-[poseidon] MDS proven (all minors nonsingular); 80 RCs derived
-[emit] poseidon_params_gen.hpp
-[emit] domain_registry_gen.hpp
-[emit] poseidon_golden.hpp
-[emit] smt_golden.hpp (roots A/AB/A1/TX anchored, proof fold verified)
-[emit] consensus_golden.hpp (C1 fin@150, C2 sus@50, winner=H, delay=22)
-[done] all constants derived, validated, emitted.
-[3/18] Building CXX object CMakeFiles/params_probe.dir/src/params_probe.cpp.o
-...
-[18/18] Linking CXX executable test_step5
-   all 9 generated headers present
--- [3/4] diagnostics ---
+[2/48] Building CXX object CM   all 27 generated headers present
 SEED: fault=0 allocs=66
 LOOKUP: OK  bal=1000 nonce=0
 TLEAF tag=2 (want 2)
-REC   tag=3 (want 3)
+REC   tag=3 (want 3)  
 STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
 VERDICT: canonical-at-rest (DEC-123 held)
 DIAG6:SAMPLE-DETERMINISTIC OK
 DIAG6:CONTEXT-BINDING LIVE
 DIAG6:QUORUM-PATH LIVE (kind=2)
-DIAG6:BREAKER-DETERMINISTIC OK delay=35
+DIAG6:BREAKER-DETERMINISTIC OK delay=98
 DIAG6:VERDICT ALL-OK
-   authentic + healthy
--- [4/4] conformance suite ---
-Test project /data/data/com.termux/files/home/hsma/build
-1/6 Test #1: contract_identity ........   Passed    0.03 sec
-2/6 Test #2: step2_conformance ........   Passed    0.04 sec
-3/6 Test #3: step3_conformance ........   Passed    0.05 sec
-4/6 Test #4: step4_conformance ........   Passed    0.14 sec
-5/6 Test #5: step5_conformance ........   Passed    0.14 sec
-6/6 Test #6: step6_conformance ........   Passed    0.18 sec
-100% tests passed out of 6
-Total Test time (real) =   0.60 sec
-== GATE GREEN ==
+10/21 Test #10: step10_conformance ...............   Passed    0.06 sec
+11/21 Test #11: step10b_conformance ..............   Passed   15.34 sec
+12/21 Test #12: step12_conformance ...............   Passed   46.77 sec
+13/21 Test #13: step13_conformance ...............   Passed   10.41 sec
+14/21 Test #14: step14_conformance ...............   Passed    0.24 sec
+15/21 Test #15: step15_conformance ...............   Passed    0.10 sec
+16/21 Test #16: step16_conformance ...............   Passed    0.91 sec
+17/21 Test #17: step17_conformance ...............   Passed    0.15 sec
+18/21 Test #18: step18_conformance ...............   Passed    0.25 sec
+19/21 Test #19: step19_conformance ...............   Passed    0.02 sec
+20/21 Test #20: step20_conformance ...............   Passed    0.03 sec
+21/21 Test #21: step21_conformance ...............   Passed    0.02 sec
+100% tests passed out of 21
+Total Test time (real) =  74.98 sec
+[emit] ./generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
 \end{lstlisting}
 
 \textbf{Implementation sync v1.0.2 (2026-09-05): threshold module, Steps 7--8.}
@@ -675,7 +677,26 @@ Phase-0 DEM, the real-beacon ordering lock (first shuffle), order-bound share re
 verified by the pairing identity and BLS attestations, the Lagrange aggregate, the
 decrypt roundtrip, and three negative cases.
 
-\subsection{BLS12-377 Group Law Verification}
+\textbf{Implementation sync v1.0.4 (2026-09-11): Steps 13--21.} The conformance
+suite now stands at \textbf{21/21} with \textbf{27 generated headers}. Step 13 (DEC-204..206)
+hardens M2 to the production model: $\sigma_{\mathrm{user}}$ envelope authorization
+(pairing-verified, forgery rejected --- item 5 closed), per-member partials + permissionless
+id-driven aggregation, and the explicit cross-epoch replay negative (item 4 closed).
+Steps 14--17 (DEC-207..210) build the Phase-0 folding stack: the fold step family
+ $\{F_{\text{head}}, F_{\text{exec}}, F_{\text{close}}\}$ over the proven mempool semantics,
+the CCS constraint layer with the PC-matrix SAT-proof (item 7 closed), the 41-byte NIVC
+accumulator ($O(1)$ in entry count --- the succinctness mechanism), and the epoch pipeline
+connecting the M2 ordering to the fold ($\texttt{order\_root}$ feeds the fold head).
+Step 18 (DEC-211) adds the G1 transport skeleton: the beacon-seeded sampler (deterministic,
+weight-proportional), the 4-tier taxonomy (the P3 128\,KB cap is
+\texttt{static\_assert}-equal to the transport firewall), the contact root, and fixed-point
+EMA scoring. Steps 19--21 (DEC-212..214) build the proof machinery: the sum-check engine over
+dense multilinear extensions (chained-Poseidon Fiat--Shamir over \texttt{HSM\_SUMCHECK\_v1}),
+the Phase-0 multilinear PCS (commit/open/verify with verifier-derivable points; the production
+dual-layer Pedersen+WHIR honestly deferred), and the NIFS fold --- two verified computations
+compress into one, \emph{exactly}, the operation that makes the 41-byte carrier an actual proof.
+
+
 
 The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curve group law:
 
@@ -697,7 +718,17 @@ Root Cause \#10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixt
 
 
 \subsection{Conformance Suite}
-\textbf{Implementation status (Phase 0).} Items 1--8, and 12--13 are machine-validated today by the 13/13 conformance binaries --- item 6 (malformed partial decapsulation caught by pairing identity) closed by step 12's \texttt{verify\_share}; item 4's header-bound DEM golden-proven in step 12's tag checks --- together with the step 9--12 modules (threshold protocol layer, $F_{q2}$, $E'$, $G_2$, the pairing, the M2 order-bound core). Items 9--11 remain release-blocking gates for modules specified but not yet implemented --- envelope signature enforcement ($\sigma_{\mathrm{user}}$), the NIVC folding circuit, graded-cell certification, light-client sync, and the HHI envelope guard --- and activate together with those modules.
+\textbf{Implementation status (Phase 0).} Items 1--8, and 12--13 are machine-validated today by the
+21/21 conformance binaries --- item 6 by Step 12's \texttt{verify\_share}; item 4 (explicit
+cross-epoch replay negative) and item 5 ($\sigma_{\mathrm{user}}$ envelope authorization,
+forgery rejected) closed by Step 13; item 7 (SAT-proof: all illegal PC edges unsatisfiable)
+closed by Step 15's CCS constraint layer --- together with the step 9--12 threshold modules
+and the Phase-0 folding stack (Steps 14--21: fold semantics, constraints, the 41-byte
+accumulator, the epoch pipeline, the transport skeleton, the sum-check engine, the commitment
+layer, and the NIFS fold). Remaining production gates: the homomorphic Pedersen + WHIR
+dual-layer PCS (DEC-063/071) and the full HyperNova multifold (commitment folding), full
+CycleFold curve operations, graded-cell certification, light-client sync, and the HHI envelope
+guard --- and activate together with those modules.
 
 
 The release-blocking conformance suite validates:
@@ -739,7 +770,7 @@ Epoch & 600 s nominal; checkpoints $K=6$ (hourly); $T_{\text{fold}} = 120$ s \\
 
 % ════════════════════════════════════════════════════════════════════
 \section{Limitations and Honest Disclosure}
-Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing and the M2 order-bound core (Steps 7--12, suite 17/17); the transport and folding modules are specified, not yet built.
+Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing, the M2 order-bound core, and its production hardening (Steps 7--13); the folding arc is complete in Phase-0 form (Steps 14--21: semantics, constraints, the 41-byte accumulator, the pipeline, the sum-check engine, the commitment layer, the NIFS fold --- suite 21/21); the production proof system (homomorphic PCS + HyperNova multifold), full CycleFold curve operations, and the remaining release gates are specified, not yet built.
 
 \section{Conclusion}
 % ════════════════════════════════════════════════════════════════════
@@ -748,7 +779,7 @@ HSMA's contribution is not any single primitive but a composition discipline: ev
 
 The result is a ledger whose safety argument fits on one line --- $\epsilon_{\text{sys}} \approx 2^{-110}$, assumption-dominated --- and whose liveness recovers from every network-level attack by construction. Continuous-state throughput, MEV-immune ordering, and useful-work security stop being trade-offs when ordering is separated from knowledge, safety is separated from statistics, and history is separated from verification.
 
-The C++20 reference implementation passes all 17 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking, now consuming the real threshold beacon. The BLS verification law $e(\sigma, G_2) = e(H, Y)$ is pairing-proven secret-free. The M2 order-bound core encrypts, orders under the real beacon, and decrypts by threshold shares.
+The C++20 reference implementation passes all 21 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking, now consuming the real threshold beacon. The BLS verification law $e(\sigma, G_2) = e(H, Y)$ is pairing-proven secret-free. The M2 order-bound core encrypts, orders under the real beacon, and decrypts by threshold shares. The sum-check engine, the commitment layer, and the NIFS fold exist in golden-proven Phase-0 form: two verified computations compress into one, exactly.
 
 \textbf{The architecture's one-line soul:} \textit{ordering separated from knowledge (structural), safety separated from statistics (zeros, not probabilities), history separated from verification (one 73 KB proof), security priced in burned capital rather than probabilistic goodwill.}
 
