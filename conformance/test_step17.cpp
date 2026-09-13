@@ -80,10 +80,10 @@ int main() {
     CHECK(nivc::ACC_SIZE == 41, "G17F accumulator 41B");
 
     // 6. The order matches (M2 ordering → the fold's input)
-    printf("[dbg] count=%u golden=%u\n", result.acc.count, golden::G17F_COUNT);
+    printf("[dbg] count=%llu golden=%llu\n", (unsigned long long)result.acc.count, (unsigned long long)golden::G17F_COUNT);
 
     if (failures) { std::printf("\n%d FAILURE(S) IN STEP 17\n", failures); return 1; }
     std::printf("step17 conformance: ALL GREEN (M2 ordering -> fold -> NIVC close, "
-                "%u entries, 41B accumulator)\n", result.acc.count);
+                "%llu entries, 41B accumulator)\n", (unsigned long long)result.acc.count);
     return 0;
 }

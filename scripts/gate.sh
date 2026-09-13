@@ -2,7 +2,7 @@
 # HSMA VERIFICATION GATE v6 (DEC-131/132/140/154):
 #   configure → CLEAN-FIRST build → generated-header presence assert →
 #   diagnostic sentinels (all layers) → conformance.
-# CA-R91: the presence assert enumerates ALL generated headers (was 9 of 28)
+# CA-R91: the presence assert enumerates ALL generated headers (was 9 of 29)
 # + a count cross-check both directions (missing AND unregistered emissions).
 # clean-first kills the two historical masquerades: partial-output deletion
 # (ninja multi-output trap) and stale binaries surviving failed compiles.
@@ -32,8 +32,8 @@ for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp \
   test -f "build/generated/$h" || { echo "✗ MISSING GENERATED: $h"; exit 1; }
 done
 nhdr=$(ls build/generated/*.hpp 2>/dev/null | wc -l)
-test "$nhdr" -eq 28 || { echo "✗ HEADER COUNT: $nhdr != 28 (missing OR unregistered emission)"; exit 1; }
-echo "   all 28 generated headers present (each named + counted)"
+test "$nhdr" -eq 29 || { echo "✗ HEADER COUNT: $nhdr != 29 (missing OR unregistered emission)"; exit 1; }
+echo "   all 29 generated headers present (each named + counted)"
 
 echo "── [3/4] diagnostics ────────────────────────────"
 ./build/diag_step5 | tee "$dg5"

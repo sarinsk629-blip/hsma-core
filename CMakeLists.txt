@@ -199,3 +199,8 @@ add_test(NAME step21_conformance COMMAND test_step21)
 add_executable(test_step22 conformance/test_step22.cpp)
 target_include_directories(test_step22 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step22_conformance COMMAND test_step22)
+
+# == Step 23: phi0-phi7 end-to-end epoch (DEC-216) ==
+add_executable(test_step23 conformance/test_step23.cpp)
+target_include_directories(test_step23 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step23_conformance COMMAND test_step23)
