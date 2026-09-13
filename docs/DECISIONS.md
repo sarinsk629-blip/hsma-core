@@ -1661,3 +1661,25 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 - **CA-R96** - The test consumed joined arrays (G23E_D[i]) where the emitter emitted per-index constants (G23E_D0..2) - the CA-R53 class on the test side. Fixed with per-index selectors.
 - **CA-R97** - acc.digest was never seeded with f_head's output: the f_head parity CHECK verified a throwaway FoldState and passed while the real chain ran from zero. One line. DOCTRINE (the mirror of CA-R44): the check passing is not the wiring being right - verify the object the chain actually runs on.
 **The oracle's math was green on the first full run; every subsequent fix was composition plumbing teaching precision. Five machine layers participated across the arc: assert, traceback, audit, compiler, gate.**
+
+---
+## SECTION XXIII — The Phase-1 Gap Register + External Audit Adoption (2026-09-11)
+#### CA-R99 — git-add discipline (repeat offense, owned)
+**Erratum:** Step 23's git add listed lightclient.hpp (created Step 22, untouched in 23) - the same sloppy listing caught at Step 15 (fold.hpp) with a then-made promise. DOCTRINE: git add names only what the step created or modified, checked against the step's real diff.
+#### The External Audit (Steps 7-18 transcript) - adopted
+An independent reader audited the transcript: verdict - "real, unusually well-disciplined, novel in composition"; the methodology (k2==k catching the broken KEM, the aggregate identity catching the skipped lambda, byte-probes killing both phantom bytes) is the real artifact; AND the honest gaps are real. This is the first external mitigation of the self-audit correlation risk. Its central verdict STANDS post-Steps 18-23: proof generation does not exist yet - and every gap is now tracked below. Law adopted from it: TRUST THE GOLDENS, NOT THE STORY (DEC-109/CA-R37 elevated to project law).
+### THE REGISTER - every gap carries an ID, a source, and a closure criterion
+- **GAP-01 (HIGH, interop)** - External canonicity cross-check: BLS12-377 constants (r, q, generators, b=1, h1, h2, the beta=5 tower, b'=(5,1)) vs a reference implementation (arkworks/libff). Internal soundness is proven; this is wire-format interoperability. Closure: one-shot reference-vector parity script.
+- **GAP-02 (HIGH, engineering)** - gen_constants.py refactor: per-step modules, explicit parameter passing, a unified formatter library (the _r4/_r44/_r66/_s6/_b2l family). Evidence: CA-R67/R72/R73 (function-local p x3), CA-R95 (string-vs-limbs), CA-R96 (per-index-vs-joined), CA-R72 (line-splitting) - one structural disease, four recurrences. Closure: post-refactor run with byte-identical goldens (the refactor's own proof).
+- **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit.
+- **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03.
+- **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071.
+- **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2.
+- **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
+- **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
+- **GAP-09 (HIGH, verification)** - H5 formal verification (shipped circuits == specifications) + independent external security audit. Release blockers. The external audit's existence mitigates, does not cure, the self-audit correlation risk.
+- **GAP-10 (MED, perf)** - Phase-1 wind tunnel on real hardware: liveness constants are simulation-calibrated; Termux is correctness-grade, not benchmark-grade. Source: audit + whitepaper limitations.
+- **GAP-11 (LOW, docs)** - Target-vs-measured label sweep: every performance number in the whitepaper carries its label until the wind tunnel measures it. Source: audit section 5.6.
+- **GAP-12 (STRATEGY, parallel, $0)** - ePrint write-up (the whitepaper is ~80% of a paper), README with gate badge + the 23/23 story, 2-3 grant proposals (Ethereum Foundation / Optimism RetroPGF / Gitcoin). Compounds during GAP-02..06.
+- **GAP-13 (MED, testing)** - Cross-pillar differential + property-based testing beyond the goldens: the bilingual oracle catches transcription errors, not shared design errors; reference-implementation differentials (with GAP-01) attack exactly that blind spot.
+**Closure law: a gap leaves this register only through a golden-proven receipt in its own step - never through a narrative claim.**
