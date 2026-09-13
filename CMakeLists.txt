@@ -194,3 +194,8 @@ add_test(NAME step20_conformance COMMAND test_step20)
 add_executable(test_step21 conformance/test_step21.cpp)
 target_include_directories(test_step21 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step21_conformance COMMAND test_step21)
+
+# == Step 22: light-client epoch-header certificate (DEC-215) ==
+add_executable(test_step22 conformance/test_step22.cpp)
+target_include_directories(test_step22 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step22_conformance COMMAND test_step22)
