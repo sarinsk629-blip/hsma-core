@@ -1700,3 +1700,12 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **CA-R104** - Byte-preservation proves losslessness, not statement integrity: the core/tail cut severed 'if __name__' from its body (no bytes lost, block broken). Boundary asserts need counts AND grammar.
 - **CA-R105** - exec() namespaces do not define __file__; the steps' CA-R77 emission paths derive the repo root from it. Seeded with the legacy file's own path - semantically exact, since that is what __file__ denoted when those lines ran as the original.
 **Build status:** P1-01 CLOSED - legacy byte-identical (5m35s, exit=0) AND new path byte-identical (gated on exit=0); legacy FROZEN against appends; gate re-verifies 23/23 on the new path next session.
+---
+## SECTION XXV — P1-02: The External Interop Cross-Check (2026-09-12)
+#### DEC-219 — GAP-01: the canonical-bridge verification (G1 closed)
+**Decision:** The GAP-01 check reduces to the single published anchor x = 0x8508c00000000001 (pinned Step 7, DEC-181): r = x^4-x^2+1, q = h1*r + x, h1 = (x-1)^2/3, #E = h1*r. ALL VERIFIED TRUE in pure arithmetic against the emitted bls_q_params_gen.hpp (Q_MOD, found by the [D1] dump after the probe's candidate-name miss): q = 377 bits == h1*r+x EXACT; header r/h1/#E == derived forms; our G1 generator satisfies the CANONICAL y^2 = x^3 + 1 (b=1) curve equation mod q; [r]P == inf AND [#E]P == inf on the canonical curve (pure-python affine EC, zero deps). G1 IS WIRE-BRIDGEABLE to canonical BLS12-377: same seed, same r, same q, same curve, same subgroup, same order.
+**Rationale:** Internal soundness (Steps 7-8) + canonical-form verification = wire compatibility for G1. Remaining: G2's twist serialization (ours b'=(5,1)) vs the standard's - GAP-01b, one session on our own F_q2 tower.
+**Supersedes:** N/A
+### P1-02 ERRATA - CA-R106 (2026-09-12)
+- **CA-R106** - The audit probe missed the actual constant name (Q_MOD) and mis-scoped its own pmul (defined after use / wrong indent) - producing three false failures and a crash across two rounds. CA-R37 applies to AUDIT TOOLS: dump the source, prove the parse, compile-check the instrument - before trusting any verdict. The header's own provenance comment (line 2) stated the identity being tested.
+**Build status:** P1-02 G1-half CLOSED - six-line verdict all True (after the probe fixes); GAP-01b (G2 twist serialization) opens.
