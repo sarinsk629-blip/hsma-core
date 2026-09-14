@@ -1751,12 +1751,19 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-13 (MED, testing)** - Cross-pillar differential + property-based testing beyond the goldens: the bilingual oracle catches transcription errors, not shared design errors; reference-implementation differentials (with GAP-01) attack exactly that blind spot.
 **Closure law: a gap leaves this register only through a golden-proven receipt in its own step - never through a narrative claim.**
 
-#### CA-R100 — Pre-read scope announcements are defects (the Step-22 lesson, owned)
+#### CA-R100 — Pre-read scope announcements are defects (the Step-22 lesson)
 
-**Erratum:** Step 22 was announced as "CycleFold + light-client" BEFORE the BLOCK-0 read; the greps then proved zero Vesta arithmetic exists (no field twin, no Vesta Poseidon, no curve ops - constants are not arithmetic), forcing a mid-step rescope to the light-client certificate. The rescope itself was correct (nothing half-proven shipped; V0b sized the deferred work; the gap entered DEC-217) - but the premature announcement made an evidence-driven decision look like a walk-back to the operator.
-**DOCTRINE:** Step identity is announced only after BLOCK 0. When the read hasn't run, the announcement is "the read decides between X and Y." Deferrals are announced as decisions with their evidence, never buried in a decision table. Evidence drives code AND plans alike - DEC-109 applies to scoping, not just to constants.
----
-## SECTION XXIV — Phase 1 Opens: P1-01, The Generator Refactor (2026-09-12)
+**Erratum:** Step 22 was announced as "CycleFold + light-client" BEFORE the BLOCK-0 read.
+
+**What the greps proved:** zero Vesta arithmetic exists — no field twin, no Vesta Poseidon, no curve ops. Constants are not arithmetic.
+
+**What happened:** a mid-step rescope to the light-client certificate. The rescope was correct — nothing half-proven shipped, V0b sized the deferred work, the gap entered DEC-217.
+
+**The defect:** the premature announcement made an evidence-driven decision look like a walk-back to the operator.
+
+**DOCTRINE:** Step identity is announced only after BLOCK 0. When the read hasn't run, the announcement is "the read decides between X and Y." Evidence drives code AND plans alike — DEC-109 applies to scoping, not just to constants.
+
+
 #### DEC-218 — GAP-02a/b: the shared library + the byte-preserving split
 
 **Decision:** (a) GAP-02a: scripts/gen_common.py - the Phase-1 library (constants parsed FROM the generated headers per DEC-102 - pallas + vesta moduli verified against the gate's own emitted constants; the unified tolerant formatter family killing CA-R95/96 at the root; the CA-R77-safe emit_hpp). ALL Phase-1 code is born here. (b) GAP-02b: the legacy gen_constants.py (3593 lines, 15 aliased hashlib imports, 8+ derivation duplicates, _r4 redefined in 4 scopes) is FROZEN - appends banned, closing the CA-R56/72/95/96/98 vector. The mechanical splitter extracted 17 step chunks (gap-aware prelude+def+call after CA-R101's boundary assert caught 97+ lines of would-be-lost inter-chunk prelude; 177403/177403 bytes machine-asserted) + core + glue, with the __main__ guard reunited across the core/tail boundary (CA-R104: byte-preservation proves losslessness, not statement integrity). The new path: gen_run_new.py - a SHARED-NAMESPACE executor (the legacy steps cross-reference helpers; per-module imports would sever them), replicating __name__/sys.argv/__file__ exactly.
