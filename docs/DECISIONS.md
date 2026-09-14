@@ -749,6 +749,7 @@
 ## Audit Finding Cross-Reference (97 Total)
 
 ### CA-Series (77 findings)
+
 - CA-1 through CA-5: Draft review corrections -> DEC-044
 - CA-6 [CRITICAL]: Theorem 2.1 false equality -> DEC-045
 - CA-12 [CRITICAL]: APPLY_TO_STATE violates Execution Monopoly -> DEC-050
@@ -770,6 +771,7 @@
 - (All 77 CA findings resolved)
 
 ### PF-Series (9 findings)
+
 - PF-1 [BLOCKER]: LogUp multilinear dimension mismatch -> DEC-006
 - PF-2 [BLOCKER]: Self-rejecting eps-gate bounds -> DEC-004, DEC-005
 - PF-3 [HIGH]: Accumulator width overflow -> DEC-003
@@ -778,6 +780,7 @@
 - (All 9 PF findings resolved)
 
 ### SE-Series (10 findings)
+
 - SE-1 [CRITICAL]: Cobb-Douglas Sybil-splitting neutral -> DEC-013
 - SE-2 [CRITICAL]: Cap fixpoint non-determinism -> DEC-012
 - SE-4 [CRITICAL]: Self-dealing Phi farming -> DEC-014
@@ -785,6 +788,7 @@
 - (All 10 SE findings resolved)
 
 ### PRE-Series (9 findings)
+
 - PRE-1 [CRITICAL]: Phi^6*S^4 overflows scratchpad -> DEC-019
 - PRE-M2-1 [CRITICAL]: M1 incompatible with commit-before-decrypt -> DEC-025
 - (All 9 PRE findings resolved)
@@ -1000,10 +1004,12 @@ Whitepaper v1.0 is COMPLETE and RATIFIED.
 - **CA-135** — fd9d4c3 step6-final-green: gate v5 clean-first (CA-134/DEC-154), seedpref verified idempotent (CA-135) — Step 6 CLOSED at 6/6 (CONTEXT) · _Cited in:_ git-log · _Status:_ CITATION-RECOVERED
 
 ### Semantic anchors (unambiguous, from code evidence)
+
 - **DEC-153** (test_step6.cpp ×2, gist verbatim: "initial opinion is harness input"): consensus Automaton is a PURE function — View.preference is explicit caller input, no internal default — required for bit-exact golden-trace replay (extends DEC-091/102 to consensus).
 - **DEC-123** (GATE verdict: "canonical-at-rest (DEC-123 held)"): vault stores canonical-form entries at rest; invariant machine-verified (extends DEC-105 to storage).
 
 ### Restore protocol
+
 Paste the Step-2…6 implementation-session transcripts (chats that produced these IDs) →
 adversarial verification → full rows replace CITATION-RECOVERED status. Until then, no
 rationale is invented for any row above.
@@ -1031,6 +1037,7 @@ rationale is invented for any row above.
 - **CA-R7 · 🟠 HIGH** — **Process defect (this session): INSPECT grep filtered \*.md/\*.txt only — missed \*.cpp/\*.hpp citations; produced false "max=DEC-115" conclusion** → **Full-spectrum harvest (all file types + git log) is now mandatory for any ledger range query**
 
 ### Phase Status Pin (DEC-089/091/094/096/101)
+
 **PHASE 0 — IN PROGRESS.** Done: Steps 1–6 kernels GATE GREEN 6/6 (incl. full-trace
 consensus conformance C1/C2/C3, breaker/stagger parity, vault opening-proof negative
 tests, 10th-root engine). Remaining: threshold module (DKG/beacon/order-bound shares),
@@ -1177,9 +1184,11 @@ G1 transport, HyperNova NIVC circuit, φ₀–φ₇ integration. PHASE 1 NOT ENT
 ## RECONCILIATION REGISTER — ADDENDUM (second pass, 2026-09-04)
 
 #### Errata E-10 — errata-namespace collision (CA-R8)
+
 Reconciliation Register E-6/E-7 collide with session-local errata: Step-5 E-6 = 192-bit slot schema (commit fc53442); Step-6 E-7 = automaton erratum (consensus.hpp:142, gen_constants.py:427; content pending). Resolution: reconciliation errata re-designated **ER-6..ER-9** (the earlier labels below stand as history); canonical E-6 = Step-5 slot schema; canonical E-7 = Step-6 erratum.
 
 #### Errata E-11 — whitepaper leaf-schema staleness (CA-R9)
+
 Whitepaper §2.6/§8.3: (mbal[126]‖sbal[1]‖nonce[64]‖flags[8]) = 199 bits. Code DEC-126: 126|1|64|1 = 192 bits, exact 24-B window. Code is authority (DEC-109 doctrine); tex patched in same commit; flags width 8→1.
 
 #### CA-R addendum (second pass)
@@ -1190,6 +1199,7 @@ Whitepaper §2.6/§8.3: (mbal[126]‖sbal[1]‖nonce[64]‖flags[8]) = 199 bits.
 - **CA-R11 · 🔵 LOW** — First harvest regex matched only DEC-prefixed tokens; slash/range IDs missed → **VII-A range-implied list**
 
 #### Status
+
 Pushed: 87a3731 (Section VII: 22 DEC + 12 CA citation-recovered; ER-6..ER-9; Phase-0 pin; tex t=112 sync).
 True citation ceiling: **DEC-180 / CA-135**. GATE GREEN 6/6 maintained.
 
@@ -1285,21 +1295,25 @@ marker string.
 ## SECTION VIII - Phase-0 Threshold Module (Step 7 - 2026-09-04)
 
 #### DEC-181 - Threshold module decomposition (Steps 7-10)
+
 **Decision:** Step 7: F_r scalar kernel + golden parity. Step 8: promote E(F_q) from tools/bls_derive.cpp into include/hsma/threshold/ + hash-to-curve. Step 9: DKG (Feldman G1), threshold BLS signing, epoch beacon (HSM_BEACON_V1), order-bound shares, DLEQ. Step 10: pairing verifier + epoch-header certificate checks.
 **Rationale:** Pairing deferral sound per DEC-032/034 (out-of-circuit, one check per epoch header); Feldman verification pairing-free; conformance validates vs harness secrets until Step 10.
 **Supersedes:** N/A
 
 #### DEC-182 - F_r representation and constants authority
+
 **Decision:** 4x64-limb Montgomery, canonical [0,r) (DEC-105 mirror), CIOS multiply with conditional subtraction; constants from gen_constants.py STEP 7: r = documented BLS12-377 scalar, verified against kernel literals via x^4-x^2+1 == r with x = 0x8508c00000000001 (provenance embedded in emitted header), MR-52 validated, 253-bit.
 **Rationale:** No hand transcription (DEC-046/102); value-anchored extraction (CA-R32 doctrine); r < 2^253 gives 3 bits headroom (DEC-045).
 **Supersedes:** N/A
 
 #### DEC-183 - Scalar golden parity is release-blocking
+
 **Decision:** 64 SHA-256-counter DRBG pairs, add/sub/mul/inv parity vs Python big-int; edges (0, 1, r-1, r rejected); n=5/t=3 DKG scalar trace (shares, Lagrange-at-zero, reconstruction) with tamper divergence asserted at generation.
 **Rationale:** Extends DEC-091/103 golden pipeline: machine ground truth, no prose tuning.
 **Supersedes:** N/A
 
 #### DEC-184 - DKG scalar semantics (Step 7 slice)
+
 **Decision:** Degree-(t-1) polys over F_r, Horner, id domain {1..n}, Lagrange-at-zero; tamper detection via reconstruction divergence + share re-derivation. Feldman curve side lands Step 9.
 **Rationale:** Separates verifiable scalar kernel from curve integration; both golden-pinned.
 **Supersedes:** N/A
@@ -1311,21 +1325,25 @@ marker string.
 ## SECTION VIII (cont.) — Step 8: E(F_q) Promotion (2026-09-04)
 
 #### DEC-185 — Verbatim promotion doctrine
+
 **Decision:** tools/bls_derive.cpp §1–2 (bn layer, MCtx, Montgomery core) and §4/§7 (tonelli, Jacobian Pdbl/Padd/Pmul) promoted verbatim into include/hsma/threshold/{mont384,g1}.hpp, in-source laws preserved (CANONICALIZATION LAW, n0 kernel check, 8C/DEC-180, T[i] carry-out, tonelli UNCONDITIONAL R update). Documented deviations: exp_m2 omitted (never read); line-number tripwires dropped (semantic guards kept); fe6 r{} normalization; globals -> initialize-once ctx(); bls_derive.cpp remains the derivation authority (DEC-109).
 **Rationale:** Promotion reproduces the proven kernel under golden parity; the authority is never rewritten.
 **Supersedes:** N/A
 
 #### DEC-186 — q-side constants authority
+
 **Decision:** bls_q_params_gen.hpp emitted by gen_constants.py STEP 8: q = h1*r + x computed in Python from x = 0x8508c00000000001 (identity-anchored vs SEED_X, CA-R32); validated MR-52 on q and r, widths 377/253, low-limb ancestry, gy^2 = 2 with even-limb law, GEN = [h1](1,sqrt(2)) on-curve, [r]GEN = inf; r cross-checked == step7 _DOCUMENTED_R; C++ ctx() re-verifies n0 kernel, n0 == Q_N0, and R1/R2 == pow2_mod recomputation.
 **Rationale:** Zero hand transcription (DEC-046/102); value-anchored extraction; defense-in-depth at consumption.
 **Supersedes:** N/A
 
 #### DEC-187 — Affine-oracle independence (release-blocking)
+
 **Decision:** Goldens: 48 F_q arithmetic pairs + roundtrip; 4 addition + 4 doubling + 4 scalar-mult triples in AFFINE canonical form; 8 Tonelli roots (residues only, ± tolerance + w^2 == x). Oracle = Python plain-integer affine EC — a formula family and arithmetic representation independent of the C++ Jacobian/Montgomery promotion. Emission uses one placeholder per line (CA-R33-proof by construction).
 **Rationale:** Two independent implementations agreeing bit-exact is stronger evidence than any single implementation's self-test; extends the bn_mod independent-truth doctrine one level up.
 **Supersedes:** N/A
 
 #### DEC-188 — Algebraic self-proofs per gate run
+
 **Decision:** test_step8 machine-runs: Padd(P,P) == Pdbl(P); [a+b]P == [a]P + [b]P; [r]GEN = inf (subgroup membership); [h1*r]P = inf (order divisibility — the derivation tool's 3-point discipline, now permanent in the suite).
 **Rationale:** Curve-law violations that parity fixtures might miss are caught structurally, every gate run.
 **Supersedes:** N/A
@@ -1361,21 +1379,25 @@ loop after every documentation change.
 ## SECTION VIII (cont.) — Step 9: Threshold Protocol Layer (2026-09-07)
 
 #### DEC-189 — Hash-to-G1
+
 **Decision:** h2g1 = SHA-256 counter preimage (HSM_H2G1_v1 ‖ u32le len ‖ m ‖ u32le counter) → 256-bit x (canonical, < q) → QR gate → tonelli → even-y law → cofactor-clear [h1]. Counter advances entropy + 1024-starvation guard (CA-R38 law). Tag length derived via sizeof-1 (CA-R43 law). [r]H(m) = inf by construction. Grind-resistance = SHA-256 preimage resistance (Phase-0 scope; RFC-9380 SSWU = Phase-1+ hardening candidate).
 **Rationale:** Kernel try-and-increment pattern; promoted-machinery reuse.
 **Supersedes:** N/A
 
 #### DEC-190 — Feldman DKG in G1 (pairing-free)
+
 **Decision:** C_k = [a_k]G; share verification [s_j]G == Σ_k [j^k]C_k as a pure G1 point equation; Y = Σ C_{i,0} = [S]G. Committee = the Step 7 DKG trace (same DRBG salt → same polys/shares/lambdas/secret as G7_*): scalar and curve goldens cross-validate one committee. Full DKG state machine (complaints, resharing) is later-phase; arithmetic core proven now.
 **Rationale:** DEC-181: Feldman verification needs no pairings.
 **Supersedes:** N/A
 
 #### DEC-191 — Threshold BLS signing; harness-secret law
+
 **Decision:** σ_j = [S_j]H(m); σ = Σ [λ_j]σ_j via Step 7 lagrange_zero. Release-blocking law: σ == [S]H(m), aggregate independently recomputed from the known secret. Pairing verification deferred to Step 10 (DEC-032/181).
 **Rationale:** Full t-of-n pipeline proven in G1 alone.
 **Supersedes:** N/A
 
 #### DEC-192 — HSM_BEACON_V1 epoch beacon
+
 **Decision:** Preimage HSM_BEACON_V1 (13-char tag, sizeof-derived) ‖ epoch LE64 ‖ prev = 53 B → h2g1 → threshold-sign over t-subset → SHA-256(affine σ: x‖y, 48-B LE limbs) → consensus::Digest. Same (epoch, prev)→Digest interface as sim_beacon (types; values differ by design). sim_beacon REMAINS in force; retirement = explicit swap decision + consensus-golden regeneration. Phase-0 API: Committee carries t-subset shares (harness model); production = per-member partials + permissionless aggregation. Tags HSM_H2G1_v1/HSM_BEACON_V1 are header-local constexpr; registry insertion (33→35, DEC-099) documented for next full regen.
 **Rationale:** Unpredictability = threshold-BLS uniqueness pre-reveal; interface parity makes the eventual swap one auditable decision.
 **Supersedes:** N/A
@@ -1383,6 +1405,7 @@ loop after every documentation change.
 **Build status:** STEP 9 CLOSED - GATE GREEN 9/9 (2026-09-07): h2g1 ×4 + laws, feldman 25/25 + tamper, threshold sigs ×3 + [S]H law, beacon chain ×4 + determinism. consensus.hpp untouched; sim_beacon intact.
 
 ### STEP 9 ERRATA — CA-R41..44 (2026-09-07)
+
 - **CA-R41 · LOW** — Mixed accessors (.d[k] on std::array fe6, 3 lines). Compiler-caught.
 - **CA-R42 · LOW** — sig.hpp authored, sign.hpp included. Compiler-caught; syntax-only loop now mandatory pre-gate.
 - **CA-R43 · 🟠 HIGH** — Hand-counted tag: "HSM_BEACON_V1" = 13 chars, memcpy'd as 14 → phantom NUL in every preimage; comment/DEC draft said "54 B" where the generator used 53. All 6 beacon FAILs shared one root. Bilingual byte-level probe localized it (P.pre0 vs D.pre0; P.dig == G.bcn0 proved the golden right, the C++ wrong). Doctrine: tag lengths DERIVED (sizeof-1), never hand-counted. Golden unchanged.
@@ -1393,21 +1416,25 @@ loop after every documentation change.
 ## SECTION VIII (cont.) — Step 10-A: F_q2 + E' Twist Curve (2026-09-08)
 
 #### DEC-193 — F_q2 construction and authority
+
 **Decision:** F_q2 = F_q[u]/(u²-β), β=5 (smallest non-square, generator-discovered). Elements (c0,c1). Arithmetic: mul(a,b) = (a0·b0 + β·a1·b1, a0·b1 + a1·b0); inverse via norm N(a) = c0²-β·c1² and conjugate. First authority class: β is value-anchored (CA-R32 doctrine).
 **Rationale:** Smallest non-square gives the simplest constants; generator-discovered, not hand-picked.
 **Supersedes:** N/A
 
 #### DEC-194 — E' twist curve
+
 **Decision:** E': y² = x³ + b' over F_q2, b'=(5,1) (generator-discovered via computational search: [h2]P ∈ E'[r] verified). Jacobian coordinates over Fq2, same formula structure as G1 (Pdbl/Padd/Pmul).
 **Rationale:** b' found by search over 6 candidates; verified by [r]([h2]P) = ∞ for a random point.
 **Supersedes:** N/A
 
 #### DEC-195 — h2 cofactor (external reference)
+
 **Decision:** h2 = (x⁸−4x⁷+5x⁶−4x⁴+6x³−4x²−4x+13)/9, 502 bits. Authority: BLS12 literature (first external-reference DEC). Verified: Hasse bound |h2·r−q²−1| ≤ 2q AND [r]([h2]P)=∞ computationally.
 **Rationale:** Not derivable from SEED_X; honest external citation with dual verification.
 **Supersedes:** N/A
 
 #### DEC-196 — G2 generator
+
 **Decision:** G2 = [h2](random point on E'), order exactly r. [r]G2 = ∞ machine-verified in generator and conformance. Affine canonical form emitted in bls_g2_params_gen.hpp.
 **Rationale:** Cofactor-cleared; deterministic from DRBG seed.
 **Supersedes:** N/A
@@ -1415,6 +1442,7 @@ loop after every documentation change.
 **Build status:** STEP 10-A CLOSED — GATE GREEN 10/10: Fq2 parity ×32, E' triples ×12, G2 subgroup. Step 10-B (pairing) is next.
 
 ### STEP 10-A ERRATA — CA-R45..47
+
 - **CA-R45 · LOW** — _s10_row6 format string: sixth placeholder missing '%'; fix script's "already fixed" check matched Step 8's correct string (false positive).
 - **CA-R46 · LOW** — fq2p (point formatter, [4][6]) applied to F_q2 elements ([2][6]) — type confusion in emission.
 - **CA-R47 · LOW** — Bare `fe6` in test (missing `mont::` namespace prefix); compiler-caught at syntax-only stage.
@@ -1424,16 +1452,19 @@ loop after every documentation change.
 ## SECTION VIII (cont.) — Step 10-B: The Pairing Layer (2026-09-09)
 
 #### DEC-197 — F_q12 tower (C++)
+
 **Decision:** fq12.hpp: Fq6 = F_q2[v]/(v^3-gamma), gamma = b' = (5,1); Fq12 = F_q6[w]/(w^2-v). Mirrors the Python oracle exactly. Tower-norm inverses (fq12_inv conj/norm; fq6_inv cubic adjugate) - the ~2000x-vs-Fermat law. fq12_pow_limbs MSB-first.
 **Rationale:** Structural promotion of the proven Python tower (DEC-109 pattern).
 **Supersedes:** N/A
 
 #### DEC-198 — Reduced Tate pairing (C++)
+
 **Decision:** pairing.hpp: twist psi(x',y') = (x'/v, y'/(v*w)); Miller double-and-line with the final-vertical skip (i>0; denominator elimination, r | q^6+1 verified); final exp via G12_FEXP limbs DEC-102-pinned.
 **Rationale:** Mirrors the oracle line-for-line; the skip is proven.
 **Supersedes:** N/A
 
 #### DEC-199 — BLS verification law; suite 11/11
+
 **Decision:** bls_verify_aff: e(sigma, G2gen) == e(H(m), Y) - RETIRES the DEC-191 harness-secret law. Conformance (step10b): miller x8, pairings x4, BLS x4 (3 pass + 1 tamper), threshold pipeline, e_1 + non-degeneracy, bilinearity.
 **Rationale:** Pillar II keystone; DEC-053 light-client story executable.
 **Supersedes:** DEC-191 (verification deferral clause)
@@ -1441,6 +1472,7 @@ loop after every documentation change.
 **Build status:** STEP 10-B CLOSED - GATE GREEN 11/11 (2026-09-09).
 
 ### STEP 10-B ERRATA — CA-R48..R54 (2026-09-09)
+
 - **CA-R48..R50** — representation-layering family (gamma-as-F_q2 at comparison; P10 dict mislevel; embed raw int in F_q2 slot). One probe each.
 - **Near-miss (design-time)** — final Miller addition is the vertical line; skipped via i>0 (denominator elimination).
 - **CA-R51** — over-broad verification substring; cosmetic.
@@ -1454,6 +1486,7 @@ loop after every documentation change.
 ## SECTION IX — Step 11: The sim_beacon Retirement (2026-09-09)
 
 #### DEC-200 — The real randomness takes command
+
 **Decision:** The consensus golden path consumes HSM_BEACON_V1: G_B1/G_B2 are the real threshold-beacon chain (h2g1 -> t-subsect sign -> SHA-256) over the G7 committee at epochs CONS_EPOCH/CONS_EPOCH+1. Generator: value-injection (_cons_static patched post-hoc; emit_consensus_scenario re-invoked unmodified - append-only, zero duplication; the within-run sim emission is superseded). sim_beacon/sim_beacon_genesis DELETED from consensus.hpp; consumers migrated (test_step6: producer parity = the real beacon + G7 committee; diag_step6: real input; test_step9: interop stub removed - the interop is now the production path). All traces regenerate (the beacon feeds the sampler seed); G_WINNER/G_DELAY derive from the real b2.
 **Rationale:** DEC-192's retirement clause executed. The FIRST CROSS-PILLAR GOLDEN LINKAGE: one G7 committee now testifies across DKG (7), threshold signing + beacon (9), the pairing (10), AND consensus (11). The automaton untouched: a pure consumer by construction.
 **Supersedes:** DEC-192 (the 'sim_beacon remains in force' clause)
@@ -1461,6 +1494,7 @@ loop after every documentation change.
 **Build status:** STEP 11 CLOSED - GATE GREEN 11/11: consensus goldens real-beacon; sim_beacon deleted; the pillars shake hands.
 
 ### STEP 11 ERRATA — CA-R55..R57 (2026-09-09)
+
 - **CA-R55** — FIXS9 dead-code bug: the comment back-track computed but never used; stale interop comments survived the code removal; the release assert caught the residue; fixed surgically.
 - **CA-R56 (revised)** — the 'partial append' was a MISDIAGNOSIS read from a garbled terminal display; R1's file-state check found the append complete. Lesson (CA-R54's, recurring): diagnose from FILE STATE, never from display. Doctrine kept as prevention: file-mutating appends via python heredocs (atomic - a cut means nothing runs).
 - **CA-R57** — self-defeating assert: the retirement comment itself contains 'sim_beacon', so the text-level completeness check failed on my own comment. The deletion was correct. Fix: code-level (non-comment) checks for symbol retirement. Same family as CA-R51.- **CA-R58** — the DEC-200 ledger verify used case-sensitive 'cross-pillar' against the uppercase 'CROSS-PILLAR' text; the write preceded the assert, so the ledger was complete and committed (4a983b2); cosmetic. Verification-string family (CA-R51/R57/R58) doctrine completed: checks must be code-level AND case-exact.
@@ -1470,16 +1504,19 @@ loop after every documentation change.
 ## SECTION X — Step 12: M2 Order-Bound Decryption Shares (2026-09-09)
 
 #### DEC-201 — Phase-0 M2 construction
+
 **Decision:** G2-plane threshold KEM with the unified anchor X_E = Y2 = [S]G2gen (DEC-030): sender r, R = [r]G2gen, shared = [r]X_E; k = SHA256(HSM_KDF_V1 || ser(shared) || ser(X_E) || header). Phase-0 DEM: SHA-256 counter keystream (HSM_DEM_V1) + tag (HSM_DEM_TAG_V1) over (k, header, ct); DEC-088's AES-GCM/ChaCha profiles deferred to the production step. Header AAD: epoch LE64 | sender_pk(32) | nonce | fee (bound per DEC-026).
 **Rationale:** The KEM input is the SHARED secret (CA-R61's lesson machine-checked: k2==k is the end-to-end assert); the DEM is deterministic and Python-identical.
 **Supersedes:** N/A
 
 #### DEC-202 — The order-bound share record
+
 **Decision:** D_j = [S_j]R in G2, verified by the pairing identity e(G1gen, D_j) == e(Y1_j, R) (whitepaper item 6, G1 Feldman publics). Attestation sigma_j = [S_j]H(HSM_DEC_SHARE_V2 || epoch || order_root || ct_hash || ser(D_j)) - a BLS partial over the order-bound preimage; verified by e(sigma_j, G2gen) == e(H(pre), Y2_j) (bls_verify_aff, 10-B reuse). Aggregate: D = Sum lambda_j D_j = [S]R (the Lagrange reconstruction - the same identity carrying the beacon, threshold sigs, and the BLS law). Canonical shares golden-pinned as G12M_SJ (Fr is Montgomery; g2::Pmul needs canonical bits).
 **Rationale:** DEC-057 doctrine: binding = attribution/replay-freedom (the record cannot form before order_root exists); impossibility = counting (m_adv <= 100 < t).
 **Supersedes:** N/A
 
 #### DEC-203 — The ordering lock
+
 **Decision:** ct_hash = SHA256(HSM_CT_V1 || ser(R) || ct); sort_key = SHA256(HSM_ORDER_V1 || beacon_E || ct_hash) with beacon_E = the REAL HSM_BEACON_V1 chain (Step 11); order_root = SHA256(HSM_ORDROOT_V1 || sorted ct_hashes) - Phase-0 form; the production committee-signed root is the M2 production step.
 **Rationale:** The MEV freeze consumes the real beacon; the first real shuffle: [0,3,2,1].
 **Supersedes:** N/A
@@ -1487,6 +1524,7 @@ loop after every documentation change.
 **Build status:** STEP 12 CLOSED - GATE GREEN 12/12: KEM/DEM parity x4, ordering lock (real beacon), shares x12 + pairing identities, attestations + order-bound verifies, aggregate + decrypt roundtrip (the derivations meet), 3 negatives rejected.
 
 ### STEP 12 ERRATA — CA-R59..R61 (2026-09-09)
+
 - **CA-R59** — _s10_e2_add called with 2 args (needs P, Q, q, beta) in the aggregate loop; the traceback named it; one fix.
 - **CA-R60** — the aggregate's first-iteration branch assigned D_j RAW, skipping lambda_2 (the house pattern applies lambda BEFORE the None-check - Step 11's sigma_agg is the reference); the aggregate identity assert caught it.
 - **CA-R61** — the sender's KDF consumed ser(R) (PUBLIC - the KEM was broken, key publicly derivable) instead of ser(shared = [r]X_E); the end-to-end assert k2 == k caught it. The goldens-do-the-proving doctrine: all three died inside the oracle, before any golden shipped.
@@ -1496,16 +1534,19 @@ loop after every documentation change.
 ## SECTION XI — Step 13: M2 Production Hardening (2026-09-09)
 
 #### DEC-204 — sigma_user: the sender's envelope authorization
+
 **Decision:** Preimage HSM_SIG_USER_V1(15, sizeof-derived) || header(56: epoch | sender_pk | nonce | fee) || ser(R)(192) = 263 B (CA-R64: the 16/264 draft figures were the miscount itself). sigma_user = [sk_u]hash_to_g1(pre) in G1 (48 B); PK_u = [sk_u]G2gen (96 B, DEC-053 orientation). Verification at intake: e(sigma_user, G2gen) == e(H(pre), PK_u) - the 10-B law, direct reuse. Binding: the header (the anti-debit channel, DEC-055) PLUS ser(R) (anti-substitution: the authorization is for THIS ciphertext). Whitepaper item 5 closed (third-party fabrication rejected, golden-proven).
 **Rationale:** DEC-055 executed; the BLS-style construction reuses the proven pairing machinery; the user signs alone, exactly as the members now do.
 **Supersedes:** N/A
 
 #### DEC-205 — Per-member partials + permissionless aggregation
+
 **Decision:** The PartialSig API: each member holds {id, sk_j} ONLY; member_partial computes [S_j]H alone; aggregate_partials computes lambda from the SUBMITTED ids (lagrange_zero over id-x-coordinates) - no committee struct, no co-located shares. Any t-subset of n works (proven over {2,3,5} AND {1,4,5}: identical aggregate == [S]H); < t partials rejected. The harness Committee struct retires to golden generation only; beacon_from_partials is the production beacon sibling (cross-checked == G12M_BEACON, the step-12 golden: cross-module consistency).
 **Rationale:** DEC-192's production clause executed: production = per-member partials + permissionless aggregation.
 **Supersedes:** DEC-192 (Phase-0 harness-API clause)
 
 #### DEC-206 — The cross-epoch replay negative (explicit)
+
 **Decision:** The DEM tag binds (k, header, ct): a replay attempt at epoch E+1 (header epoch modified) fails the tag check - golden-proven as an explicit conformance CHECK. Whitepaper item 4's M2 half closed.
 **Rationale:** The mechanism existed (step 12); the explicit negative makes it release-blocking forever.
 **Supersedes:** N/A
@@ -1513,6 +1554,7 @@ loop after every documentation change.
 **Build status:** STEP 13 CLOSED - GATE GREEN 13/13 (2026-09-09): sigma_user x4 + forgery rejected, partials x2 subsets + beacon cross-check + 2-of-5 rejection, replay negative.
 
 ### STEP 13 ERRATA - CA-R63/64 (2026-09-09)
+
 - **CA-R63** - Namespace misresolution (threshold::serialize -> beacon::serialize); compiler-caught; one line.
 - **CA-R64** - The phantom byte AGAIN: "HSM_SIG_USER_V1" is 15 chars; the memcpy used sizeof-1 correctly but the LAYOUT OFFSETS (16/72/264) were hand-counted from a miscount of 16 - leaving out[15] UNINITIALIZED (a heisenbug: different garbage per frame, which also explained the verify-failure symptom with zero Fr involvement). Doctrine completed: sizeof-1 applies to the copy AND to every derived offset and total.
 
@@ -1523,6 +1565,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ## SECTION XII — Step 14: The Fold Step Family (2026-09-10)
 
 #### DEC-207 — The fold step family {F_head, F_exec, F_close}
+
 **Decision:** The step family over the existing mempool semantics (apply_rules, Step 5): F_head absorbs (prev_digest, decree_root) via poseidon3(HSM_FOLD_v1); F_exec processes each decree entry through the gate sequence (binding: poseidon3(HSM_PT_v1, amount, fee*2^64+nonce) == pt_hash; nonce: leaf_nonce+1; LT gate: bal >= cost) then apply_rules + set_account, updating digest via poseidon3(HSM_FOLD_v1, digest, pt_hash); F_close absorbs the folded count. PAD rows: total neutrality (no state, no digest). SKIP_USER: 25% fee burn, no nonce. Domains: HSM_FOLD_v1 and HSM_PT_v1 from the existing registry (no new entries). The PC matrix (head->exec+->close) enforced at the API level; the SAT-proof lands with the CCS layer (Step 15).
 **Rationale:** The fold wraps the PROVEN Step-5 semantics (apply_rules, 5/5 conformance since Step 5) — the new code is the step typing, the digest chain, the PAD bypass, and the certified-entry gates. The registry domains existed from day one.
 **Supersedes:** N/A
@@ -1534,6 +1577,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ## SECTION XIII — Step 15: The CCS Constraint Layer (2026-09-10)
 
 #### DEC-208 — The Phase-0 CCS constraint layer
+
 **Decision:** A named, machine-checkable constraint system over the fold witness: binding (hash oracle: poseidon3(HSM_PT_v1, e1, e2) == pt_hash), nonce (linear: e.nonce == leaf_nonce+1), LT gate (range: bal >= cost, boundedness-proven by DEC-119), debit/credit (linear arithmetic), PAD selector (conditional bypass), and the PC matrix ({HEAD->EXEC, EXEC->EXEC, EXEC->CLOSE, HEAD->CLOSE} valid; 5 transitions unsat). SKIP_USER: LT gate failure is the skip TRIGGER, not a constraint violation (binding+nonce+skip_burn only). Whitepaper item 7 (SAT-proof: illegal PC edges unsatisfiable) closed. Full CCS matrix representation lands with the NIVC multifold (Step 16); the Poseidon in-circuit decomposition is deferred to the folding implementation.
 **Rationale:** The constraint layer is the bridge between the executable semantics (Step 14, golden-proven) and the folding protocol (Step 16). Phase-0 proves the semantic content: which constraints fire, when they are satisfied, and why the PC matrix has no satisfying witness for illegal transitions.
 **Supersedes:** N/A
@@ -1541,6 +1585,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 **Build status:** STEP 15 CLOSED - GATE GREEN 15/15 (2026-09-10): 24 constraints on the honest epoch (5 EXEC x [binding+nonce+LT+debit+credit] + 1 SKIP x [binding+nonce+skip_burn] + 1 PAD), all satisfied; 4 adversarial traces (binding/nonce/LT/LT-EXEC) each violate exactly the named constraint; PC matrix 4 valid / 5 unsat (SAT-proof machine-checked).
 
 ### STEP 15 ERRATA - CA-R67..R71 (2026-09-10)
+
 - **CA-R67** - Same function-local `p` issue as Step 14 (the derivation auto-extraction fix applied identically).
 - **CA-R68** - Design correction: the SKIP_USER LT gate is the skip TRIGGER, not a constraint violation. The oracle initially marked it as failed; corrected to fire binding+nonce only for SKIP entries.
 - **CA-R69** - `feq_golden` undefined in test (referenced but never defined); replaced with the direct canonical limb comparison.
@@ -1552,6 +1597,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ## SECTION XIV — Step 16: The NIVC Fold Accumulator (2026-09-10)
 
 #### DEC-209 — The NIVC fold accumulator: bounded-size proof carrier
+
 **Decision:** The NIVC accumulator is {digest (32B, 4 Pallas limbs) + count (8B) + pc (1B)} = 41 bytes — CONSTANT regardless of entry count. This is the succinctness mechanism: π_E's representation is O(1) in the number of folded entries. The accumulator delegates to the fold machinery (Step 14, DEC-207) and the constraint layer (Step 15, DEC-208). Cross-epoch chaining: epoch E's final digest = epoch E+1's prev_digest — the chain is continuous. The NIVC selector: the PC state machine {HEAD→EXEC, EXEC→EXEC, EXEC→CLOSE, HEAD→CLOSE} selects which step function fires. Full HyperNova multifold (sum-check, multilinear PCS, relaxed CCS) is the production folding protocol — Phase-0 proves the accumulator's bounded representation, the chain, and the selector.
 **Rationale:** Without the bounded accumulator, the proof grows linearly with entries — defeating the "succinct" claim. The 41-byte accumulator is the mathematical core of the Holographic Boundary: one 73 KB proof for an entire epoch.
 **Supersedes:** N/A
@@ -1559,6 +1605,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 **Build status:** STEP 16 CLOSED - GATE GREEN 16/16 (2026-09-10): accumulator 41 bytes constant (6-entry, 2-entry cross-epoch, and 20-entry epochs all O(1)); cross-epoch chain verified; NIVC selector 4 valid / 5 unsat; digest chain matches Step-14 goldens.
 
 ### STEP 16 ERRATA - CA-R72 (2026-09-10)
+
 - **CA-R72** - The Step-16 oracle required the same p-is-local derivation fix as Steps 14/15, plus a line-splitting bug (the derivation lines were inserted without newlines, concatenating into a single syntax-error line). Fixed by direct line insertion with proper newlines.
 
 ---
@@ -1566,6 +1613,7 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ## SECTION XV — Step 17: The Epoch Pipeline (2026-09-10)
 
 #### DEC-210 — The epoch pipeline: M2 ordering feeds the fold
+
 **Decision:** The φ₀–φ₇ epoch pipeline connects the M2 ordering (Step 12) to the fold (Steps 14–16): (1) φ₂ the M2 ct_hashes and sort_keys are computed from the real HSM_BEACON_V1 beacon; (2) the order_root = SHA256(HSM_ORDROOT_v1 | sorted ct_hashes) — the MEV freeze; (3) the order_root feeds the fold's F_head decree_root input — the M2→fold bridge; (4) the fold processes the certified entries through F_exec (the constraint gates + apply_rules semantics); (5) the NIVC accumulator seals at F_close. The accumulator stays 41 bytes through the FULL pipeline. Cross-epoch chaining: epoch E's final digest = epoch E+1's prev_digest. THE FOLDING ARC IS COMPLETE: semantics (Step 14) → constraints (Step 15) → accumulator (Step 16) → pipeline integration (Step 17).
 **Rationale:** Without the pipeline integration, the M2 ordering and the fold exist as isolated modules. The order_root bridge is the connection point — the MEV freeze feeds the proving layer. The 41B accumulator through the full pipeline validates the succinctness claim end-to-end.
 **Supersedes:** N/A
@@ -1573,27 +1621,32 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 **Build status:** STEP 17 CLOSED - GATE GREEN 17/17 (2026-09-10): M2 ordering (real beacon) -> order_root -> fold head -> 5 entries processed -> NIVC close (41B). Cross-epoch chain verified. THE FOLDING ARC COMPLETE (Steps 14-17): all four layers golden-proven.
 
 ### STEP 17 ERRATA - CA-R73..R75 (2026-09-10)
+
 - **CA-R73** - Same function-local derivation + indentation issues as Steps 14-16 (the pattern is now well-known: exec(strip()) for derivation, direct insertion for params).
 - **CA-R74** - order_root byte-order mismatch: Python used int.from_bytes(oroot, "big") but C++ reads LE limbs; fixed Python to "little" to match C++ fe_from_canonical_limbs.
 - **CA-R75** - Ciphertext pattern mismatch: C++ test used varying bytes (0x42+i+j) while Python oracle used constant bytes (0x42+i repeated); fixed C++ to match.
 ---
 ## SECTION XVI — Step 18: The G1 Transport Skeleton (2026-09-10)
 #### DEC-211 — The G1 transport skeleton: the network's cryptographic layer
+
 **Decision:** (1) The beacon-seeded sampler: seed = P3(P3(P3(P3(weight_root, beacon), C_id), AccountID), round) over the registry domain HSM_PEERSEED_v1; weighted draw = limb0(P3(seed, k)) mod T with a cumulative weight walk — deterministic and weight-proportional (2000-draw histogram golden-pinned: {641,581,401,182,195}, ratio 4.31 vs expected 4.00, in-band; C++==oracle parity). (2) The 4-tier taxonomy (DEC-022): P0 4KB/push, P1 2KB/gossipsub, P2 64KB/announce-pull, P3 128KB/pull-only — the P3 cap is static_assert-equal to params::MAX_PROOF_BYTES, binding the transport firewall at compile time. (3) The contact root (DEC-024): AccountID = Poseidon(IV_IDENT, consensus_pk) — key-bound and transport-ID-rotation-invariant by construction (no transport input exists in the preimage); rebind cooldown 1 epoch. (4) EMA scoring (DEC-079): fixed-point lambda = 971532/10^6 = 2^(-1/24) with the 24h half-life applied SYMMETRICALLY (decay s*lambda; recovery s + (1-lambda)(SC-s)); bounded negative impulse 25000/h; theta_core/theta_gray classification; golden traces both directions (499992 after 24h decay; 874984 after 48h recovery = the true lambda^48 math). Module named g1net.hpp to avoid collision with threshold/g1.hpp (the BLS G1 curve). INV-G3 eclipse containment is enforced by the consensus consumer; this layer is pure cryptography, no OS sockets in Phase 0.
 **Rationale:** The network's semantics ride entirely on the proven Poseidon and the registry's own domains (no new entries). Phase 0 pins what is cryptographically checkable — determinism, proportionality, caps, key-binding, half-life symmetry — and defers the socket adapter to the production transport step.
 **Supersedes:** N/A
 **Build status:** STEP 18 CLOSED - GATE GREEN 18/18 (2026-09-10): sampler deterministic + weight-proportional; taxonomy caps + P3 pull-only + MAX_PROOF_BYTES static_assert; contact pk-bound + cooldown; EMA 24h symmetric.
 ### STEP 18 ERRATA - CA-R76..R77 (2026-09-10)
+
 - **CA-R76** - The EMA recovery rate was 10x the decay rate (28468//100000 vs the intended //1000000); caught by the oracle heartbeat's own printed value (999997 vs the lambda^48-derived ~87499x) BEFORE any C++ existed; one-digit fix; golden re-pinned. The goldens-do-the-proving doctrine caught its own author.
 - **CA-R77** - The g1 emission path was CWD-relative ("build/generated/...") — correct only for manual runs from the repo root, broken under the gate's ninja custom-command working directory (build/build/generated -> FileNotFoundError -> the whole generator died -> gate 127 with the error invisible to case-sensitive greps). Fixed: script-relative ABSOLUTE path derived from __file__ + makedirs(exist_ok=True) — CWD-invariant by construction. NEW DOCTRINE: the dual-context test (run the generator from repo-root AND from build/) is mandatory before any gate for emission-path changes; generated-file paths are derived from __file__, never from CWD assumptions.
 ---
 ## SECTION XVII — Step 19: The Sum-Check Engine (2026-09-11)
 #### DEC-212 — The sum-check engine: the proof engine core
+
 **Decision:** The Phase-0 sum-check engine over dense MLEs in the Pallas field (fe, 4 limbs), degree d in {1,2} (single MLE / product of two), proving Sum_x g(x) = C with g = f (d=1) or f*h (d=2). Round i binds variable i (LSB-first: variable v <=> bit v of the hypercube index — the CA-R78 law): d=1: p0 = Sum A[2j], p1 = Sum A[2j+1]; d=2: p0 = Sum A[2j]B[2j], p1 = Sum A[2j+1]B[2j+1] (CA-R79), p2 = Sum (2A[2j+1]-A[2j])(2B[2j+1]-B[2j]) = g(2) (CA-R80). Fiat-Shamir challenges from a chained Poseidon transcript over the registry domain HSM_SUMCHECK_v1 (registered this step; the DEC-192 documentation precedent): t = P3(p0,p1) [+ P3(t,p2) for d=2]; r_i = P3(t, claim_i). Verifier: p0+p1 == claim_i; claim_{i+1} = Lagrange@{0,1,2} with INV2 = (p+1)/2 golden-pinned (DEC-102, never hand-transcribed); final fa (d=1) / fa*fb (d=2) == claim_nv. The engine's own machine check: dual-path direct MLE evaluation at (r_0..r_{nv-1}) must equal the final claim. This engine is the substrate for the Step-20 opening protocol (the verifier-fixed point replaces FS challenge derivation), the Step-21 NIFS fold (r <- Hash(transcript)), and the GKR PoUW per whitepaper section 6.1.
 **Rationale:** The sum-check is the single most-reused component in the architecture — three consumers (PCS opening, NIFS folding, PoUW) share this one golden-proven engine. The dual-path check (folding bookkeeping vs direct multilinear evaluation) is the structural guarantee that the prover's round arithmetic is the true MLE algebra.
 **Supersedes:** N/A
 **Build status:** STEP 19 CLOSED - GATE GREEN 19/19 (2026-09-11): transcripts bit-exact C++<->oracle for 3 instances; verifier accepts/rejects at the pinned rounds (claim-tamper @0, eval-tamper @1, final-tamper @final); dual-path MLE eval parity. The C++ instances of CA-R78/80 (shipped in BLOCK C before the oracle's corrections propagated) were caught by the gate goldens and fixed — the goldens-do-the-proving law at gate time.
 ### STEP 19 ERRATA - CA-R78..R80 (2026-09-11)
+
 - **CA-R78** - Bit-order contradiction: the fold pairs a[2j]/a[2j+1] (variable v <=> bit v, LSB-first) but direct_eval read MSB-first — in BOTH languages (authored twice). Caught by the dual-path assert in the oracle (crash #1: 'dual-path mismatch' at S1 — derived before the traceback confirmed), and by the gate goldens in C++.
 - **CA-R79** - d=2 round sums p0/p1 computed as Sum A[2j] / Sum A[2j+1] (A alone) instead of the products Sum A[2j]B[2j] / Sum A[2j+1]B[2j+1] (Python only; the C++ BLOCK C text was already correct here) — the oracle's own _verify died at round 0 (crash #2: AssertionError: 0 at S2). Pre-empted a CA-R61-class C++<->oracle golden divergence.
 - **CA-R80** - p2 = A_j(-1) instead of A_j(2): the line through (0, a[2j]), (1, a[2j+1]) evaluates at 2 to 2a[2j+1] - a[2j], not 2a[2j] - a[2j+1] — in BOTH languages. Caught by the pre-gate audit; crash #3 predicted before it could happen; the Lagrange nodes {0,1,2} and INV2 needed no change.
@@ -1601,11 +1654,13 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ---
 ## SECTION XVIII — Step 20: The Phase-0 Multilinear PCS (2026-09-11)
 #### DEC-213 — The commitment layer: commit, derive, open, verify
+
 **Decision:** The Phase-0 multilinear PCS over the Step-19 engine: Commit C = Sponge(HSM_SUMCHECK_v1, evals).squeeze() — the C++ Sponge and the Python sponge_ref proven line-identical (Q3 read); point derivation r_i = P3(HSM_SUMCHECK_v1, C, i) — verifier-derivable from C alone; Open = the Step-19 fold machinery at the FIXED r (LSB-first folds, d=2 products, p2 = g(2) — the CA-R78/79/80 laws inherited); Verify = Step-19 round checks + Lagrange@{0,1,2} (INV2 golden-pinned). The engine's own check: v == direct_eval(MLE, r). HONEST BOUNDARY: the Phase-0 commitment is binding (collision resistance) but NOT homomorphic and NOT hiding — the production dual-layer (homomorphic Pedersen for HyperNova's commitment folds + WHIR-class wrap lambda=128, DEC-063/071) is deferred; the transcript machinery and check structure are production-faithful. Step 21 folds WITNESSES directly with commitments for pinning.
 **Rationale:** The sum-check (Step 19) IS the opening-proof engine of a multilinear PCS; Step 20 adds only the commitment, the verifier-fixed point, and the anchor — maximal reuse of golden-proven machinery.
 **Supersedes:** N/A
 **Build status:** STEP 20 CLOSED - GATE GREEN 20/20 (2026-09-11): commits/determinism/binding, point derivation x11, 3 openings bit-exact C++<->oracle, negatives at the pinned rounds.
 ### STEP 20 ERRATA - CA-R81..R84 (2026-09-11)
+
 - **CA-R81** - The eval-tamper negative also tampered a claim as if it were a tuple ('int' object is not subscriptable); the eval tamper alone does the rejecting (p0+p1 != claims[1]).
 - **CA-R82** - The C++ verify compared claims[0] (the SUM) against C (the COMMITMENT) — never equal, every ACCEPT would have died at round 0. Caught by the pre-gate audit; C is used only for point derivation, exactly as the oracle's verifier does.
 - **CA-R83** - Sentinel collision: verify returned nv on ACCEPT and on final-mismatch. PCS_REJECT_FINAL (0xFFFFFFFF) introduced; ACCEPT == nv, unambiguous.
@@ -1614,30 +1669,36 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ---
 ## SECTION XIX — Step 21: The NIFS Fold (2026-09-11)
 #### DEC-214 — The NIFS fold: satisfaction is preserved
+
 **Decision:** The Phase-0 NIFS fold over diagonal constraint vectors (per-element linear maps - linearity is all the fold identity needs): relaxed instance (z, u, E) satisfies Az[i]*Bz[i] == u*Cz[i] + E[i] elementwise (strict: u=1, E=0; witnesses z_i in {0, C_i/(A_i*B_i)} constructed via Fermat inverse). Fold: transcript r = P3(FOLD, P3(FOLD, P3(FOLD, C_zA, C_zB), C_T), C_EA) with C_* = the Step-20 sponge over HSM_SUMCHECK_v1 - zero new registry domains; z = zA + r*zB; u = uA + r*uB; E = EA + r*T + r^2*EB = EA + r*T for strict B, with cross-term T = AzA*BzB + AzB*BzA - uA*CzB - uB*CzA. The identity is POLYNOMIAL IN r, so the folded instance satisfies EXACTLY for any r - validity is r-independent; transcript binding is enforced by the pinned golden r, and the SOUNDNESS negative is tampered T (the claimed E then fails sat at the named element). Chained depth-2 fold (relaxed + strict) verified. Phase-0 honest boundary: witnesses folded directly (the homomorphic commitment fold is DEC-071's production layer); the verifier checks E elementwise (production hides it behind the commitment); production NIFS soundness (eps <= 2^-128, DEC-030) is the production layer's bound.
 **Rationale:** This is the compression that makes the 41-byte carrier an actual proof: two verified computations become one, exactly, with the transcript challenge bound to the folded data by the Poseidon chain. Every mechanism beneath the proof is now golden-proven: semantics (14), constraints (15), carrier (16), pipeline (17), wires (18), engine (19), commitments (20), compression (21).
 **Supersedes:** N/A
 **Build status:** STEP 21 CLOSED - GATE GREEN 21/21 (2026-09-11): 3 strict instances, fold1 + depth-2 fold2 bit-exact C++<->oracle, tampered-T rejected @elem 3, r pinned, constructor self-check all 8 elements (inv_fe(2) == the golden INV2 before release).
 ### STEP 21 ERRATA - CA-R85..R88 (2026-09-11)
+
 - **CA-R85** - 'Dead code' that is called is not dead - it is broken: strict_elem called the fe_pow64 placeholder defined below it (use-before-declaration, caught by the compiler), which I had annotated as cosmetic instead of stripping. DOCTRINE: placeholders are stripped or wired, never annotated. The delivered test's tautological spot-check also carried a precedence bug (! binds before ==); replaced with a real 8-element check.
 - **CA-R86** - inv_fe hardcoded p-2 limbs for a GENERIC 254-bit prime - wrong for Pallas. Caught by the one-look bilingual probe: inv_fe(2) != the golden G19S_INV2 (which had been pinned since Step 19 and served as the free anchor). DOCTRINE: even a derived-once constant must be derived at RUNTIME from the field's own machine-generated MOD (pallas_gen::MOD - 2); hand-written limbs are hand-counted limbs wearing a disguise.
 - **CA-R87** - The fix itself reached for mont::bn_cpy (mont384.hpp - not included): 'mont' undeclared. Replaced with a plain MOD limb loop needing no include. Same family as CA-R84: resolve locally before reaching far.
 - **CA-R88 (cosmetic, queued)** - 2 pre-existing -Wformat warnings in test_step17.cpp (unsigned int vs uint64_t); non-blocking; queued for the Step-23 final integration audit.
 
 ### DOCS SYNC - CA-R89/90 (2026-09-11)
+
 - **CA-R89** - Docs debt compounds silently: the per-step mini-syncs updated only counters + tree (Steps 13-21), leaving the whitepaper's deep sections frozen at v1.0.3 (Step 12) - a MIXED-ERA document (abstract 21/21, conclusion 17, embedded gate log 6/6). The stale artifact was the whitepaper's embedded log, not gate.sh itself (current at every step, GATE GREEN receipts). DOCTRINE: at every milestone run the FULL-document sync (title/date/verbatim gate log/section 10.4/limitations/conclusion/ledger range), never counters alone.
 - **CA-R90** - re.subn replacement TEMPLATES parse LaTeX: a raw '\sigma' is a hard 'bad escape' error and '\texttt' would silently become TAB+exttt; and a callable passed into a wrapper that wraps again yields 'expected str instance, function found'. DOCTRINE: LaTeX-insertion regexes use CALLABLE replacements passed straight to re (no template parsing, no double wrapping), raw-string bodies, and write-at-end atomicity (all three crashed attempts persisted nothing - the document was never half-patched). Whitepaper now Impl Sync v1.0.4: fresh verbatim gate-log capture (21/21, 27 headers), Steps 13-21 sync note, section 10.4/limitations/conclusion coherent, ledger DEC-001..214, tree complete, tag table + in-spec notes.
 
 ### GATE HARDENING - CA-R92 (2026-09-11)
+
 - **CA-R92** - The CA-R91 fix script broke the file it was fixing: a correctly-escaped closing quote ('\"' in the Python literal) was misdiagnosed as a 'stray trailing quote artifact' and stripped via NEW[:-1] - leaving the count echo unterminated (bash: unexpected EOF at line 48). And when bash -n fired and NAMED the error, the flow continued to the gate run anyway. TWO doctrines: (1) verify a phantom before hacking it - an escaped quote in context may be load-bearing; print the string tail, never blind-strip. (2) Parse failures are HARD STOPS in every language - the CA-R42 syntax-only pre-gate law extended to shell: bash -n gates the gate, chained so the suite cannot run on an unparseable script.
 ---
 ## SECTION XXI — Step 22: The Light-Client Epoch-Header Certificate (2026-09-11)
 #### DEC-215 — The light client: one pairing per epoch header
+
 **Decision:** The light-client header {height, epoch, state_root, digest_E, beacon_digest} is certified by the G7 committee's threshold signature over h2g1(HSM_CERT_v1 || fields) - a 123-byte preimage with every offset length-derived (CA-R64 law). Light-client verify = chain continuity recomputed (digest_E == poseidon3(HSM_FOLD_v1, prev_digest, decree_root) - the Step-14 F_head semantics, live) + ONE pairing: bls_verify_aff(sig, H, Y) (the Step-10-B law, verbatim; Phase-0 sigma is the 96-B uncompressed form, the 48-B compressed wire form is production transport). Genesis-sync policy (whitepaper item 10): height 0 without a checkpoint cert is rejected. The preimage length parity (123 B) is golden-pinned. Honest scoping (V1-V5 read): full CycleFold requires the Vesta field twin + Vesta-domain Poseidon + Vesta curve ops - its own step in the production arc; the Vesta foundation was sized this step (vesta_gen MOD/INV/RR/R_ONE machine-generated; field_golden coverage gap logged: 0/2472 cases are Vesta). DEC-053 model correction: its authority is contact_root-in-header; the light-client spec authority is whitepaper section 7 (Proof-Carrying Data Boundary).
 **Rationale:** The light client verifies the entire epoch from one header: one pairing + one Poseidon + one SHA-level beacon compare. The same committee testifies across its FIFTH consumer - DKG, signing, pairing, consensus, the M2 core, the fold, and now the epoch certificate - the cross-pillar golden linkage at its fullest.
 **Supersedes:** N/A
 **Build status:** STEP 22 CLOSED - GATE GREEN 22/22 (2026-09-11): 2 headers verified (heights 100/101, chained digests, real-beacon chain), 4 negatives at the named seams, genesis-sync policy enforced, preimage length parity pinned.
 ### STEP 22 ERRATA - CA-R89..R92 (2026-09-11)
+
 - **CA-R89** - Docs debt compounds silently: per-step mini-syncs updated only counters+tree, leaving the whitepaper's deep sections frozen at v1.0.3 - a MIXED-ERA document (abstract 21/21, conclusion 17, verbatim gate log 6/6, section 10.4 13/13). The stale embedded gate log was mistaken for a stale gate.sh (the script was current at every step). DOCTRINE: at every milestone run the FULL-document sync (title/date/verbatim gate log/10.4/limitations/conclusion/ledger range), never counters alone. (Resolved: whitepaper v1.0.4.)
 - **CA-R90** - Emission formatter disease, three layers deep: (1) 6-limb rows passed to the scalar formatter; (2) the helper fix landed in the wrong duplicate scope (name-twins), producing NameError at the emission site; (3) two more list-typed sites missed by the first patch. DOCTRINE: classify every emitted array's row type BEFORE the first run; helpers go module-level; assert definition-singularity after every patch.
 - **CA-R91** - Unqualified cross-namespace symbols (g1/g2/hash_to_g1/bls_verify_aff inside namespace lc): the compiler's did-you-mean lines WERE the fix. Same family as CA-R70/84/87.
@@ -1646,15 +1707,18 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ---
 ## SECTION XXII — Step 23: The End-to-End Epoch + The Final Audit (2026-09-11)
 #### DEC-216 — The phi0-phi7 end-to-end epoch: one binary, every pillar
+
 **Decision:** One conformance binary drives one full epoch through every module — the real HSM_BEACON_V1 chain (Step 11), three envelopes encrypted under the G2-plane KEM with the shared-secret KDF (CA-R61's law machine-checked at the k2==k seam), sigma_user authorizations (DEC-204), the ordering lock under the real beacon (DEC-203), order-bound decryption shares verified by the pairing identity + BLS attestations (DEC-202), the Lagrange aggregate, payload recovery, decree entries folded over the shuffled order with the SKIP 25%-burn path live (DEC-207), the 41-byte accumulator (DEC-209), f_close, and the light-client epoch-header certificate (DEC-215) — one pairing per header. Seam negatives: tampered-R (KDF divergence), tampered-oroot (chain break), tampered-height (certificate binding), genesis-sync (item 10).
 **Rationale:** The composition is the product: every pillar is golden-proven in isolation (Steps 7-22); the end-to-end binary proves they compose without semantic drift across the language boundary. Phase 0's definition of done.
 **Supersedes:** N/A
 **Build status:** STEP 23 CLOSED - GATE GREEN 23/23 (2026-09-11): 23/23 tests, 29 generated headers, measured generator budget 6m13s.
 #### DEC-217 — The Phase-0 final integration audit
+
 **Decision:** The honest register at Phase-0 close: (a) CA-R88 CLOSED - both -Wformat sites in test_step17 fixed; (b) CA-R89 doctrine OPERATING - the whitepaper synced to Impl Sync v1.0.4, full-document coherence; (c) OPEN for the production arc: the Vesta field twin (fev.hpp), Vesta-domain Poseidon, Vesta curve ops, and Vesta field-golden coverage (currently 0/2472 cases are Vesta - a logged gap); the homomorphic Pedersen + WHIR dual-layer PCS (DEC-063/071) and the HyperNova commitment-folding multifold; the 48-B compressed sigma wire form; the production socket adapter for G1 transport. (d) Phase-0 boundary statement: every cryptographic mechanism beneath pi_E is golden-proven end-to-end - semantics, constraints, the accumulator, the pipeline, the transport layer's cryptography, the sum-check engine, the commitment layer, the NIFS fold, and the light-client certificate; what remains is the production proof system that fills the 73 KB carrier and the network code that carries it.
 **Rationale:** The audit is the deliverable: a Phase-0 that states exactly what is proven and what is not, with every gap named and owned.
 **Supersedes:** N/A
 ### STEP 23 ERRATA - CA-R93..R97 (2026-09-11)
+
 - **CA-R93** - The aggregate identity paired the G2 key where bilinearity demands the G1 aggregate public (e(G1gen,[S]R) == e([S]G1gen,R)); caught by the Miller-loop TypeError on tuple slots.
 - **CA-R94** - The generator budget was sized in the Step-7 era (300 s) and never re-measured as pairings accumulated; the Step-23 oracle's ~52 pairings pushed it to 6m13s - exit 124 was the clock, not a hang. DOCTRINE: re-measure budgets as the pipeline grows.
 - **CA-R95** - _s7_row returns a STRING, not limbs; _s6 concatenated a list onto it. Fixed: limbs built directly (4 LE + 2 pads).
@@ -1665,10 +1729,13 @@ THE M2 REGISTER IS CLEAN: items 4 (explicit) and 5 closed; only the folding circ
 ---
 ## SECTION XXIII — The Phase-1 Gap Register + External Audit Adoption (2026-09-11)
 #### CA-R99 — git-add discipline (repeat offense, owned)
+
 **Erratum:** Step 23's git add listed lightclient.hpp (created Step 22, untouched in 23) - the same sloppy listing caught at Step 15 (fold.hpp) with a then-made promise. DOCTRINE: git add names only what the step created or modified, checked against the step's real diff.
 #### The External Audit (Steps 7-18 transcript) - adopted
+
 An independent reader audited the transcript: verdict - "real, unusually well-disciplined, novel in composition"; the methodology (k2==k catching the broken KEM, the aggregate identity catching the skipped lambda, byte-probes killing both phantom bytes) is the real artifact; AND the honest gaps are real. This is the first external mitigation of the self-audit correlation risk. Its central verdict STANDS post-Steps 18-23: proof generation does not exist yet - and every gap is now tracked below. Law adopted from it: TRUST THE GOLDENS, NOT THE STORY (DEC-109/CA-R37 elevated to project law).
 ### THE REGISTER - every gap carries an ID, a source, and a closure criterion
+
 - **GAP-01 (HIGH, interop)** - External canonicity cross-check: BLS12-377 constants (r, q, generators, b=1, h1, h2, the beta=5 tower, b'=(5,1)) vs a reference implementation (arkworks/libff). Internal soundness is proven; this is wire-format interoperability. Closure: one-shot reference-vector parity script.
 - **GAP-02 (HIGH, engineering)** - gen_constants.py refactor: per-step modules, explicit parameter passing, a unified formatter library (the _r4/_r44/_r66/_s6/_b2l family). Evidence: CA-R67/R72/R73 (function-local p x3), CA-R95 (string-vs-limbs), CA-R96 (per-index-vs-joined), CA-R72 (line-splitting) - one structural disease, four recurrences. Closure: post-refactor run with byte-identical goldens (the refactor's own proof).
 - **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit.
@@ -1685,15 +1752,18 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 **Closure law: a gap leaves this register only through a golden-proven receipt in its own step - never through a narrative claim.**
 
 #### CA-R100 — Pre-read scope announcements are defects (the Step-22 lesson, owned)
+
 **Erratum:** Step 22 was announced as "CycleFold + light-client" BEFORE the BLOCK-0 read; the greps then proved zero Vesta arithmetic exists (no field twin, no Vesta Poseidon, no curve ops - constants are not arithmetic), forcing a mid-step rescope to the light-client certificate. The rescope itself was correct (nothing half-proven shipped; V0b sized the deferred work; the gap entered DEC-217) - but the premature announcement made an evidence-driven decision look like a walk-back to the operator.
 **DOCTRINE:** Step identity is announced only after BLOCK 0. When the read hasn't run, the announcement is "the read decides between X and Y." Deferrals are announced as decisions with their evidence, never buried in a decision table. Evidence drives code AND plans alike - DEC-109 applies to scoping, not just to constants.
 ---
 ## SECTION XXIV — Phase 1 Opens: P1-01, The Generator Refactor (2026-09-12)
 #### DEC-218 — GAP-02a/b: the shared library + the byte-preserving split
+
 **Decision:** (a) GAP-02a: scripts/gen_common.py - the Phase-1 library (constants parsed FROM the generated headers per DEC-102 - pallas + vesta moduli verified against the gate's own emitted constants; the unified tolerant formatter family killing CA-R95/96 at the root; the CA-R77-safe emit_hpp). ALL Phase-1 code is born here. (b) GAP-02b: the legacy gen_constants.py (3593 lines, 15 aliased hashlib imports, 8+ derivation duplicates, _r4 redefined in 4 scopes) is FROZEN - appends banned, closing the CA-R56/72/95/96/98 vector. The mechanical splitter extracted 17 step chunks (gap-aware prelude+def+call after CA-R101's boundary assert caught 97+ lines of would-be-lost inter-chunk prelude; 177403/177403 bytes machine-asserted) + core + glue, with the __main__ guard reunited across the core/tail boundary (CA-R104: byte-preservation proves losslessness, not statement integrity). The new path: gen_run_new.py - a SHARED-NAMESPACE executor (the legacy steps cross-reference helpers; per-module imports would sever them), replicating __name__/sys.argv/__file__ exactly.
 **Rationale:** Structure changes; semantics reproduce bit-for-bit. PROOF: legacy path byte-identical (5m35s, exit=0); new path byte-identical (gated on exit=0 per CA-R103 - the un-gated first verdict was FALSE).
 **Supersedes:** N/A
 ### P1-01 ERRATA - CA-R101..R105 (2026-09-12)
+
 - **CA-R101** - The first boundary model would have silently dropped 97+ lines of inter-chunk prelude; the byte-count assert refused. Data-loss detection works.
 - **CA-R102** - Every execution block ends with its log tail; every heredoc ends with proof-of-life. Two gaps cost a round.
 - **CA-R103** - A verification message must be gated on the claim it asserts: the first 'NEW PATH: BYTE-IDENTICAL' echo fired on the LEGACY run's output while the new path had exited 1 without writing.
@@ -1703,15 +1773,18 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 ---
 ## SECTION XXV — P1-02: The External Interop Cross-Check (2026-09-12)
 #### DEC-219 — GAP-01: the canonical-bridge verification (G1 closed)
+
 **Decision:** The GAP-01 check reduces to the single published anchor x = 0x8508c00000000001 (pinned Step 7, DEC-181): r = x^4-x^2+1, q = h1*r + x, h1 = (x-1)^2/3, #E = h1*r. ALL VERIFIED TRUE in pure arithmetic against the emitted bls_q_params_gen.hpp (Q_MOD, found by the [D1] dump after the probe's candidate-name miss): q = 377 bits == h1*r+x EXACT; header r/h1/#E == derived forms; our G1 generator satisfies the CANONICAL y^2 = x^3 + 1 (b=1) curve equation mod q; [r]P == inf AND [#E]P == inf on the canonical curve (pure-python affine EC, zero deps). G1 IS WIRE-BRIDGEABLE to canonical BLS12-377: same seed, same r, same q, same curve, same subgroup, same order.
 **Rationale:** Internal soundness (Steps 7-8) + canonical-form verification = wire compatibility for G1. Remaining: G2's twist serialization (ours b'=(5,1)) vs the standard's - GAP-01b, one session on our own F_q2 tower.
 **Supersedes:** N/A
 ### P1-02 ERRATA - CA-R106 (2026-09-12)
+
 - **CA-R106** - The audit probe missed the actual constant name (Q_MOD) and mis-scoped its own pmul (defined after use / wrong indent) - producing three false failures and a crash across two rounds. CA-R37 applies to AUDIT TOOLS: dump the source, prove the parse, compile-check the instrument - before trusting any verdict. The header's own provenance comment (line 2) stated the identity being tested.
 **Build status:** P1-02 G1-half CLOSED - six-line verdict all True (after the probe fixes); GAP-01b (G2 twist serialization) opens.
 ---
 ## SECTION XXVI — P1-02b: GAP-01b CONFIRMED — The G2 Twist Divergence (2026-09-12)
 #### DEC-220 — The G2 wire-format finding: isomorphic, not identical
+
 **Finding (evidence: build/ref_curves_g2.rs, ref_fields_fq2.rs, ref_curves_g1.rs - ark-bls12-377 0.6.0, committed):** The canonical BLS12-377 per arkworks: G1 COEFF_B = 1 (== ours); F_q2 tower u^2 = -5 (ours: +5); G2 twist b2 = (0, B) with B = 155198655607781456406391640216936120121836107652948796323930557600032281009004493664981332883744016074664192874906 (canonical decimal, 114 digits). Ours: b' = (5,1) over u^2 = +5. VERDICT: the twists are ISOMORPHIC (both sextic twists of the same j=0 base curve, both carrying full r-torsion - ours golden-proven) but NOT wire-identical. G1: fully bridgeable (DEC-219). G2: requires the encoding map psi at the transport boundary.
 **Decision:** (1) Internal soundness UNAFFECTED - every golden stands. (2) GAP-01b's deliverable is now precisely specified: the bridge derivation - s = sqrt(-1) mod q (exists: 2adic(q-1)=46 => q=1 mod 4), the field map phi: u' = s*u_spec, the 6th-power check rho^(q^2-1)/6 == 1 with rho = phi(b')/b2, then psi(x,y) = (w^2 x, w^3 y), w^6 = rho - golden-pinned as the wire conversion. (3) The design question it settles honestly: adopt psi-at-the-boundary (Phase-0 modules untouched, wire format standard) vs re-derive G2 natively on the spec tower (byte-identical, larger surgery). Ruling next session after rho's 6th-power check: if rho is a 6th power IN F_q2, the boundary-map is small and chosen; if the map needs an extension field, the native re-derivation cost/benefit is reweighed.
 **Rationale:** The external audit's section 3.4 predicted exactly this; running GAP-01 early in Phase 1 found it at design cost, not mainnet cost.
@@ -1720,12 +1793,20 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 ---
 ## SECTION XXVII — P1-02c: The Bridge Derivation — GAP-01b CLOSED (2026-09-12)
 #### DEC-221 — The G2 wire map psi: constructive, golden-pinned, cross-checked
+
 **Decision:** The G2 serialization bridge is DERIVED AND VERIFIED: (1) s = sqrt(-1) mod q (Tonelli, z=5 was the first QNR found); (2) the field map Phi(a,b) = (a, b*s) maps our tower u^2=+5 to the spec tower v^2=-5; (3) rho = b2_spec/Phi(b') is a 6th power in F_q(v) (PROVEN by spow check [B]); (4) w = rho^(1/6) exists constructively (F_q2 sqrt via F_q-native norm identity + one-shot cbrt with t3=1); (5) psi(x,y) = (Phi(x)*w^2, Phi(y)*w^3) maps our G2 gen onto the SPEC curve with [r]psi=inf. CROSS-CHECK: ark's own G2_GENERATOR_X/Y constants validate on the spec curve with [r]=inf in our derived tower — both directions of the language boundary confirmed. The map is emitted as bridge_golden.hpp (s, w.c0, w.c1, b2.c0, b2.c1) via gen_common.emit_hpp — the wire conversion is now a FUNCTION with receipts, not a hope.
 **Rationale:** The external audit flagged interop as a risk; this arc found the divergence (DEC-220), derived the map, verified it in both directions, and pinned it — in one session. The G2 twist was our tower's honest product; the bridge makes it speak the standard's language without touching any internal module.
 **Supersedes:** N/A
 ### P1-02c ERRATA - CA-R107..R111 (2026-09-12)
+
 - **CA-R107** - Re-implemented F_q2 EC arithmetic in a probe when the golden tower already has it — the probe disagreed with the golden and was wrong (the global-coordinate bug). Law: golden-proven arithmetic is REUSED, not re-derived.
 - **CA-R108** - The f2_sqrt template used the u^2=-1 norm identity without re-deriving for u^2=+5; wrong norm family hung the ladder. Law: derivation templates are STARTING POINTS, re-derive the signs.
 - **CA-R109/R110** - Shanks ladder hung on non-QR inputs (no Legendre gate) AND used the recomputed-from-z c variant (wrong when odd part > 1). The faulthandler + ladder cap + the DIAG values exposed it. Law: the standard Tonelli-Shanks EVOLVES c = b^2; and gates precede ladders.
 - **CA-R111** - The generated script referenced r_val without declaring it. Law: generated scripts declare their own dependencies.
 **Build status:** P1-02c CLOSED - psi verified all 8 verdicts True (C1, C2, C2b, D1, D2, E1, E2, B); bridge_golden.hpp emitted; GAP-01b CLOSED - GAP-01 fully closed (G1 + G2).
+
+### REGISTER STATUS (2026-09-13, at P1-02c close)
+- **GAP-01: CLOSED** — G1 bridge (DEC-219), G2 divergence finding (DEC-220), the psi wire map derived + golden-pinned + cross-checked against ark-bls12-377 0.6.0's own generator (DEC-221). G1 and G2 wire-bridgeable.
+- **GAP-02: CLOSED** — gen_common.py library + byte-preserving split; both paths byte-identical; suite 23/23 (DEC-218).
+- **GAP-02b (legacy migration, sub-item of GAP-02): CLOSED** — the split applied (177403/177403 byte-preserving, machine-asserted); the orchestrator path ran the FULL pipeline byte-identical end-to-end (5m53s, exit=0, gated diff empty vs the Phase-0 snapshot). Residual: the gate's gen entry still invokes the frozen legacy shim (byte-identical by definition); the one-line entry-point flip to gen_run_new.py rides P1-03's first commit — operational, not a gap. (The earlier yellow label was stale: the proof had landed, the label did not follow.)
+- GAP-03..13: OPEN, per the register above. Closure law unchanged: a gap leaves only through a golden-proven receipt.
