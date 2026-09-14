@@ -1717,3 +1717,15 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 **Rationale:** The external audit's section 3.4 predicted exactly this; running GAP-01 early in Phase 1 found it at design cost, not mainnet cost.
 **Supersedes:** N/A
 **Build status:** P1-02b CLOSED (the finding) - GAP-01b's derivation session opens next; ref files committed as evidence.
+---
+## SECTION XXVII — P1-02c: The Bridge Derivation — GAP-01b CLOSED (2026-09-12)
+#### DEC-221 — The G2 wire map psi: constructive, golden-pinned, cross-checked
+**Decision:** The G2 serialization bridge is DERIVED AND VERIFIED: (1) s = sqrt(-1) mod q (Tonelli, z=5 was the first QNR found); (2) the field map Phi(a,b) = (a, b*s) maps our tower u^2=+5 to the spec tower v^2=-5; (3) rho = b2_spec/Phi(b') is a 6th power in F_q(v) (PROVEN by spow check [B]); (4) w = rho^(1/6) exists constructively (F_q2 sqrt via F_q-native norm identity + one-shot cbrt with t3=1); (5) psi(x,y) = (Phi(x)*w^2, Phi(y)*w^3) maps our G2 gen onto the SPEC curve with [r]psi=inf. CROSS-CHECK: ark's own G2_GENERATOR_X/Y constants validate on the spec curve with [r]=inf in our derived tower — both directions of the language boundary confirmed. The map is emitted as bridge_golden.hpp (s, w.c0, w.c1, b2.c0, b2.c1) via gen_common.emit_hpp — the wire conversion is now a FUNCTION with receipts, not a hope.
+**Rationale:** The external audit flagged interop as a risk; this arc found the divergence (DEC-220), derived the map, verified it in both directions, and pinned it — in one session. The G2 twist was our tower's honest product; the bridge makes it speak the standard's language without touching any internal module.
+**Supersedes:** N/A
+### P1-02c ERRATA - CA-R107..R111 (2026-09-12)
+- **CA-R107** - Re-implemented F_q2 EC arithmetic in a probe when the golden tower already has it — the probe disagreed with the golden and was wrong (the global-coordinate bug). Law: golden-proven arithmetic is REUSED, not re-derived.
+- **CA-R108** - The f2_sqrt template used the u^2=-1 norm identity without re-deriving for u^2=+5; wrong norm family hung the ladder. Law: derivation templates are STARTING POINTS, re-derive the signs.
+- **CA-R109/R110** - Shanks ladder hung on non-QR inputs (no Legendre gate) AND used the recomputed-from-z c variant (wrong when odd part > 1). The faulthandler + ladder cap + the DIAG values exposed it. Law: the standard Tonelli-Shanks EVOLVES c = b^2; and gates precede ladders.
+- **CA-R111** - The generated script referenced r_val without declaring it. Law: generated scripts declare their own dependencies.
+**Build status:** P1-02c CLOSED - psi verified all 8 verdicts True (C1, C2, C2b, D1, D2, E1, E2, B); bridge_golden.hpp emitted; GAP-01b CLOSED - GAP-01 fully closed (G1 + G2).
