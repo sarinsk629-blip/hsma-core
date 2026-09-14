@@ -21,19 +21,18 @@ echo "── [2/4] build (CLEAN-FIRST — no ghosts survive) ──"
 cmake --build build --clean-first 2>&1 | tee /dev/stderr \
   | grep -q "ninja: build stopped" && { echo "✗ BUILD FAILED"; exit 1; } || true
 
-for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp \
-         rnte_golden.hpp poseidon_params_gen.hpp domain_registry_gen.hpp \
-         poseidon_golden.hpp smt_golden.hpp consensus_golden.hpp \
-         bls_params_gen.hpp threshold_golden.hpp bls_q_params_gen.hpp \
-         bls_curve_golden.hpp threshold_sig_golden.hpp bls_g2_params_gen.hpp \
-         g2_curve_golden.hpp pairing_golden.hpp m2_golden.hpp m2prod_golden.hpp \
-         fold_golden.hpp ccs_golden.hpp nivc_golden.hpp epoch_golden.hpp \
-         g1_golden.hpp sumcheck_golden.hpp pcs_golden.hpp nifs_golden.hpp; do
+for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp rnte_golden.hpp \
+         poseidon_params_gen.hpp domain_registry_gen.hpp poseidon_golden.hpp smt_golden.hpp \
+         consensus_golden.hpp bls_params_gen.hpp threshold_golden.hpp bls_q_params_gen.hpp \
+         bls_curve_golden.hpp threshold_sig_golden.hpp bls_g2_params_gen.hpp g2_curve_golden.hpp \
+         m2_golden.hpp m2prod_golden.hpp fold_golden.hpp ccs_golden.hpp nivc_golden.hpp \
+         epoch_golden.hpp g1_golden.hpp sumcheck_golden.hpp pcs_golden.hpp nifs_golden.hpp \
+         cert_golden.hpp bridge_golden.hpp vesta_field_golden.hpp; do
   test -f "build/generated/$h" || { echo "✗ MISSING GENERATED: $h"; exit 1; }
 done
 nhdr=$(ls build/generated/*.hpp 2>/dev/null | wc -l)
-test "$nhdr" -eq 29 || { echo "✗ HEADER COUNT: $nhdr != 29 (missing OR unregistered emission)"; exit 1; }
-echo "   all 29 generated headers present (each named + counted)"
+test "$nhdr" -eq 31 || { echo "✗ HEADER COUNT: $nhdr != 31 (missing OR unregistered emission)"; exit 1; }
+echo "   all 31 generated headers present (each named + counted)"
 
 echo "── [3/4] diagnostics ────────────────────────────"
 ./build/diag_step5 | tee "$dg5"

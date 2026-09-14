@@ -52,9 +52,9 @@ set(GEN_OUTPUTS ${GEN_OUTPUTS}
 
 add_custom_command(
     OUTPUT  ${GEN_OUTPUTS}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_constants.py
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_run_new.py
             --out ${GEN_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_constants.py
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_run_new.py
     COMMENT "[gen] deriving Montgomery constants + golden vectors (DEC-102)"
     VERBATIM)
 add_custom_target(hsma_generated DEPENDS ${GEN_OUTPUTS})
@@ -204,3 +204,8 @@ add_test(NAME step22_conformance COMMAND test_step22)
 add_executable(test_step23 conformance/test_step23.cpp)
 target_include_directories(test_step23 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step23_conformance COMMAND test_step23)
+
+# == Step 24: Vesta field twin (DEC-222) ==
+add_executable(test_step24 conformance/test_step24.cpp)
+target_include_directories(test_step24 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step24_conformance COMMAND test_step24)
