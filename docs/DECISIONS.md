@@ -1792,12 +1792,39 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 ## SECTION XXVI — P1-02b: GAP-01b CONFIRMED — The G2 Twist Divergence (2026-09-12)
 #### DEC-220 — The G2 wire-format finding: isomorphic, not identical
 
-**Finding (evidence: build/ref\_curves\_g2.rs, ref\_fields\_fq2.rs, ref\_curves\_g1.rs - ark-bls12-377 0.6.0, committed):** The canonical BLS12-377 per arkworks: G1 COEFF\_B = 1 (== ours); F\_q2 tower u^2 = -5 (ours: +5); G2 twist b2 = (0, B) with B = 155198655607781456406391640216936120121836107652948796323930557600032281009004493664981332883744016074664192874906 (canonical decimal, 114 digits). Ours: b' = (5,1) over u^2 = +5. VERDICT: the twists are ISOMORPHIC (both sextic twists of the same j=0 base curve, both carrying full r-torsion - ours golden-proven) but NOT wire-identical. G1: fully bridgeable (DEC-219). G2: requires the encoding map psi at the transport boundary.
-**Decision:** (1) Internal soundness UNAFFECTED - every golden stands. (2) GAP-01b's deliverable is now precisely specified: the bridge derivation - s = sqrt(-1) mod q (exists: 2adic(q-1)=46 => q=1 mod 4), the field map phi: u' = s*u\_spec, the 6th-power check rho^(q^2-1)/6 == 1 with rho = phi(b')/b2, then psi(x,y) = (w^2 x, w^3 y), w^6 = rho - golden-pinned as the wire conversion. (3) The design question it settles honestly: adopt psi-at-the-boundary (Phase-0 modules untouched, wire format standard) vs re-derive G2 natively on the spec tower (byte-identical, larger surgery). Ruling next session after rho's 6th-power check: if rho is a 6th power IN F\_q2, the boundary-map is small and chosen; if the map needs an extension field, the native re-derivation cost/benefit is reweighed.
-**Rationale:** The external audit's section 3.4 predicted exactly this; running GAP-01 early in Phase 1 found it at design cost, not mainnet cost.
+**Finding (evidence committed):** build/ref_curves_g2.rs, ref_fields_fq2.rs, ref_curves_g1.rs — ark-bls12-377 0.6.0.
+
+**The canonical BLS12-377 per arkworks:**
+
+- G1 COEFF_B = 1 (== ours)
+- F_q2 tower u² = −5 (ours: +5)
+- G2 twist b₂ = (0, B) with B = 155198655607781456406391640216936120121836107652948796323930557600032281009004493664981332883744016074664192874906 (canonical decimal, 114 digits)
+
+**Ours:** b′ = (5,1) over u² = +5.
+
+**VERDICT:** the twists are ISOMORPHIC — both sextic twists of the same j=0 base curve, both carrying full r-torsion (ours golden-proven) — but NOT wire-identical.
+
+**What it means:**
+
+- G1: fully bridgeable (DEC-219)
+- G2: requires the encoding map ψ at the transport boundary
+- Internal soundness UNAFFECTED — every golden stands
+
+**GAP-01b's deliverable, now precisely specified:**
+
+1. s = sqrt(−1) mod q (exists: 2-adicity(q−1)=46 ⟹ q ≡ 1 mod 4)
+2. The field map Φ: u′ = s·u_spec
+3. The 6th-power check: ρ^(q²−1)/6 ≡ 1, with ρ = Φ(b′)/b₂
+4. Then ψ(x,y) = (w²x, w³y), w⁶ = ρ — golden-pinned as the wire conversion
+
+**The design question it settles honestly:** adopt ψ-at-the-boundary (Phase-0 modules untouched, wire format standard) vs re-derive G2 natively on the spec tower (byte-identical, larger surgery). Ruling after ρ's 6th-power check.
+
+**Rationale:** the external audit's section 3.4 predicted exactly this; running GAP-01 early in Phase 1 found it at design cost, not mainnet cost.
+
 **Supersedes:** N/A
-**Build status:** P1-02b CLOSED (the finding) - GAP-01b's derivation session opens next; ref files committed as evidence.
----
+
+**Build status:** P1-02b CLOSED (the finding) — GAP-01b's derivation session opens next; ref files committed as evidence.
+
 ## SECTION XXVII — P1-02c: The Bridge Derivation — GAP-01b CLOSED (2026-09-12)
 #### DEC-221 — The G2 wire map psi: constructive, golden-pinned, cross-checked
 
