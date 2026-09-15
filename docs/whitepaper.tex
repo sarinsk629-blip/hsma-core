@@ -711,6 +711,28 @@ the Phase-0 multilinear PCS (commit/open/verify with verifier-derivable points; 
 dual-layer Pedersen+WHIR honestly deferred), and the NIFS fold --- two verified computations
 compress into one, \emph{exactly}, the operation that makes the 41-byte carrier an actual proof.
 
+\textbf{Implementation sync v1.0.5 (2026-09-15): Phase 1 opens, P1-01..04.} The
+conformance suite now stands at \textbf{25/25} with \textbf{32 generated headers}.
+P1-01 (DEC-218) refactors the constants generator into \texttt{scripts/gen/}
+(per-step modules + \texttt{gen\_common.py} shared library), byte-identical
+proven. P1-02 (DEC-219..221) verifies the interop bridge to canonical
+BLS12-377: G1 seed$\to$r$\to$q$\to$curve$\to$subgroup chain confirmed in pure
+arithmetic; the G2 twist divergence found (our $b'=(5,1)$ vs.\ the reference
+ $b_2=(0,B)$, isomorphic but not identical) and the wire map $\psi$ derived,
+verified against ark-bls12-377 0.6.0's own generator, and golden-pinned as
+\texttt{bridge\_golden.hpp} --- the external audit's interop warning answered
+with a function. P1-03 (DEC-222) adds \texttt{fev.hpp}, the Vesta base-field
+twin over $\mathbb{F}_q$ (CIOS Montgomery with overflow-safe u128 accumulation
+--- CA-R112: the 255-bit modulus triggers an overflow that Pallas's 254-bit
+never does), with 516-case Vesta golden coverage closing the 0/2472 gap.
+P1-04 (DEC-223) adds \texttt{poseidon\_v.hpp}, the Vesta-domain Poseidon-3
+(same $T{=}3$, $R_F{=}8$, $R_P{=}56$, $\alpha{=}5$; constants via DRBG +
+rejection over $q_{\text{Vesta}}$; Cauchy MDS all-minors-nonsingular). The
+CycleFold foundation is \textbf{two-thirds complete}: field + Poseidon proven;
+curve operations and the absorption step (GAP-04) remain.
+
+
+
 
 
 The \texttt{tools/bls\_derive.cpp} tool mathematically proves the BLS12-377 curve group law:
