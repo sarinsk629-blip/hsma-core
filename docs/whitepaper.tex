@@ -51,9 +51,9 @@
 % ── Title Page ──
 \title{\textbf{HSMA: Holographic Spin-Manifold Architecture} \\[0.5em]
 \Large A Layer-1 Protocol for Verifiable AI Consensus, Zero-MEV Execution, and Recursive State Folding \\[0.5em]
-\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.4}
+\large Technical Whitepaper v1.0 --- Final Audited Specification --- Errata Sync v1.0.1, Impl Sync v1.0.5}
 \author{\textbf{HSMA Core Engineering}}
-\date{September 11, 2026}
+\date{September 15, 2026}
 
 \begin{document}
 \maketitle
@@ -65,7 +65,7 @@ HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, the BLS12-377 group law is mathematically proven on 3 independent points, the BLS verification law is pairing-proven secret-free, and the M2 order-bound core is golden-proven end to end.
 
-This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 23/23 conformance tests passing.
+This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 25/25 conformance tests passing.
 \end{abstract}
 
 \tableofcontents
@@ -185,6 +185,10 @@ M2 ciphertext hash & \texttt{HSM\_CT\_V1} \\
 M2 order root & \texttt{HSM\_ORDROOT\_V1} \\
 M2 user authorization & \texttt{HSM\_SIG\_USER\_V1} \\
 Sum-check transcript & \texttt{HSM\_SUMCHECK\_v1} \\
+CycleFold hash (Vesta) & \texttt{HSM\_CYCLEFOLD\_v1} \\
+Vesta state tree node & \texttt{IV\_STATE\_NODE\_V} \\
+Vesta state tree leaf & \texttt{IV\_STATE\_LEAF\_V} \\
+Vesta decree tree & \texttt{IV\_DECREE\_V} \\
 \end{tabular}
 \end{center}
 
@@ -521,8 +525,10 @@ The HSMA reference implementation is built in strict C++20 with zero floating-po
 \begin{lstlisting}[language=bash]
 hsma-core/
 +-- include/hsma/          # Core protocol headers
-|   +-- fe.hpp              # Field arithmetic (Pallas/Vesta)
-|   +-- poseidon.hpp        # SNARK-friendly hashing
+|   +-- fe.hpp              # Pallas base field (F_p)
+|   +-- poseidon.hpp        # SNARK-friendly hashing (Pallas domain)
+|   +-- fev.hpp             # Vesta base field (F_q) — GAP-03a (DEC-222)
+|   +-- poseidon_v.hpp      # Vesta-domain Poseidon-3 — GAP-03b (DEC-223)
 |   +-- vault.hpp           # Sparse Merkle Tree state
 |   +-- consensus.hpp       # MSSC automaton
 |   +-- fold.hpp            # Fold step family (DEC-207)
@@ -555,7 +561,7 @@ hsma-core/
 |   +-- pairing.hpp # twist + Miller + Tate + BLS verify (DEC-198/199)
 |   +-- m2.hpp # M2 order-bound decryption shares (DEC-201..203)
 |   +-- m2prod.hpp # sigma_user + per-member partials (DEC-204..206)
-+-- conformance/            # Test suite (23/23 passing)
++-- conformance/            # Test suite (25/25 passing)
 |   +-- test_step2.cpp      # Field arithmetic tests
 |   +-- test_step3.cpp      # Numeric kernel tests
 |   +-- test_step4.cpp      # State vault tests
@@ -578,6 +584,8 @@ hsma-core/
 |   +-- test_step21.cpp # NIFS fold
 |   +-- test_step22.cpp # Light-client certificate
 |   +-- test_step23.cpp # phi0-phi7 end-to-end epoch
+|   +-- test_step24.cpp # Vesta field twin (GAP-03a)
+|   +-- test_step25.cpp # Vesta-domain Poseidon (GAP-03b)
 |   +-- diag_step5.cpp      # Mempool diagnostics
 |   +-- diag_step6.cpp      # Consensus diagnostics
 +-- libhsma_numcore/        # 127-bit scratchpad accumulator
@@ -595,7 +603,7 @@ hsma-core/
 +-- README.md
 +-- docs/
     +-- whitepaper.tex      # This document
-    +-- DECISIONS.md        # decision ledger: DEC-001..214 (Sections I-XIX)
+    +-- DECISIONS.md        # decision ledger: DEC-001..223 (Sections I-XXIX)
 \end{lstlisting}
 
 \subsection{GATE GREEN Verification}
@@ -604,7 +612,7 @@ The full diagnostic gate (\texttt{./scripts/gate.sh}) produces:
 
 \begin{lstlisting}[language=bash]
 [lint] DEC-090 clean: numeric core is float-free.
-[2/48] Building CXX object CM   all 27 generated headers present
+[2/56] Building CXX object CM   all 32 generated headers present (each named + counted)
 SEED: fault=0 allocs=66
 LOOKUP: OK  bal=1000 nonce=0
 TLEAF tag=2 (want 2)
@@ -616,21 +624,25 @@ DIAG6:CONTEXT-BINDING LIVE
 DIAG6:QUORUM-PATH LIVE (kind=2)
 DIAG6:BREAKER-DETERMINISTIC OK delay=98
 DIAG6:VERDICT ALL-OK
-10/21 Test #10: step10_conformance ...............   Passed    0.06 sec
-11/21 Test #11: step10b_conformance ..............   Passed   15.34 sec
-12/21 Test #12: step12_conformance ...............   Passed   46.77 sec
-13/21 Test #13: step13_conformance ...............   Passed   10.41 sec
-14/21 Test #14: step14_conformance ...............   Passed    0.24 sec
-15/21 Test #15: step15_conformance ...............   Passed    0.10 sec
-16/21 Test #16: step16_conformance ...............   Passed    0.91 sec
-17/21 Test #17: step17_conformance ...............   Passed    0.15 sec
-18/21 Test #18: step18_conformance ...............   Passed    0.25 sec
-19/21 Test #19: step19_conformance ...............   Passed    0.02 sec
-20/21 Test #20: step20_conformance ...............   Passed    0.03 sec
-21/21 Test #21: step21_conformance ...............   Passed    0.02 sec
-100% tests passed out of 21
-Total Test time (real) =  74.98 sec
-[emit] ./generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
+10/25 Test #10: step10_conformance ...............   Passed    0.08 sec
+11/25 Test #11: step10b_conformance ..............   Passed   14.60 sec
+12/25 Test #12: step12_conformance ...............   Passed   47.95 sec
+13/25 Test #13: step13_conformance ...............   Passed    7.43 sec
+14/25 Test #14: step14_conformance ...............   Passed    0.36 sec
+15/25 Test #15: step15_conformance ...............   Passed    0.17 sec
+16/25 Test #16: step16_conformance ...............   Passed    0.56 sec
+17/25 Test #17: step17_conformance ...............   Passed    0.17 sec
+18/25 Test #18: step18_conformance ...............   Passed    0.30 sec
+19/25 Test #19: step19_conformance ...............   Passed    0.07 sec
+20/25 Test #20: step20_conformance ...............   Passed    0.08 sec
+21/25 Test #21: step21_conformance ...............   Passed    0.05 sec
+22/25 Test #22: step22_conformance ...............   Passed    5.84 sec
+23/25 Test #23: step23_conformance ...............   Passed   23.31 sec
+24/25 Test #24: step24_conformance ...............   Passed    0.07 sec
+25/25 Test #25: step25_conformance ...............   Passed    0.04 sec
+100% tests passed out of 25
+Total Test time (real) = 102.09 sec
+[emit] ./build/generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
 \end{lstlisting}
 
 \textbf{Implementation sync v1.0.2 (2026-09-05): threshold module, Steps 7--8.}
@@ -722,7 +734,7 @@ Root Cause \#10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixt
 
 \subsection{Conformance Suite}
 \textbf{Implementation status (Phase 0).} Items 1--8, and 12--13 are machine-validated today by the
-23/23 conformance binaries --- item 6 by Step 12's \texttt{verify\_share}; item 4 (explicit
+25/25 conformance binaries --- item 6 by Step 12's \texttt{verify\_share}; item 4 (explicit
 cross-epoch replay negative) and item 5 ($\sigma_{\mathrm{user}}$ envelope authorization,
 forgery rejected) closed by Step 13; item 7 (SAT-proof: all illegal PC edges unsatisfiable)
 closed by Step 15's CCS constraint layer --- together with the step 9--12 threshold modules
@@ -773,7 +785,7 @@ Epoch & 600 s nominal; checkpoints $K=6$ (hourly); $T_{\text{fold}} = 120$ s \\
 
 % ════════════════════════════════════════════════════════════════════
 \section{Limitations and Honest Disclosure}
-Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing, the M2 order-bound core, and its production hardening (Steps 7--13); the folding arc is complete in Phase-0 form (Steps 14--21: semantics, constraints, the 41-byte accumulator, the pipeline, the sum-check engine, the commitment layer, the NIFS fold --- suite 23/23); the production proof system (homomorphic PCS + HyperNova multifold), full CycleFold curve operations, and the remaining release gates are specified, not yet built.
+Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing, the M2 order-bound core, and its production hardening (Steps 7--13); the folding arc is complete in Phase-0 form (Steps 14--21: semantics, constraints, the 41-byte accumulator, the pipeline, the sum-check engine, the commitment layer, the NIFS fold --- suite 25/25); the production proof system (homomorphic PCS + HyperNova multifold), full CycleFold curve operations, and the remaining release gates are specified, not yet built.
 
 \section{Conclusion}
 % ════════════════════════════════════════════════════════════════════
@@ -782,7 +794,7 @@ HSMA's contribution is not any single primitive but a composition discipline: ev
 
 The result is a ledger whose safety argument fits on one line --- $\epsilon_{\text{sys}} \approx 2^{-110}$, assumption-dominated --- and whose liveness recovers from every network-level attack by construction. Continuous-state throughput, MEV-immune ordering, and useful-work security stop being trade-offs when ordering is separated from knowledge, safety is separated from statistics, and history is separated from verification.
 
-The C++20 reference implementation passes all 23 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking, now consuming the real threshold beacon. The BLS verification law $e(\sigma, G_2) = e(H, Y)$ is pairing-proven secret-free. The M2 order-bound core encrypts, orders under the real beacon, and decrypts by threshold shares. The sum-check engine, the commitment layer, and the NIFS fold exist in golden-proven Phase-0 form: two verified computations compress into one, exactly.
+The C++20 reference implementation passes all 25 conformance tests with \texttt{GATE GREEN}. The BLS12-377 group law is mathematically proven on 3 independent points. The field arithmetic kernel passes 2,472 golden vectors. The Poseidon MDS matrix is machine-proven non-singular. The Sparse Merkle Tree is canonical-at-rest. The MSSC automaton exhibits deterministic finality and stall-breaking, now consuming the real threshold beacon. The BLS verification law $e(\sigma, G_2) = e(H, Y)$ is pairing-proven secret-free. The M2 order-bound core encrypts, orders under the real beacon, and decrypts by threshold shares. The sum-check engine, the commitment layer, and the NIFS fold exist in golden-proven Phase-0 form: two verified computations compress into one, exactly.
 
 \textbf{The architecture's one-line soul:} \textit{ordering separated from knowledge (structural), safety separated from statistics (zeros, not probabilities), history separated from verification (one 73 KB proof), security priced in burned capital rather than probabilistic goodwill.}
 
