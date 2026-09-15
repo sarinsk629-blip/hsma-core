@@ -13,7 +13,7 @@ ns = {"__name__": "__main__",                                          # the gua
        "__file__": os.path.join(ROOT, "scripts", "gen_constants.py")}  # CA-R105: __file__ means the LEGACY
                                                                        # path - the dirname^2 lands on ROOT,
 chunks = ([os.path.join(G, "core_legacy.py"), os.path.join(G, "legacy_tail.py")] +
-          [os.path.join(G, "steps", "step%02d.py" % n) for n in range(7, 25)])
+          [os.path.join(G, "steps", "step%02d.py" % n) for n in range(7, 26)])
 for path in chunks:
     code = compile(open(path).read(), path, "exec")
     exec(code, ns)

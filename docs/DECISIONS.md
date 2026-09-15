@@ -1859,3 +1859,12 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **CA-R113** — fev_sub borrow chain: the manual borrow propagation had a carry bug in the a<b wraparound case. Fixed with u128-based subtraction (s >> 64 naturally gives the borrow).
 **Also closed:** GAP-02b residual (the gate's gen entry-point flipped to gen_run_new.py). The whitepaper's Vesta golden coverage gap (0/2472) closes with 516 Vesta cases.
 **Build status:** P1-03a CLOSED - GATE GREEN 24/24: 516-case sum/diff/prod parity, inverse law (a=0 skipped), canonical rejection, le-bytes roundtrip, commutativity. GAP-03 continues: Vesta-domain Poseidon + curve ops.
+---
+## SECTION XXIX — P1-04: The Vesta-Domain Poseidon (2026-09-15)
+#### DEC-223 — GAP-03b: the Vesta-domain Poseidon-3 hash
+**Decision:** include/hsma/poseidon_v.hpp — the Vesta-domain Poseidon-3 mirroring poseidon.hpp's API shape over F_q (Vesta): same T=3, RF=8, RP=56, α=5, RC_COUNT=80 (field-agnostic parameters); constants from vesta_poseidon_params_gen.hpp (DRBG + rejection sampling over q_vesta, Cauchy MDS with all-minors-nonsingular check, per-tag IVs for the Vesta-domain: HSM_CYCLEFOLD_v1, IV_STATE_NODE_V, IV_STATE_LEAF_V, IV_DECREE_V). Generated programmatically (no paste mangling — CA-R92's law applied to the file generator itself). The module provides poseidon3v (one-hash), VestaSponge (absorb/squeeze at rate 2), and vp3_iv (domain-separated IVs). Suite 25/25, 32 generated headers.
+**Rationale:** The CycleFold foundation's second layer; the Vesta-domain hash enables cross-curve commitment digest absorption (GAP-04).
+**Supersedes:** N/A
+### P1-04 ERRATA - CA-R114 (2026-09-15)
+- **CA-R114** — poseidon_v.hpp was hand-pasted with a corrupted function signature (int& instead of P3StateV&) and misplaced struct definition. Fixed by programmatic generation (the GENPV approach) — the file is now BORN from code, not pasted. Law: complex headers are GENERATED, not pasted.
+**Build status:** P1-04 CLOSED - GATE GREEN 25/25: domain separation, determinism, sponge roundtrip, avalanche. GAP-03 continues: Vesta curve ops (GAP-03c); GAP-04 (CycleFold absorption) next after curve ops.

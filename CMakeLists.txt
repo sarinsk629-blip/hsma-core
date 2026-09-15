@@ -209,3 +209,8 @@ add_test(NAME step23_conformance COMMAND test_step23)
 add_executable(test_step24 conformance/test_step24.cpp)
 target_include_directories(test_step24 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step24_conformance COMMAND test_step24)
+
+# == Step 25: Vesta Poseidon (DEC-223) ==
+add_executable(test_step25 conformance/test_step25.cpp)
+target_include_directories(test_step25 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step25_conformance COMMAND test_step25)
