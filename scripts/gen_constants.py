@@ -642,7 +642,7 @@ if __name__ == "__main__":
 
 
 # ============ STEP 7 APPEND - BLS12-377 scalar field F_r + threshold goldens (DEC-181..184) ============
-import hashlib as _h7, re as _re7, os as _os7
+import hashlib as _h7, re as _re7, os as os
 
 def _step7_fatal(msg):
     print("[step7] FATAL: " + msg); raise SystemExit(1)
@@ -690,8 +690,8 @@ def _s7_pe(c, j, r):
 def _step7():
     src = None
     for c in ("tools/bls_derive.cpp", "../tools/bls_derive.cpp"):
-        if _os7.path.isfile(c): src = open(c, encoding="utf-8", errors="ignore").read(); break
-    if src is None: _step7_fatal("tools/bls_derive.cpp not found (CWD=%s)" % _os7.getcwd())
+        if os.path.isfile(c): src = open(c, encoding="utf-8", errors="ignore").read(); break
+    if src is None: _step7_fatal("tools/bls_derive.cpp not found (CWD=%s)" % os.getcwd())
     r = _DOCUMENTED_R
     toks = [int(t, 16) for t in _re7.findall(r'0x[0-9a-fA-F]+', src)]
     toks += [int(t) for t in _re7.findall(r'(?<![\w.])\d{16,22}(?![\w.])', src)]
@@ -747,8 +747,8 @@ def _step7():
     assert rec_t != secret, "tamper divergence failed - redraw salt"
 
     cdirs = set()
-    for root, dirs, files in _os7.walk("."):
-        if ".git" in root.split(_os7.sep): continue
+    for root, dirs, files in os.walk("."):
+        if ".git" in root.split(os.sep): continue
         if "pallas_params_gen.hpp" in files: cdirs.add(root)
     if len(cdirs) != 1: _step7_fatal("ambiguous generated dirs: %r" % sorted(cdirs))
     outdir = cdirs.pop()
@@ -785,8 +785,8 @@ def _step7():
     hg += "inline constexpr std::uint64_t G7_SECRET[4] = %s;\n}\n" % _s7_row(secret)
 
     hp = hp.replace("MR-52 primality.", "MR-52 primality. Provenance: " + prov + ".")
-    open(_os7.path.join(outdir, "bls_params_gen.hpp"), "w").write(hp)
-    open(_os7.path.join(outdir, "threshold_golden.hpp"), "w").write(hg)
+    open(os.path.join(outdir, "bls_params_gen.hpp"), "w").write(hp)
+    open(os.path.join(outdir, "threshold_golden.hpp"), "w").write(hg)
     print("[validate] bls-r: matches documented r, MR-52 prime, bits=%d, 2-adicity(r-1)=%d, inv0=OK"
           % (r.bit_length(), s_))
     print("[step7][emit] bls_params_gen.hpp")

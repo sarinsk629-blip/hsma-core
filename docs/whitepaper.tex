@@ -118,7 +118,7 @@ The phrase \textbf{``impossible beats punishable''} names the design heuristic: 
 HSMA utilizes the Pallas/Vesta 2-cycle over 255-bit primes:
 
 \begin{equation}
-\textsf{Pallas}: y^2 = x^3 - 17 \;\text{ over } \mathbb{F}_p, \qquad \textsf{Vesta}: y^2 = x^3 + 17 \;\text{ over } \mathbb{F}_q
+\textsf{Pallas}: y^2 = x^3 + 5 \;\text{ over } \mathbb{F}_p, \qquad \textsf{Vesta}: y^2 = x^3 + 5 \;\text{ over } \mathbb{F}_q
 \end{equation}
 
 where $p = \texttt{0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001}$ and $\log_2 p \approx 254.00$, satisfying $\#\textsf{Pallas}(\mathbb{F}_p) = q$ and $\#\textsf{Vesta}(\mathbb{F}_q) = p$.

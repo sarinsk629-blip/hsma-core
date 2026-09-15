@@ -1868,3 +1868,32 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 ### P1-04 ERRATA - CA-R114 (2026-09-15)
 - **CA-R114** — poseidon_v.hpp was hand-pasted with a corrupted function signature (int& instead of P3StateV&) and misplaced struct definition. Fixed by programmatic generation (the GENPV approach) — the file is now BORN from code, not pasted. Law: complex headers are GENERATED, not pasted.
 **Build status:** P1-04 CLOSED - GATE GREEN 25/25: domain separation, determinism, sponge roundtrip, avalanche. GAP-03 continues: Vesta curve ops (GAP-03c); GAP-04 (CycleFold absorption) next after curve ops.
+---
+## SECTION 1 - P1-06: The Vesta Curve Operations (2026-09-15)
+#### DEC-224 - GAP-03c: the Vesta curve ops + the whitepaper curve-equation fix
+**Decision:** include/hsma/g2v.hpp - the Vesta curve y^2 = x^3 + 5 over F_q
+(Jacobian, 4-limb over fq::fev): Vdbl (dbl-2009-l with a=0), Vadd, Vmul
+(MSB-first), from_affine/to_affine/on_curve. Generator: (-1, 2) - confirmed
+on-curve in pure Python and in C++. Group order: p (the Pallas modulus, the
+2-cycle property); [p]G = inf verified. GOLDEN: 8 add + 8 dbl + 8 mul triples
+from a Python affine oracle, bit-exact in C++. ALSO: the whitepaper's curve
+equation is CORRECTED from y^2 = x^3 +/- 17 to y^2 = x^3 + 5 (the pasta-curves
+crate source, committed as evidence, explicitly states b = 5). ALSO:
+scripts/gen_run_new.py now runs the COMPLETE two-phase pipeline (the monolith
+base steps 1-6 + the fixed modules 7-26, ONE shared namespace) - the base
+headers can never vanish again.
+**Rationale:** The CycleFold foundation's last stone. The curve ops enable the
+absorption of cross-curve commitment digests into Vesta points (GAP-04).
+**Supersedes:** N/A
+### P1-06 ERRATA (2026-09-15)
+- **CA-R115** - The whitepaper stated the Pasta curves as y^2 = x^3 +/- 17; the
+pasta-curves crate (the reference implementation) says COEFF_B = 5. The +/-17
+was a transcription error. Law: curve constants come from the REFERENCE
+IMPLEMENTATION, not from memory or old spec documents.
+- **CA-R116** - fev_add hardened: explicit u128 carry capture + conditional
+subtract. Proven by a 2000-case pure-Python emulation of the exact uint64
+semantics + the 516-case step24 field suite. Law: every field op's edge
+behavior is proven by emulation BEFORE the C++ lands.
+**Build status:** P1-06 CLOSED - GATE GREEN 26/26: Vesta curve ops proven; the
+CycleFold foundation is COMPLETE (field -> Poseidon -> curve). GAP-04 (CycleFold
+absorption) opens.

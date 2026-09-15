@@ -214,3 +214,8 @@ add_test(NAME step24_conformance COMMAND test_step24)
 add_executable(test_step25 conformance/test_step25.cpp)
 target_include_directories(test_step25 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step25_conformance COMMAND test_step25)
+
+# == Step 26: Vesta curve ops (DEC-224) ==
+add_executable(test_step26 conformance/test_step26.cpp)
+target_include_directories(test_step26 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step26_conformance COMMAND test_step26)

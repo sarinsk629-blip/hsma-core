@@ -1,3 +1,4 @@
+import os
 # HSMA :: gen/legacy_tail.py - the Steps 1-6 CLI glue (FROZEN).
 if __name__ == "__main__":
     main()
@@ -5,7 +6,7 @@ if __name__ == "__main__":
 
 
 # ============ STEP 7 APPEND - BLS12-377 scalar field F_r + threshold goldens (DEC-181..184) ============
-import hashlib as _h7, re as _re7, os as _os7
+import hashlib as _h7, re as _re7, os as os
 
 def _step7_fatal(msg):
     print("[step7] FATAL: " + msg); raise SystemExit(1)

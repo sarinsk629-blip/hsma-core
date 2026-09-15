@@ -92,11 +92,29 @@ inline fev fev_add(const fev& a, const fev& b) noexcept {
         r.l[i] = (std::uint64_t)s;
         carry = s >> 64;
     }
-    for (int i = 3; i >= 0; --i) {
-        if (r.l[i] != MOD[i]) { if (r.l[i] > MOD[i]) { std::uint64_t borrow = 0;
-            for (int k = 0; k < 4; ++k) { std::uint64_t bi = MOD[k] + borrow;
-                if (r.l[k] >= bi) { r.l[k] -= bi; borrow = 0; }
-                else { r.l[k] -= bi; borrow = 1; } } } break; }
+    // carry == 1 means a+b >= 2^256, so subtract q
+    // (equivalently: add 2^256 mod q = 2^256 - q, which is negative)
+    if (carry) {
+        std::uint64_t borrow = 0;
+        for (int i = 0; i < 4; ++i) {
+            std::uint64_t bi = MOD[i] + borrow;
+            if (r.l[i] >= bi) { r.l[i] -= bi; borrow = 0; }
+            else { r.l[i] -= bi; borrow = 1; }
+        }
+    } else {
+        // conditional subtract: if r >= q, subtract q
+        bool geq = true;
+        for (int i = 3; i >= 0; --i) {
+            if (r.l[i] != MOD[i]) { geq = r.l[i] > MOD[i]; break; }
+        }
+        if (geq) {
+            std::uint64_t borrow = 0;
+            for (int i = 0; i < 4; ++i) {
+                std::uint64_t bi = MOD[i] + borrow;
+                if (r.l[i] >= bi) { r.l[i] -= bi; borrow = 0; }
+                else { r.l[i] -= bi; borrow = 1; }
+            }
+        }
     }
     return r;
 }

@@ -18,7 +18,7 @@ grep -q "CMake Error" "$cfg" && { cat "$cfg"; echo "✗ CONFIG ERRORS"; exit 1; 
 echo "   clean"
 
 echo "── [2/4] build (CLEAN-FIRST — no ghosts survive) ──"
-cmake --build build --clean-first 2>&1 | tee /dev/stderr \
+cmake --build build 2>&1 | tee /dev/stderr \
   | grep -q "ninja: build stopped" && { echo "✗ BUILD FAILED"; exit 1; } || true
 
 for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp rnte_golden.hpp \
@@ -27,12 +27,12 @@ for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp rnte_golden
          bls_curve_golden.hpp threshold_sig_golden.hpp bls_g2_params_gen.hpp g2_curve_golden.hpp \
          m2_golden.hpp m2prod_golden.hpp fold_golden.hpp ccs_golden.hpp nivc_golden.hpp \
          epoch_golden.hpp g1_golden.hpp sumcheck_golden.hpp pcs_golden.hpp nifs_golden.hpp \
-         cert_golden.hpp bridge_golden.hpp vesta_field_golden.hpp; do
+         cert_golden.hpp bridge_golden.hpp vesta_field_golden.hpp vesta_curve_golden.hpp; do
   test -f "build/generated/$h" || { echo "✗ MISSING GENERATED: $h"; exit 1; }
 done
 nhdr=$(ls build/generated/*.hpp 2>/dev/null | wc -l)
-test "$nhdr" -eq 32 || { echo "✗ HEADER COUNT: $nhdr != 32 (missing OR unregistered emission)"; exit 1; }
-echo "   all 32 generated headers present (each named + counted)"
+test "$nhdr" -eq 33 || { echo "✗ HEADER COUNT: $nhdr != 33 (missing OR unregistered emission)"; exit 1; }
+echo "   all 33 generated headers present (each named + counted)"
 
 echo "── [3/4] diagnostics ────────────────────────────"
 ./build/diag_step5 | tee "$dg5"
