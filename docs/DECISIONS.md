@@ -1738,8 +1738,8 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 
 - **GAP-01 (HIGH, interop)** - External canonicity cross-check: BLS12-377 constants (r, q, generators, b=1, h1, h2, the beta=5 tower, b'=(5,1)) vs a reference implementation (arkworks/libff). Internal soundness is proven; this is wire-format interoperability. Closure: one-shot reference-vector parity script.
 - **GAP-02 (HIGH, engineering)** - gen_constants.py refactor: per-step modules, explicit parameter passing, a unified formatter library (the _r4/_r44/_r66/_s6/_b2l family). Evidence: CA-R67/R72/R73 (function-local p x3), CA-R95 (string-vs-limbs), CA-R96 (per-index-vs-joined), CA-R72 (line-splitting) - one structural disease, four recurrences. Closure: post-refactor run with byte-identical goldens (the refactor's own proof).
-- **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit.
-- **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03.
+- **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit. (03d hash-to-Vesta CLOSED: DEC-225)
+- **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
 - **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071.
 - **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2.
 - **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
@@ -1897,3 +1897,59 @@ behavior is proven by emulation BEFORE the C++ lands.
 **Build status:** P1-06 CLOSED - GATE GREEN 26/26: Vesta curve ops proven; the
 CycleFold foundation is COMPLETE (field -> Poseidon -> curve). GAP-04 (CycleFold
 absorption) opens.
+---
+## SECTION 2 - P1-07: The CycleFold Absorption Primitive + The Vesta Poseidon Correction (2026-09-15)
+#### DEC-225 - GAP-03d + GAP-04: hash-to-Vesta via the absorption digest -> Vesta point
+**Decision:** include/hsma/cycfold.hpp - an opaque 512-bit payload (8 canonical
+u64 limbs) -> d = Poseidon_V over the CYCLEFOLD domain (dom=0, the P1-04
+pre-minted IV) as a 7-call binary tree over the 8 limbs -> P_cf = [d] * G_vesta
+(g2v::Vmul over the proven core). GOLDEN: 6 payload->d->P_cf triples from a
+Python oracle that is a LIMB-FAITHFUL Montgomery emulation of the twin,
+AUTO-CALIBRATED against the compiled twin via a 3-vector differential probe
+(tools/p27probe.cpp): schedule B (4+56+4 full rounds, 80 RCs) matched 3/3
+before any golden was emitted. Subgroup: [VESTA_ORDER]*P_cf = inf verified in
+Python and C++.
+**Rationale:** The first consumer of the CycleFold foundation (field ->
+Poseidon -> curve). Converts cross-curve commitment digests into actual Vesta
+points (whitepaper section 7).
+**Supersedes:** N/A
+### P1-07 ERRATA (2026-09-15)
+- **CA-R117** - Absorption is LIMB-WISE: each u64 limb is absorbed as its own
+F_q element (limb < 2^64 < q, injective). NEVER mod-reduce an F_p element into
+F_q: p > q, so x in [q,p) collides with x-q. Law: cross-field absorption is
+limb-wise or proven collision-free.
+- **CA-R118** - Pasta cofactor = 1 (crate evidence): no cofactor clearing in
+the absorption path. Law: cofactor handling follows the reference
+implementation's arithmetic, cited.
+- **CA-R119 (H1, the biggest catch)** - The Vesta Poseidon twin (poseidon_v.hpp,
+P1-04) wrapped its full-round phases in a tripling k-loop: 36+56+36 = 128 RC
+reads against the 80-entry VP3_RC table = OUT-OF-BOUNDS reads (UB) from
+partial round ~45 onward. PROOF: spec arithmetic (RF=8 -> 24+56 = 80 =
+RC_COUNT) vs the loop structure (128); the differential probe's outputs
+CHANGED after the de-triple (old outputs were UB-tainted). P1-04's
+self-consistency suite structurally could not catch it - only the bilingual
+arithmetic cross-check did. FIXED: 4+56+4 full rounds, 80 RCs; verified by
+calibrated Python parity (3/3) + suite 27/27. LAW: every permutation gets
+(a) a constants-consumption arithmetic check at birth and (b) value goldens
+vs its Python derivation. SELF-CONSISTENCY TESTS ARE NEVER SUFFICIENT. The
+Pallas twin audited: no tripling (parity-proven at Steps 9-12).
+- **CA-R120 (boilerplate drift, TWO instances in one session)** - (1) the
+step27 emitter closed its golden array '};' against a '{{' opening; (2) it
+declared 'namespace golden' where the house convention is
+'namespace hsma::golden'. Both were retyped boilerplate. LAW: when a new
+emitter mirrors a proven one, the boilerplate is COPIED, not retyped; every
+emitted header is compile-checked at birth.
+- **CA-R121 (the checker bug)** - g2v::on_curve omitted (or mis-powered) the
+Jacobian Z^6 term: Y^2 = X^3 + b*Z^6. MASKED since birth because the only
+shape ever tested was the generator (Z=1, where any Z-power is 1); test_step27
+was the first caller to hand it Z!=1 points - and its affine parity against
+Python PROVED the points were on-curve while the checker said no. FIXED:
+full Z^6 term, no inversion, proven fev ops; regression added to test_step26's
+mul loop. LAW: invariant checkers are tested on non-degenerate
+representations (Z!=1) - a Z=1-only test masks every scaling defect.
+**Honest caveat:** [d]*G is a scalar-mul encoding, not uniform hash-to-curve;
+deterministic + group element is what CycleFold absorption requires. Uniform
+h2c (try-and-increment) remains an upgrade behind the same absorb() API.
+**Build status:** P1-07 CLOSED - GATE GREEN 27/27, 34 headers. GAP-03d CLOSED,
+GAP-04 CLOSED. The ePrint v2 patch (curve equations +/-17 -> +5, status table
+bumped) rides this commit.

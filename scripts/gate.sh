@@ -31,8 +31,8 @@ for h in pallas_params_gen.hpp vesta_params_gen.hpp field_golden.hpp rnte_golden
   test -f "build/generated/$h" || { echo "✗ MISSING GENERATED: $h"; exit 1; }
 done
 nhdr=$(ls build/generated/*.hpp 2>/dev/null | wc -l)
-test "$nhdr" -eq 33 || { echo "✗ HEADER COUNT: $nhdr != 33 (missing OR unregistered emission)"; exit 1; }
-echo "   all 33 generated headers present (each named + counted)"
+test "$nhdr" -eq 34 || { echo "✗ HEADER COUNT: $nhdr != 34 (missing OR unregistered emission)"; exit 1; }
+echo "   all 34 generated headers present (each named + counted)"
 
 echo "── [3/4] diagnostics ────────────────────────────"
 ./build/diag_step5 | tee "$dg5"

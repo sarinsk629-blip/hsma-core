@@ -59,6 +59,7 @@ int main() {
         std::uint64_t ox[4], oy[4];
         to4(R, ox, oy);
         CHECK(eq4(ox, c.xr) && eq4(oy, c.yr), "mul parity");
+CHECK(g2v::on_curve(R), "mul on-curve (CA-R121 regression)");
     }
     // 4. dbl == add(P, P)
     const g2v::PtV G_gen = g2v::generator();

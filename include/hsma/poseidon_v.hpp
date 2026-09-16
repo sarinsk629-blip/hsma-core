@@ -58,28 +58,24 @@ inline void pv3_permute(P3StateV& s) noexcept {
     const auto& tab = vp3_tables();
     int rc = 0;
     for (int r = 0; r < 4; ++r) {
-        for (int k = 0; k < 3; ++k) {
-            s.s0 = fq::fev_add(s.s0, tab.rc[rc++]);
-            s.s1 = fq::fev_add(s.s1, tab.rc[rc++]);
-            s.s2 = fq::fev_add(s.s2, tab.rc[rc++]);
-            pv3_sbox5(s.s0); pv3_sbox5(s.s1); pv3_sbox5(s.s2);
-            pv3_mix(s);
-        }
-    }
+        s.s0 = fq::fev_add(s.s0, tab.rc[rc++]);
+        s.s1 = fq::fev_add(s.s1, tab.rc[rc++]);
+        s.s2 = fq::fev_add(s.s2, tab.rc[rc++]);
+        pv3_sbox5(s.s0); pv3_sbox5(s.s1); pv3_sbox5(s.s2);
+        pv3_mix(s);
+    }   // de-tripled: RF=8 -> 4+4 full rounds, 24+56 = 80 RCs = RC_COUNT
     for (int r = 0; r < 56; ++r) {
         s.s0 = fq::fev_add(s.s0, tab.rc[rc++]);
         pv3_sbox5(s.s0);
         pv3_mix(s);
     }
     for (int r = 0; r < 4; ++r) {
-        for (int k = 0; k < 3; ++k) {
-            s.s0 = fq::fev_add(s.s0, tab.rc[rc++]);
-            s.s1 = fq::fev_add(s.s1, tab.rc[rc++]);
-            s.s2 = fq::fev_add(s.s2, tab.rc[rc++]);
-            pv3_sbox5(s.s0); pv3_sbox5(s.s1); pv3_sbox5(s.s2);
-            pv3_mix(s);
-        }
-    }
+        s.s0 = fq::fev_add(s.s0, tab.rc[rc++]);
+        s.s1 = fq::fev_add(s.s1, tab.rc[rc++]);
+        s.s2 = fq::fev_add(s.s2, tab.rc[rc++]);
+        pv3_sbox5(s.s0); pv3_sbox5(s.s1); pv3_sbox5(s.s2);
+        pv3_mix(s);
+    }   // de-tripled: RF=8 -> 4+4 full rounds, 24+56 = 80 RCs = RC_COUNT
 }
 
 inline fev vp3_iv(int idx) noexcept {

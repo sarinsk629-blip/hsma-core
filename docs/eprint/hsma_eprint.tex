@@ -1,4 +1,8 @@
 \documentclass[11pt,a4paper]{article}
+% v2 (post-P1-07): curve equations corrected to +5 per the pasta-curves
+% reference (CA-R115); the CycleFold absorption primitive (DEC-225) added;
+% the Vesta Poseidon out-of-bounds defect (CA-R119) found and fixed by the
+% bilingual arithmetic cross-check. Uploaded as v2 upon moderation clearance.
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{hyperref}
@@ -24,7 +28,7 @@
 
 \author{SK Sarin Arfin \and HSMA Core Engineering\
 \thanks{Corresponding author: \texttt{sarinsk629@gmail.com}. The complete implementation
-(25/25 conformance tests, 223-decision append-only ledger, 114 owned errata) is publicly
+(27/27 conformance tests, 225-decision append-only ledger, 118 owned errata) is publicly
 available at \url{https://github.com/sarinsk629-blip/hsma-core}. The full technical
 specification is in \texttt{docs/whitepaper.tex}.}}
 
@@ -138,8 +142,8 @@ between specification and code. HSMA addresses this with a methodology
 
 \subsection{The Pallas/Vesta 2-Cycle}
 
-We work over the Pasta cycle: Pallas ($y^2 = x^3 - 17$ over
- $\mathbb{F}_p$) and Vesta ($y^2 = x^3 + 17$ over $\mathbb{F}_q$),
+We work over the Pasta cycle: Pallas ($y^2 = x^3 + 5$ over
+ $\mathbb{F}_p$) and Vesta ($y^2 = x^3 + 5$ over $\mathbb{F}_q$),
 where $\#\textsf{Pallas}(\mathbb{F}_p) = q$ and
  $\#\textsf{Vesta}(\mathbb{F}_q) = p$, with $p$ and $q$ both
  $\approx 2^{254}$. This cycle natively supports IVC folding without
@@ -208,7 +212,7 @@ computation. $\varepsilon = 0$ identically.
 
 The complete pipeline is implemented in both Python (the oracle) and
 C++20 (the production language), verified bit-exact: 516 golden
-test-vectors for the field arithmetic, 25/25 conformance tests for
+test-vectors for the field arithmetic, 27/27 conformance tests for
 the protocol, and 3 negative cases (malformed share, wrong
  $\text{order\_root}$, tampered ciphertext) each rejected at the
 correct verification seam. The $k_2 = k$ end-to-end assert (the
@@ -305,7 +309,8 @@ below the $2^{-80}$ target. The zeros are a parameter mandate.
 Field arithmetic (Pallas + Vesta) & Complete & 2{,}472 + 516 goldens \\
 Poseidon-3 (Pallas + Vesta domains) & Complete & MDS proven \\
 BLS12-377 full stack & Complete & Group law on 3 points \\
-Threshold BLS (DKG, beacon, secret-free) & Complete & 25/25 \\
+Threshold BLS (DKG, beacon, secret-free) & Complete & 27/27 \\
+CycleFold absorption (digest $\\to$ Vesta point) & Complete & 27/27 \\
 Zero-MEV mempool (order-bound) & Complete & Golden + negatives \\
 Fold semantics + constraints & Complete & Golden + negatives \\
 NIVC accumulator (41B) & Complete & Golden \\

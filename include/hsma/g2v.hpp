@@ -98,17 +98,18 @@ inline bool to_affine(const PtV& P, fev& x, fev& y) noexcept {
 }
 
 inline bool on_curve(const PtV& P) noexcept {
-    if (fq::fev_is_zero(P.z)) return true;  // infinity is on the curve
-    fev z2 = fq::fev_mul(P.z, P.z);
-    fev z3 = fq::fev_mul(z2, P.z);
-    fev y2 = fq::fev_mul(P.y, P.y);
-    fev x3 = fq::fev_mul(fq::fev_mul(P.x, P.x), P.x);
-    fev rhs = fq::fev_add(x3, fq::fev_mul(fq::fev_from_u64(5), z3));
-    return fq::fev_eq(y2, rhs);
+    // Jacobian curve equation: Y^2 = X^3 + b*Z^6  (affine x=X/Z^2, y=Y/Z^3).
+    // CA-R121: the old body's Z handling was masked by Z=1 (the only shape
+    // the suite ever tested). Full Z^6 term, no inversion, proven fev ops only.
+    if (fq::fev_is_zero(P.z)) return true;                 // infinity: on-curve by convention
+    fev z2 = fq::fev_mul(P.z, P.z);                        // Z^2
+    fev z6 = fq::fev_mul(fq::fev_mul(z2, z2), z2);         // Z^6 = (Z^2)^3
+    fev lhs = fq::fev_mul(P.y, P.y);                       // Y^2
+    fev x3  = fq::fev_mul(fq::fev_mul(P.x, P.x), P.x);     // X^3
+    fev rhs = fq::fev_add(x3, fq::fev_mul(curve_b(), z6)); // X^3 + b*Z^6
+    return fq::fev_is_zero(fq::fev_sub(lhs, rhs));
 }
 
-// Double: dbl-2009-l with a=0
-// http://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#doubling-dbl-2009-l
 inline PtV Vdbl(const PtV& P) noexcept { return jac_dbl(P); }
 inline PtV Vadd(const PtV& P, const PtV& Q) noexcept { return jac_add(P, Q); }
 inline PtV Vmul(const PtV& P, const std::uint64_t k[4]) noexcept {

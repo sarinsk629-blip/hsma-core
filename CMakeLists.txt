@@ -219,3 +219,8 @@ add_test(NAME step25_conformance COMMAND test_step25)
 add_executable(test_step26 conformance/test_step26.cpp)
 target_include_directories(test_step26 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step26_conformance COMMAND test_step26)
+
+# == Step 27: CycleFold absorption (DEC-225) ==
+add_executable(test_step27 conformance/test_step27.cpp)
+target_include_directories(test_step27 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step27_conformance COMMAND test_step27)
