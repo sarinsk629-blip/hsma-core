@@ -1749,6 +1749,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-11 (LOW, docs)** - Target-vs-measured label sweep: every performance number in the whitepaper carries its label until the wind tunnel measures it. Source: audit section 5.6.
 - **GAP-12 (STRATEGY, parallel, $0)** - ePrint write-up (the whitepaper is ~80% of a paper), README with gate badge + the 23/23 story, 2-3 grant proposals (Ethereum Foundation / Optimism RetroPGF / Gitcoin). Compounds during GAP-02..06.
 - **GAP-13 (MED, testing)** - Cross-pillar differential + property-based testing beyond the goldens: the bilingual oracle catches transcription errors, not shared design errors; reference-implementation differentials (with GAP-01) attack exactly that blind spot.
+- **GAP-14 (HIGH, crypto)** - The Pallas curve operations module: an untracked prerequisite of DEC-071's "Pallas/CycleFold-Vesta" accumulator binding, discovered during GAP-05 planning (the register's first self-audit catch). **CLOSED: DEC-226 (P1-08, g1p.hpp, golden parity, same session).**
 **Closure law: a gap leaves this register only through a golden-proven receipt in its own step - never through a narrative claim.**
 
 #### CA-R100 — Pre-read scope announcements are defects (the Step-22 lesson)
@@ -1953,3 +1954,58 @@ h2c (try-and-increment) remains an upgrade behind the same absorb() API.
 **Build status:** P1-07 CLOSED - GATE GREEN 27/27, 34 headers. GAP-03d CLOSED,
 GAP-04 CLOSED. The ePrint v2 patch (curve equations +/-17 -> +5, status table
 bumped) rides this commit.
+---
+## SECTION 3 - P1-08: The Pallas Curve Operations - GAP-14, The Register's First Self-Audit Catch (2026-09-15)
+#### DEC-226 - GAP-14: the Pallas curve ops twin (g1p.hpp) - opened and closed in one session
+**Decision:** include/hsma/g1p.hpp - the Pallas curve y^2 = x^3 + 5 over F_p,
+produced by a MECHANICAL TOKEN-MAP TRANSFORM of the proven g2v.hpp (namespace
+hsma::g1p, fp::fe 4-limb Montgomery, PtP Jacobian, the corrected Z^6 on_curve
+per CA-R121, the jac_dbl/jac_add core, Vmul MSB-first). NEW IN THE TWIN:
+fe_inv - the Pallas field inverse via Fermat (x^(p-2), Montgomery R-factor
+preserved exactly by Fermat's little theorem), built from the proven fe_mul/
+fe_sqr, proven by the 24-triple parity path (~50 to_affine calls) plus an
+explicit inverse-law check. The Pallas field never had an inversion (the
+Step-1 fe.hpp never needed one); the Vesta twin's fev_inv dates to P1-03a.
+Generator: (-1 mod p, 2) - verified by arithmetic AND by the pasta-curves
+crate's shared special_a0_b5 macro (NEGATIVE_ONE, TWO for both curves).
+GOLDEN: 8 add + 8 dbl + 8 mul triples from the Python affine oracle
+(step28.py, the step26 emitter transformed; the group-ORDER literal
+surgically fixed to q - the blind transform would have carried the wrong
+modulus), bit-exact in C++; every op on-curve-checked at Z!=1 (CA-R121);
+subgroup [q]G = inf (#Pallas(F_p) = q, the 2-cycle property).
+**Rationale:** DEC-071 binds the dual-layer PCS to "Pallas/CycleFold-Vesta"
+accumulators - but only the Vesta curve ops existed (GAP-03's scope). The
+Pallas twin was an UNTRACKED prerequisite, discovered during GAP-05 planning:
+the register's first self-audit catch. Registered as GAP-14 and closed by
+golden receipt in the same session.
+**Supersedes:** N/A
+### P1-08 ERRATA (2026-09-15)
+- **CA-R122** - A session probe tested the Pallas generator with x = q-1
+(the VESTA modulus) inside F_p arithmetic - a cross-modulus mix - and
+recorded "Pallas (-1,2) on curve: False". The correct arithmetic (x = p-1)
+shows (-1, 2) IS the canonical Pallas generator. LAW: a failing cross-curve
+check is re-derived with each curve's OWN modulus before its conclusion is
+recorded; mixed-modulus probe conclusions are void.
+- **CA-R123** - The g2v->g1p token map covered the qualified calls and the
+alias declaration but NOT the bare alias uses (fev x = ...) - 40 sites, one
+final pass. LAW: a token map enumerates EVERY form a name takes - qualified,
+alias-declaration, and bare - before the transform runs.
+- **CA-R124** - The token map renamed fq::fev_inv -> fp::fe_inv without
+checking the callee EXISTS in fe.hpp: the Pallas field never had an
+inversion. Owned: the D0 API inventory that proved it was in the same
+session. FIXED: fe_inv built in g1p.hpp (Fermat over proven fe_mul/fe_sqr,
+R-factor preserved), proven by parity + explicit inverse law. LAW: a
+mechanical transform cross-checks every CALLEE against the target module's
+actual API. Promotion path: if P1-09's Pedersen needs fe_inv in fp::, it
+moves to fe.hpp with its own golden.
+- **CA-R125** - The birth-check wrote its scratch file to /tmp; Termux
+cannot write /tmp (Android sandbox) - the check failed with a permission
+error while the header itself was fine (test_step28's compile includes the
+golden and ran green). LAW: Termux scratch artifacts live in build/,
+never /tmp.
+**GAP-05 staging (recorded, not yet built):** P1-09 = the dual-layer Pedersen
+(Pallas + Vesta accumulators, homomorphic add, hiding) = GAP-05 Layer 1;
+P1-10 = the WHIR-class wrap (lambda=128) = GAP-05 Layer 2. The existing
+pcs.hpp (hash-based, DEC-213) is untouched.
+**Build status:** P1-08 CLOSED - GATE GREEN 28/28, 35 headers. GAP-14 CLOSED.
+Whitepaper status refreshed; ePrint v2 copy bumped to 28/28.

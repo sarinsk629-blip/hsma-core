@@ -224,3 +224,8 @@ add_test(NAME step26_conformance COMMAND test_step26)
 add_executable(test_step27 conformance/test_step27.cpp)
 target_include_directories(test_step27 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step27_conformance COMMAND test_step27)
+
+# == Step 28: Pallas curve ops (DEC-226) ==
+add_executable(test_step28 conformance/test_step28.cpp)
+target_include_directories(test_step28 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step28_conformance COMMAND test_step28)
