@@ -2009,3 +2009,10 @@ P1-10 = the WHIR-class wrap (lambda=128) = GAP-05 Layer 2. The existing
 pcs.hpp (hash-based, DEC-213) is untouched.
 **Build status:** P1-08 CLOSED - GATE GREEN 28/28, 35 headers. GAP-14 CLOSED.
 Whitepaper status refreshed; ePrint v2 copy bumped to 28/28.
+#### CA-R126 - the stray-file law (owner decision, 2026-09-15)
+scripts/bridge2c.py (a one-off fix helper for bridge_final.py) was committed in
+50adfe6 to "clean the tree" - without owner confirmation of an ongoing purpose.
+The owner deleted it on GitHub; this errata records the law: ONE-OFF FIX TOOLS
+STAY UNTRACKED (or deleted) - a file is tracked only when the owner confirms
+its ongoing role. Cleanliness is not a purpose. The owner's deletion is
+accepted into history by rebase; the file is gone from the repo everywhere.
