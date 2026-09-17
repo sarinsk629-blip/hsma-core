@@ -234,3 +234,8 @@ add_test(NAME step28_conformance COMMAND test_step28)
 add_executable(test_step29 conformance/test_step29.cpp)
 target_include_directories(test_step29 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step29_conformance COMMAND test_step29)
+
+# == Step 30: WHIR-class wrap (DEC-228) ==
+add_executable(test_step30 conformance/test_step30.cpp)
+target_include_directories(test_step30 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step30_conformance COMMAND test_step30)

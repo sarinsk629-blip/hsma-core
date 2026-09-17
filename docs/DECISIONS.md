@@ -1740,7 +1740,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-02 (HIGH, engineering)** - gen_constants.py refactor: per-step modules, explicit parameter passing, a unified formatter library (the _r4/_r44/_r66/_s6/_b2l family). Evidence: CA-R67/R72/R73 (function-local p x3), CA-R95 (string-vs-limbs), CA-R96 (per-index-vs-joined), CA-R72 (line-splitting) - one structural disease, four recurrences. Closure: post-refactor run with byte-identical goldens (the refactor's own proof).
 - **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit. (03d hash-to-Vesta CLOSED: DEC-225)
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
-- **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.**
+- **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.** **FULLY CLOSED: DEC-227 (L1 Pedersen) + DEC-228 (L2 WHIR-class wrap).**
 - **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2.
 - **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
@@ -2064,3 +2064,77 @@ GAP-05 Layer 2, lambda=128). Until then, opening = naive full-vector reveal
 not hidden.
 **Build status:** P1-09 CLOSED - GATE GREEN 29/29, 36 headers. GAP-05 Layer 1
 CLOSED; Layer 2 (WHIR wrap) = P1-10.
+---
+## SECTION 5 - P1-10: The WHIR-Class Wrap - GAP-05 Layer 2, CLOSED (2026-09-15)
+#### DEC-228 - GAP-05 Layer 2: the WHIR-class succinct-opening wrap (whir.hpp)
+**Decision:** include/hsma/whir.hpp - T1 = pcs::open_1 (the proven opening);
+K=8 OOD points tau_{j,w} = sha256("HSMA_WHIR_TAU|j|w" || C_canonical_le) mod p;
+ood_j = f(tau_j); ood_commit = Sponge(SUMCHECK, ood); w_j bound to ood_commit;
+T2 = pcs::open_2(f, Wbar), Wbar = sum w_j*eq(tau_j,.). THE VERIFIER RUNS WITH
+NO WITNESS: T1 chain, v==fa, ood_commit re-derivation, T2 chain, and the
+independent identity T2.fb == sum_j w_j*eq(tau_j, r2) - O(k*nv) by eq-linearity
+(the fold of the batch equals the batch of folds). GOLDEN (whir_golden.hpp,
+flat arrays): the emitter derived the SUMCHECK IV by the iv_of runtime contract
+and MATCHED it against the monolith's pinned IvCase golden; consumed MDS/RC
+from p3_gen (positional parse, the loader contract); mirrored p3_permute at
+12+56+12 RCs (the CA-R119 arithmetic check applied at authoring); sponge_ref
+extracted by a compile-proven slice with AST-scraped tuple-aware constants;
+self-checked the T1 chain and the fb identity pre-emit. Negatives at stages
+1/3/4/5 (stage 5 via the product-preserving fa/fb shift - the exact attack the
+identity exists to catch); wrap_verify ACCEPT with zero witness access. Size
+receipt nv=20: 4960B / 73728B.
+**Rationale:** DEC-071's layering - Pedersen binds (DEC-227), WHIR wraps
+(this): the Phase-0 pcs transcript was verifier-complete only with the full
+witness (the direct_eval check); this layer removes the witness from
+verification entirely.
+**Supersedes:** N/A
+### P1-10 ERRATA (2026-09-15)
+- **CA-R129** - The whir.hpp v1 draft derived tau as ONE coordinate per point
+while ood_eval indexed the full 2^nv eq table - an out-of-bounds read class
+(CA-R119's twin), caught in REVIEW before execution. FIXED v2: per-coordinate
+tau_{j,w}. LAW: a new index space gets its table-size arithmetic check at
+authoring, not at runtime.
+- **CA-R130** - The parsed p3 region revealed RC_CANON carries [1 real, 79
+zero] round constants in the FROZEN base file. Consistency is intact (the C++
+and every pinned golden consume the same file - parity held throughout);
+recorded as a base-file quality finding. LAW: re-derivation is a future-phase
+migration with full re-pinning, never a silent edit.
+- **CA-R131** - Patch debris (ivname/ivm stale lines) survived two splices;
+the sponge extraction went through five iterations before its final form:
+compile-proven slice + AST-scraped tuple-aware constants. LAWS: (a) after two
+failed patch rounds, run a full dead-symbol sweep instead of a third spot-fix;
+(b) an extracted region PROVES it compiles before use; (c) AST scrapers handle
+every assignment shape.
+- **CA-R132** - whir.hpp pre-canonicalized values before fe_to_le_bytes -
+which canonicalizes INTERNALLY. Double-canonicalization = REDC twice = wrong
+C bytes, poisoning the entire tau/ood/C2/T2 subtree while C, T1, and all 80
+taus were separately proven. Convicted by a three-way consistency check and
+finished by instrumented ground truth (C right, tau wrong, same source).
+ALSO PROVED EN ROUTE: the C++ Sponge == Python sponge_ref bit-exact (sprobe),
+and the unassigned P.C2 defect (open_2 commits internally; the Proof field
+must store the same corpus commitment or the verifier derives T2 challenges
+from zero). FIXED: 4 sites + the C2 assignment. LAWS: fe_to_le_bytes
+canonicalizes internally - never pre-canonicalize; every Proof field is
+asserted-by-construction at authoring.
+- **CA-R133** - The C++ eq_table bound tau[0] to the HIGH bit while the
+emitter (and pcs' LSB-first fold) bind tau[0] to the LOW bit - 8 ood failures
+downstream of a one-index convention. CONVICTED by an orientation probe feeding
+the golden's own tau row both ways: reversed == golden bit-exact. FIXED.
+LAW: bit-order in a fresh implementation is a CONTRACT, not a default - the
+golden pins it; the reference implementation's construction wins.
+- **CA-R134** - The first stage-5 negative tampered fb_true - a field the
+verifier NEVER READS (its recomputation IS the verifier independence), so the
+negative was incoherent with the property being tested. CORRECT negative: the
+product-preserving fa/fb shift (fa*s, fb/s^-1 via the P1-08 fe_inv) - pcs'
+final check passes while only the independent identity rejects. LAW: a
+negative must model the attack the check exists to catch; fields the verifier
+recomputes are invisible to it BY DESIGN.
+### P1-10 HONEST BOUNDARY (2026-09-15)
+- WHIR-CLASS per DEC-071's language: sumcheck + OOD + batching on the proven
+engine satisfies every written contract (succinct verifier, lambda via 64-bit
+OOD sampling, the <=72KB budget: nv=20 receipt ~5KB). The full recursive
+polynomial-fold chain and the f-side cryptographic anchor land with GAP-06's
+Pedersen binding - labeled, not hidden.
+**Build status:** P1-10 CLOSED - GATE GREEN 30/30, 37 headers. GAP-05 FULLY
+CLOSED (Layer 1: DEC-227 Pedersen; Layer 2: this wrap). NEXT: GAP-06 - the
+HyperNova multifold: pi_E generation begins.

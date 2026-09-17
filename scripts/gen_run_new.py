@@ -22,7 +22,7 @@ exec(compile(open("scripts/gen_constants.py").read(), "gen_constants.py", "exec"
 
 print("[gen-new] PHASE 2: fixed step modules (7-26)", flush=True)
 G = os.path.join(ROOT, "scripts", "gen", "steps")
-for n in range(7, 30):
+for n in range(7, 31):
     path = os.path.join(G, "step%02d.py" % n)
     ns["__file__"] = path
     exec(compile(open(path).read(), path, "exec"), ns)
