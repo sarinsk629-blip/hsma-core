@@ -229,3 +229,8 @@ add_test(NAME step27_conformance COMMAND test_step27)
 add_executable(test_step28 conformance/test_step28.cpp)
 target_include_directories(test_step28 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step28_conformance COMMAND test_step28)
+
+# == Step 29: Pedersen Layer 1 (DEC-227) ==
+add_executable(test_step29 conformance/test_step29.cpp)
+target_include_directories(test_step29 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step29_conformance COMMAND test_step29)

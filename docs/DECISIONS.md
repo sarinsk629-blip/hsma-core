@@ -1740,7 +1740,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-02 (HIGH, engineering)** - gen_constants.py refactor: per-step modules, explicit parameter passing, a unified formatter library (the _r4/_r44/_r66/_s6/_b2l family). Evidence: CA-R67/R72/R73 (function-local p x3), CA-R95 (string-vs-limbs), CA-R96 (per-index-vs-joined), CA-R72 (line-splitting) - one structural disease, four recurrences. Closure: post-refactor run with byte-identical goldens (the refactor's own proof).
 - **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit. (03d hash-to-Vesta CLOSED: DEC-225)
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
-- **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071.
+- **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.**
 - **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2.
 - **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
@@ -2016,3 +2016,49 @@ The owner deleted it on GitHub; this errata records the law: ONE-OFF FIX TOOLS
 STAY UNTRACKED (or deleted) - a file is tracked only when the owner confirms
 its ongoing role. Cleanliness is not a purpose. The owner's deletion is
 accepted into history by rebase; the file is gone from the repo everywhere.
+---
+## SECTION 4 - P1-09: The Homomorphic Pedersen Layer - GAP-05 Layer 1 (2026-09-15)
+#### DEC-227 - GAP-05 Layer 1: the dual Pasta Pedersen accumulators (pedersen.hpp)
+**Decision:** include/hsma/pedersen.hpp - namespaces pedp/pedv: PedP = Pallas
+points with F_q scalars (Pallas order = q), PedV = Vesta points with F_p
+scalars (Vesta order = p). The 2-cycle property makes both scalar domains
+EXACT - canonical u64[4] limbs feed Vmul directly, zero conversion (CA-R117
+honored by construction). Bases (transparent, no trusted setup, no new
+Poseidon domain): h_i = SHA256("HSMA_PEDERSEN_<CURVE>_H<i>") LE % order
+(digest < 2^256, orders > 2^254.9 -> at most 2 conditional subtracts,
+trip-checked), H_i = [h_i]*G. commit(m[8], r) = [r]G + sum [m_i]H_i (Jacobian
+over the proven g1p/g2v cores). GOLDEN (pedersen_golden.hpp, both curves):
+8 base scalars + 8 base points (DOUBLE-PINNED: C++ sha256+reduction vs golden
+scalar limbs AND point parity), 3 commit triples, 1 homomorphism receipt
+(C1+C2 == C12 == commit(m12,r12)), 1 scalar-hom receipt (s*C == commit(s*m,
+s*r)) - the emitter SELF-CHECKED every receipt (on-curve, subgroup, both hom
+laws) pre-emit. Negatives: tampered message -> different commitment
+(binding), per curve. The existing pcs.hpp (hash-based, DEC-213) untouched.
+**Rationale:** DEC-071's dual-layer PCS: HyperNova folds COMMITMENTS - they
+must be homomorphic. This layer supplies binding + hiding + homomorphism on
+both Pasta curves from proven primitives only (sha256, both curve twins).
+**Supersedes:** N/A
+### P1-09 ERRATA (2026-09-15)
+- **CA-R127** - The Pedersen golden's 2D members (m[8][4]) were emitted one
+brace level short: a braced group binds to the next MEMBER (not the next
+sub-array), so {g1..g4} consumed m-as-whole + r + cx + cy and {g5} was excess
+- proven by the error column landing exactly after group 4. First 2D arrays
+in project history; every prior golden's members were flat [4]. FIXED: mrow
+wraps the 8 groups in their own brace level. LAW: nested array members need
+one more brace level than the group-per-member pattern; every emitted header
+passes the STANDALONE birth-check at emission (this catch cost one clang
+invocation, not a gate run).
+- **CA-R128** - The test looped on shadow count constants (_N) that the
+fresh emitter never declared (it hardcodes std::array<T,3>). FIXED: the test
+references the array's own constexpr .size(). LAW: between a fresh emitter
+and a fresh consumer, the contract is the emitted symbol itself (the array
+and its .size()) - never a hand-maintained shadow count; when a new file
+mirrors a proven one, its symbol inventory is COPIED with it (CA-R120's law,
+applied to consumers).
+### P1-09 HONEST BOUNDARY (2026-09-15)
+- The OPENING proof for these commitments is the WHIR-class wrap (P1-10 =
+GAP-05 Layer 2, lambda=128). Until then, opening = naive full-vector reveal
+(sufficient for folding's linear-combination checks, not succinct). Recorded,
+not hidden.
+**Build status:** P1-09 CLOSED - GATE GREEN 29/29, 36 headers. GAP-05 Layer 1
+CLOSED; Layer 2 (WHIR wrap) = P1-10.
