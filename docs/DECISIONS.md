@@ -2033,6 +2033,14 @@ must be homomorphic. This layer supplies binding + hiding + homomorphism on
 both Pasta curves from proven primitives only (sha256, both curve twins).
 **Supersedes:** N/A
 ### P1-09 ERRATA (2026-09-15)
+- **CA-R126** - The PRE-EMIT SELF-CHECK law: every golden emitter validates every
+receipt in its oracle BEFORE writing the golden - curve membership, subgroup
+order, homomorphism identities, calibration probes - and a receipt that fails
+self-check never reaches disk. Established in P1-07 (the schedule calibrated
+against the compiled twin before emission) and P1-09 (per-curve self-checks of
+bases, commits, homomorphism, and scalar-hom receipts pre-emit). LAW: emission
+is a downstream event; validation is an upstream event - the golden file is
+written only after its own content is proven.
 - **CA-R127** - The Pedersen golden's 2D members (m[8][4]) were emitted one
 brace level short: a braced group binds to the next MEMBER (not the next
 sub-array), so {g1..g4} consumed m-as-whole + r + cx + cy and {g5} was excess
