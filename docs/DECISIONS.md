@@ -1741,7 +1741,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit. (03d hash-to-Vesta CLOSED: DEC-225)
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
 - **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.** **FULLY CLOSED: DEC-227 (L1 Pedersen) + DEC-228 (L2 WHIR-class wrap).**
-- **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2. **CORE CLOSED: DEC-229 (P1-11, the k-fold over sparse relaxed R1CS, FS-bound, satisfaction preserved); commitment folding = P1-12; circuits+pi_E = P1-13 (GAP-07).**
+- **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2. **CORE CLOSED: DEC-229 (P1-11, the k-fold over sparse relaxed R1CS, FS-bound, satisfaction preserved); commitment folding = P1-12; circuits+pi_E = P1-13 (GAP-07).** **commitment layer CLOSED: DEC-230 (P1-12, pedv folding, the exactness lemma); circuits+pi_E = P1-13 (GAP-07).**
 - **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
 - **GAP-09 (HIGH, verification)** - H5 formal verification (shipped circuits == specifications) + independent external security audit. Release blockers. The external audit's existence mitigates, does not cure, the self-audit correlation risk.
@@ -2181,3 +2181,55 @@ math honest while the plumbing settles.
 **Build status:** P1-11 CLOSED - GATE GREEN 31/31, 38 headers. GAP-06 CORE
 CLOSED; commitment folding = P1-12; circuits at scale + pi_E = P1-13
 (GAP-07).
+---
+## SECTION 7 - P1-12: Commitment Folding - GAP-06 (2026-09-15)
+#### DEC-230 - GAP-06: the multifold's commitment layer (cfold.hpp)
+**Decision:** include/hsma/cfold.hpp - commitments to the F_p folding vectors
+(z, T) live on the ORDER-P GROUP (Vesta, pedv): the challenges r_j and the
+blindings rho are F_p elements - exact scalars for the Vesta group. THE
+EXACTNESS LEMMA: [z_Ui + r*z_1i] = [z'_i] even across the mod-p reduction,
+because k*p = identity - the 2-cycle absorbs the reduction. THE FOLD:
+W' = W_U + sum r_j*C_Wj (challenge-bound); THE BINDING CHECK:
+recommit(z', rho') == W' with rho' = rho_U + sum r_j*rho_j (F_p) - the
+verifier's recomputation. GOLDEN (cfold_golden.hpp): rho x3 (DRBG),
+C_WU/C_W1/C_T1 affine, r1, W'/Wre - the identity self-checked PRE-EMIT
+(CA-R126) and machine-checked in C++ (commitment_consistent). Negatives
+(CA-R134): witness-tamper moves C_W (binding); challenge-tamper moves W'
+(challenge-binding). Cross-file pinning: r1/u' verified against the P1-11
+mfold golden.
+**Rationale:** The whitepaper's "HyperNova multifold fold commitments" -
+DEC-227's homomorphism meets DEC-229's accumulator. Openings remain naive
+(full reveal) until P1-13's WHIR integration - recorded, not hidden.
+**Supersedes:** N/A
+### P1-12 ERRATA (2026-09-15)
+- **CA-R137** - The cfold scaffold committed on PEDP (Pallas, F_q scalars):
+wrong group. The folded vectors and challenges live in F_p, so the commitment
+group MUST have order p (Vesta). CAUGHT by deriving the blinding-field
+question honestly BEFORE any golden. FIXED to pedv. LAW: commitments to F_p
+folding vectors live on the order-p curve.
+- **CA-R138** - THE EXACTNESS LEMMA (law): in a group of order p, [a + k*p]
+= [a] - the group absorbs the F_p reduction. The arithmetic reason the Pasta
+2-cycle exists for folding.
+- **CA-R139** - Parsing golden arrays by hand-counted row offsets is
+fragile (multi-group rows broke the count twice). FIXED by the SELF-LOCATING
+SLICE: candidate offsets tried, each validated by the file's own mathematical
+invariant (every Pedersen base must satisfy H_i == [h_i]*G; 8/8 or reject).
+The invariant finds the layout. LAW: a slice's correctness is proven by the
+data's own law, not by arithmetic on the file's shape.
+- **CA-R140** - Unpacking-shape discipline: the multifold returns per-instance
+ROWS (T = list of vectors); consuming T1v as a flat vector was a shape slip
+caught by the pre-emit identity. LAW: unpack an aggregate, use one element -
+the shape error surfaces as a type error at the consumer, and the pre-emit
+self-checks keep it from reaching disk.
+- **CA-R141** - THE DOMAIN LAW: every fp::fe value carries its domain
+(Montgomery or canonical) implicitly; fe_to_canonical is a TRANSITION, not
+a normalization. commitment_consistent stripped MF.r[j] (Montgomery) to
+canonical and multiplied it with a Montgomery-encoded rho - the mixed-domain
+product is silently canonical, and the subsequent add corrupted rho'. The
+cfoldprobe convicted it: rr == rr2 (both wrong identically), Python's
+rho' = 3f0650... vs C++ 0cd2..., with mm0 == golden proving the z-fold
+innocent. FIXED: Montgomery throughout (MF.r[j] used as-is), one strip at
+the end. LAW: know the domain of every value; a domain transition is a
+deliberate act, never a convenience call.
+**Build status:** P1-12 CLOSED - GATE GREEN 32/32, 39 headers. GAP-06
+commitment layer CLOSED; circuits at scale + pi_E assembly = P1-13 (GAP-07).
