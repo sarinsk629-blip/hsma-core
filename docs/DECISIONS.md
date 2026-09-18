@@ -2275,6 +2275,16 @@ root of the original, not just the easy ones.
 unsat at exactly that row. FIXED: NZ 15->16, Z_ONE, the constant term
 carried on the wire. LAW: constant terms in linear forms are counted as
 variables, not assumed.
+- **CA-R145 - emitted-contract completeness** - The emitter used
+pth[0]/pth[1] as witness values (PTHASH/COMPUTED) but never emitted them -
+the test's rebuild used placeholders, and the FS transcript diverged at
+exactly those slots while T parity passed (T precedes the transcript).
+CONVICTED by the absorb-stream diff: 58 slots both sides, slot[3] =
+186467b7 (the placeholder) vs 23f8407a (the real pt) - one divergent index
+naming one missing contract. FIXED: FX_PT0/PT1 emitted; both sides consume
+the golden. LAW: every witness input a rebuild needs must be an emitted
+contract; the absorb-stream diff is THE diagnostic for transcript
+divergence.
 **Build status:** P1-13a CLOSED - GATE GREEN 33/33, 40 headers. GAP-07 core
 CLOSED. NEXT: P1-13b - the epoch loop + pi_E assembly (the wrap over the
 folded accumulator; the size receipt at epoch scale).
