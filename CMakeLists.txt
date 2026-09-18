@@ -239,3 +239,8 @@ add_test(NAME step29_conformance COMMAND test_step29)
 add_executable(test_step30 conformance/test_step30.cpp)
 target_include_directories(test_step30 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step30_conformance COMMAND test_step30)
+
+# == Step 31: HyperNova multifold core (DEC-229) ==
+add_executable(test_step31 conformance/test_step31.cpp)
+target_include_directories(test_step31 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step31_conformance COMMAND test_step31)

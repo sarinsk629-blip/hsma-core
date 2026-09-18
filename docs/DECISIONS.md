@@ -1741,7 +1741,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-03 (HIGH, crypto)** - Vesta field twin (fev.hpp) + Vesta-domain Poseidon + Vesta curve ops; closes the 0/2472 Vesta field-golden coverage gap. Source: DEC-217(a) + audit. (03d hash-to-Vesta CLOSED: DEC-225)
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
 - **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.** **FULLY CLOSED: DEC-227 (L1 Pedersen) + DEC-228 (L2 WHIR-class wrap).**
-- **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2.
+- **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2. **CORE CLOSED: DEC-229 (P1-11, the k-fold over sparse relaxed R1CS, FS-bound, satisfaction preserved); commitment folding = P1-12; circuits+pi_E = P1-13 (GAP-07).**
 - **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
 - **GAP-09 (HIGH, verification)** - H5 formal verification (shipped circuits == specifications) + independent external security audit. Release blockers. The external audit's existence mitigates, does not cure, the self-audit correlation risk.
@@ -2138,3 +2138,46 @@ Pedersen binding - labeled, not hidden.
 **Build status:** P1-10 CLOSED - GATE GREEN 30/30, 37 headers. GAP-05 FULLY
 CLOSED (Layer 1: DEC-227 Pedersen; Layer 2: this wrap). NEXT: GAP-06 - the
 HyperNova multifold: pi_E generation begins.
+---
+## SECTION 6 - P1-11: The HyperNova Multifold Core - GAP-06 (2026-09-15)
+#### DEC-229 - GAP-06: the k-fold core over sparse relaxed R1CS (mfold.hpp)
+**Decision:** include/hsma/mfold.hpp - SPARSE R1CS in the Pallas field (COO
+matrices, mat_vec), relaxed instances (u, z, E; fresh = u=1, E=0), the standard
+HyperNova cross-term T = Az_U.oBz_j + Az_j.oBz_U - u_U*Cz_j - u_j*Cz_U, and
+the exact k-fold: z' = z_U + sum r_j z_j, u' = u_U + sum r_j, E' = E_U +
+sum r_j T_j. FS binding: seed = Sponge(SUMCHECK) over (u,z,E of U, then each
+instance + its cross-term), r_j = P3(seed, j) - the derive_points pattern.
+SATISFACTION PRESERVATION machine-checked in both languages: SAT-in ->
+SAT-out through fold1 (fresh+fresh -> RELAXED, E!=0) and fold2 (the
+HyperNova loop on a relaxed accumulator). FS challenges transcript-bound;
+the tamper negative (CA-R134) corrupts the accumulator exactly as the algebra
+predicts. GOLDEN (mfold_golden.hpp, flat arrays per CA-R127): FS seeds,
+challenges, cross-terms, and the folded z/u/E bit-exact vs the Python mirror
+(sponge_ref extracted by the compile-proven slice pattern; IV by the iv_of
+contract). Emitter self-checks (CA-R126): witnesses SAT, fold1/fold2 SAT,
+tamper corrupts - pre-emit.
+**Rationale:** GAP-06's core machinery. The layered decomposition (recorded
+here): P1-11 = this core (dense witnesses at golden scale); P1-12 =
+commitment folding (the multifold over Pedersen commitments, DEC-227's
+homomorphism); P1-13 = circuit instantiation at epoch scale + pi_E assembly
+(GAP-07). The whitepaper's "fold commitments" sentence lands at P1-12.
+**Supersedes:** N/A
+### P1-11 ERRATA (2026-09-15)
+- **CA-R135** - The initial cross_term omitted the u_j*Cz_U term (writing
+Cz_U unconditionally) - correct ONLY because incoming instances are always
+fresh (u_j=1); no golden could ever have caught it. FOUND by algebra
+re-derivation while building correct witnesses, FIXED to the standard form,
+and the freshness precondition is now ASSERTED in multifold (u_j=1, E_j=0).
+LAW: a specialization valid only under a scheme precondition carries the
+precondition as a runtime assert, and the general form is written, not the
+shortcut.
+- **CA-R136** - The emitter shakedown exposed three mechanical slips (an
+in-function hashlib import lost to a debris sweep, a missing .digest(), a
+perm3 returning the full state instead of s0) - each caught by one run, one
+paste, one fix; the MATH (cross-terms, folds, SAT preservation) never
+stumbled. LAW: the shakedown curve (import -> digest -> return-lane) is the
+expected emitter birth pattern; the pre-emit self-checks are what keep the
+math honest while the plumbing settles.
+**Build status:** P1-11 CLOSED - GATE GREEN 31/31, 38 headers. GAP-06 CORE
+CLOSED; commitment folding = P1-12; circuits at scale + pi_E = P1-13
+(GAP-07).

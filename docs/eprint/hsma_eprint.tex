@@ -28,7 +28,7 @@
 
 \author{SK Sarin Arfin \and HSMA Core Engineering\
 \thanks{Corresponding author: \texttt{sarinsk629@gmail.com}. The complete implementation
-(30/30 conformance tests, 225-decision append-only ledger, 118 owned errata) is publicly
+(31/31 conformance tests, 225-decision append-only ledger, 118 owned errata) is publicly
 available at \url{https://github.com/sarinsk629-blip/hsma-core}. The full technical
 specification is in \texttt{docs/whitepaper.tex}.}}
 
@@ -212,7 +212,7 @@ computation. $\varepsilon = 0$ identically.
 
 The complete pipeline is implemented in both Python (the oracle) and
 C++20 (the production language), verified bit-exact: 516 golden
-test-vectors for the field arithmetic, 30/30 conformance tests for
+test-vectors for the field arithmetic, 31/31 conformance tests for
 the protocol, and 3 negative cases (malformed share, wrong
  $\text{order\_root}$, tampered ciphertext) each rejected at the
 correct verification seam. The $k_2 = k$ end-to-end assert (the
@@ -309,8 +309,8 @@ below the $2^{-80}$ target. The zeros are a parameter mandate.
 Field arithmetic (Pallas + Vesta) & Complete & 2{,}472 + 516 goldens \\
 Poseidon-3 (Pallas + Vesta domains) & Complete & MDS proven \\
 BLS12-377 full stack & Complete & Group law on 3 points \\
-Threshold BLS (DKG, beacon, secret-free) & Complete & 30/30 \\
-CycleFold absorption (digest $\\to$ Vesta point) & Complete & 30/30 \\
+Threshold BLS (DKG, beacon, secret-free) & Complete & 31/31 \\
+CycleFold absorption (digest $\\to$ Vesta point) & Complete & 31/31 \\
 Zero-MEV mempool (order-bound) & Complete & Golden + negatives \\
 Fold semantics + constraints & Complete & Golden + negatives \\
 NIVC accumulator (41B) & Complete & Golden \\
