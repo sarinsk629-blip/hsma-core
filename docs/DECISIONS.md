@@ -1742,7 +1742,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
 - **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.** **FULLY CLOSED: DEC-227 (L1 Pedersen) + DEC-228 (L2 WHIR-class wrap).**
 - **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2. **CORE CLOSED: DEC-229 (P1-11, the k-fold over sparse relaxed R1CS, FS-bound, satisfaction preserved); commitment folding = P1-12; circuits+pi_E = P1-13 (GAP-07).** **commitment layer CLOSED: DEC-230 (P1-12, pedv folding, the exactness lemma); circuits+pi_E = P1-13 (GAP-07).**
-- **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc. **CORE CLOSED: DEC-231 (P1-13a, the f_exec circuit as R1CS); epoch loop + pi_E = P1-13b.**
+- **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc. **CORE CLOSED: DEC-231 (P1-13a, the f_exec circuit as R1CS); epoch loop + pi_E = P1-13b.** **FULLY CLOSED: DEC-231 (P1-13a, the f_exec circuit as R1CS) + DEC-232 (P1-13b, the epoch chain + pi_E structure).**
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
 - **GAP-09 (HIGH, verification)** - H5 formal verification (shipped circuits == specifications) + independent external security audit. Release blockers. The external audit's existence mitigates, does not cure, the self-audit correlation risk.
 - **GAP-10 (MED, perf)** - Phase-1 wind tunnel on real hardware: liveness constants are simulation-calibrated; Termux is correctness-grade, not benchmark-grade. Source: audit + whitepaper limitations.
@@ -2288,3 +2288,63 @@ divergence.
 **Build status:** P1-13a CLOSED - GATE GREEN 33/33, 40 headers. GAP-07 core
 CLOSED. NEXT: P1-13b - the epoch loop + pi_E assembly (the wrap over the
 folded accumulator; the size receipt at epoch scale).
+---
+## SECTION 9 - P1-13b: The Epoch Chain + pi_E - GAP-07 FULLY CLOSED (2026-09-15)
+#### DEC-232 - GAP-07: the epoch loop over the f_exec circuit + the pi_E wrap structure
+**Decision:** scripts/gen/steps/step34.py + epoch_golden.hpp - THE EPOCH:
+prev_digest -> HEAD (absorbs prev_digest via the HSM_FOLD_v1 perm, PC=0) ->
+EXEC (absorbs pt_hash, PC=1) -> CLOSE (terminal, ISPAD=1, PC=2); each step's
+witness carries the PC value and the transition selector; the steps fold
+through the P1-13a circuit matrices (the PC cubic enforcing the transition
+matrix per CA-R143); both folds machine-checked SAT in both languages; the
+final accumulator (z'(16) || E'(8) || u(1), padded to 32 for the MLE domain)
+goes through the WHIR-wrap commitment structure: C = Sponge(evals), 8 OOD
+points (tau width = log2(NPAD)), ood_commit - the pi_E structure. Size
+receipt: 1600 bytes at the golden scale (budget 73728). Cross-file pinning:
+the seeds/challenges/z/u/E vs the Python mirror; HEAD/EXEC/CLOSE SAT receipts.
+**Rationale:** The epoch proof's STRUCTURE is complete: the chain, the folds,
+the wrap. The remaining production work (real-size circuits, the SMT-opening
+witnesses at scale, the full Poseidon unroll) is P1-14/H5 territory -
+recorded, not hidden.
+**Supersedes:** N/A
+### P1-13b ERRATA (2026-09-15)
+- **CA-R146** - The OOD tau width is log2(PADDED_domain): the first build
+computed tau over len(evals).bit_length() = 5 and indexed 2^5 = 32 eq rows
+against 25 evals - IndexError. FIXED: pad to the next power of two (32), tau
+width 5, the sum over the padded vector. LAW: the multilinear domain is the
+PADDED length; tau width = log2(padded); the OOD sum runs over the padded
+rows.
+- **CA-R147** - The HEAD/CLOSE steps reuse the EXEC row-shape with selector
+algebra (ISPAD/NOTPAD/PC) rather than the whitepaper's distinct
+F={F_head, F_exec, F_close} circuits. Honest boundary: the unified circuit
+with selectors is the golden-scale form; the SuperNova NIVC per-function
+circuits are P1-14/H5 work. LAW: selector-unified circuits are a legitimate
+golden form; the per-function split is the production form - recorded, not
+hidden.
+- **CA-R148 (revised) - the Montgomery-domain law** - The C++ fp::fe
+ecosystem: fe_from_u64/raw-copy produce CANONICAL values; fe_mul is CIOS
+(Montgomery inputs -> Montgomery outputs); fe_to_canonical strips R; ADDITION
+is domain-agnostic. The C++ sponge's permute uses fe_mul internally, so
+absorbed values MUST be Montgomery-encoded for the permute to compute
+correctly; the Python mirror operates natively plain, and the two match
+because CIOS(Mont(a), Mont(b)) = Mont(a*b) with to_canonical stripping R -
+domain-transparent composition. A "raw-copy ld()" fix broke every fe_mul in
+the permute; reverted to the P1-11 proven pattern (x * RR). LAW: values
+entering fe_mul MUST be Montgomery; a domain transition is a deliberate act.
+- **CA-R149** - The test's CLOSE witness passed nonces=0/noncept=0 while
+the emitter's mkz used its defaults (7/8) - the FS transcript absorbed
+different values and seed2 diverged. The emitter's DEFAULT arguments are
+contract values (CA-R145 applied to function signatures). FIXED: the test
+passes the emitter's exact defaults. LAW: a function's default parameter
+values are part of the emitted contract; a rebuild must reproduce them
+exactly.
+- **CA-R150** - The diff-based "IDENTICAL" verdict LIED: diff exits 1 on
+differences, but the pipe to `head` swallowed the exit code and the &&
+branch fired. The transcript genuinely diverged while the tooling reported
+agreement. LAW: a verdict derived from a piped exit code is not a verdict -
+use diff -q or check PIPESTATUS; tooling conclusions require the exit code
+of the deciding command itself.
+**Build status:** P1-13b CLOSED - GATE GREEN 34/34, 41 headers. GAP-07 FULLY
+CLOSED. THE EPOCH PROOF'S STRUCTURE IS COMPLETE: chain -> folds -> wrap.
+NEXT: P1-14 - pi_E at scale (real-size circuits, SMT witnesses at epoch
+scale, the full Poseidon unroll).

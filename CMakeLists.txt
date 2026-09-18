@@ -254,3 +254,8 @@ add_test(NAME step32_conformance COMMAND test_step32)
 add_executable(test_step33 conformance/test_step33.cpp)
 target_include_directories(test_step33 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step33_conformance COMMAND test_step33)
+
+# == Step 34: the epoch chain + pi_E (DEC-232) ==
+add_executable(test_step34 conformance/test_step34.cpp)
+target_include_directories(test_step34 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step34_conformance COMMAND test_step34)
