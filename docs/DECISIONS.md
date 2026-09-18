@@ -1742,7 +1742,7 @@ An independent reader audited the transcript: verdict - "real, unusually well-di
 - **GAP-04 (HIGH, crypto)** - CycleFold absorption: cross-curve commitment digests -> one Vesta point (whitepaper section 7). Needs GAP-03. **CLOSED: DEC-225 (P1-07).**
 - **GAP-05 (HIGH, crypto)** - Dual-layer PCS: homomorphic Pedersen + WHIR wrap (lambda=128) - the production form of DEC-213's honestly-deferred commitment layer. Source: DEC-063/071. **Layer 1 CLOSED: DEC-227 (P1-09, both Pasta Pedersen accumulators: homomorphic + binding + hiding); Layer 2 (WHIR wrap, lambda=128) = P1-10.** **FULLY CLOSED: DEC-227 (L1 Pedersen) + DEC-228 (L2 WHIR-class wrap).**
 - **GAP-06 (HIGH, crypto)** - HyperNova multifold with relaxed CCS: sparse S_j matrices, real circuit sizing, commitment folding - THE pi_E generation. Source: DEC-208/209/214 Phase-0 forms + audit sections 3.1/3.2. **CORE CLOSED: DEC-229 (P1-11, the k-fold over sparse relaxed R1CS, FS-bound, satisfaction preserved); commitment folding = P1-12; circuits+pi_E = P1-13 (GAP-07).** **commitment layer CLOSED: DEC-230 (P1-12, pedv folding, the exactness lemma); circuits+pi_E = P1-13 (GAP-07).**
-- **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc.
+- **GAP-07 (MED, crypto)** - Real circuit instantiation: the F_exec constraint set as actual CCS rows at epoch scale (the >=10^6-constraint circuit vs the 24-constraint toy). Part of GAP-06's arc. **CORE CLOSED: DEC-231 (P1-13a, the f_exec circuit as R1CS); epoch loop + pi_E = P1-13b.**
 - **GAP-08 (MED, transport)** - 48-B compressed sigma wire form + the G1 socket adapter (production transport). Source: DEC-192/211 production clauses.
 - **GAP-09 (HIGH, verification)** - H5 formal verification (shipped circuits == specifications) + independent external security audit. Release blockers. The external audit's existence mitigates, does not cure, the self-audit correlation risk.
 - **GAP-10 (MED, perf)** - Phase-1 wind tunnel on real hardware: liveness constants are simulation-calibrated; Termux is correctness-grade, not benchmark-grade. Source: audit + whitepaper limitations.
@@ -2233,3 +2233,48 @@ the end. LAW: know the domain of every value; a domain transition is a
 deliberate act, never a convenience call.
 **Build status:** P1-12 CLOSED - GATE GREEN 32/32, 39 headers. GAP-06
 commitment layer CLOSED; circuits at scale + pi_E assembly = P1-13 (GAP-07).
+---
+## SECTION 8 - P1-13a: The f_exec Circuit - GAP-07 (2026-09-15)
+#### DEC-231 - GAP-07: the f_exec transition circuit as sparse R1CS (fexec_circuit.hpp)
+**Decision:** include/hsma/fexec_circuit.hpp - the whitepaper's five per-entry
+constraints as sparse R1CS rows (NZ=16, NROWS=8): binding (NOTPAD*(COMPUTED -
+PTHASH)=0), nonce (NOTPAD*(NONCES+1-NONCEPT)=0 via the ONE wire), booleanity
+(LT, ISPAD, SELF), the PC cubic as a two-row split (H=PC^2; H*PC = 3H - 2PC),
+PAD-neutrality (ISPAD*(DNEW-DPREV)=0, DEC-033), and the exec digest chain
+carried as witness values pinned by the proven HSM_FOLD_v1 perm. THE NATIVE
+CROSS-CHECK: the emitter's digest chain (d0 -> d1 -> d2 via the Python perm)
+uses the same domain tag and constants as fold.hpp's native f_exec - the
+circuit's semantics ARE the native semantics. GOLDEN: digest chain, FS seeds,
+cross-terms, folded z/u/E - bit-exact vs the Python mirror. Negatives
+(CA-R134): nonce violation -> R1 unsat; PC=3 -> the cubic unsat.
+**Rationale:** GAP-07's core: the F_exec constraint set as actual R1CS rows.
+The SMT openings remain witnesses (INV-P4-1's certificate assumption,
+extended); Poseidon-in-circuit is a GADGET (digest_new pinned by the proven
+hash golden at scale; the full round-unroll is P1-14/H5 work); epoch-scale
+row counts are computed receipts, not Termux materializations - the three
+honest boundaries, recorded.
+**Supersedes:** N/A
+### P1-13a ERRATA (2026-09-15)
+- **CA-R142 - THE FIELD-SEMANTICS TABLE** - The two field twins' arithmetic
+conventions were inferred from memory across six gates. The feprobe measured
+them: fe_one() = 1, from_u64(x) = x (raw), fe_mul = a*b mod n, and
+to_canonical = *R^-1 (D(R)=1) - on BOTH twins, self-consistently. THE OPEN
+CELL: from_u64's canonical ROUND-TRIP shows a non-trivial factor (to_canon
+of a raw 2 is neither 2 nor 2/R) - the exact exponent is unpinned. LAW
+(the table itself): every emitter computes CANONICALLY in Python and
+compares via to_canonical round-trips - domain-agnostic by construction,
+which is why six gates went green without the abstract model. The open cell
+is flagged for the P1-14 probe.
+- **CA-R143 - the cubic-split law** - The PC membership constraint
+PC(PC-1)(PC-2)=0 split as H=PC^2; H*(PC-2)=0 FAILS AT PC=1 - the EXEC case
+itself. Correct split: H*PC = 3H - 2PC (verified at PC in {0,1,2}, unsat at
+3). LAW: a polynomial identity split across rows is re-verified at EVERY
+root of the original, not just the easy ones.
+- **CA-R144 - the one-wire law** - An R1CS linear form with a constant term
+(nonce_s + 1 - nonce_pt) requires the ONE wire; the first witness set was
+unsat at exactly that row. FIXED: NZ 15->16, Z_ONE, the constant term
+carried on the wire. LAW: constant terms in linear forms are counted as
+variables, not assumed.
+**Build status:** P1-13a CLOSED - GATE GREEN 33/33, 40 headers. GAP-07 core
+CLOSED. NEXT: P1-13b - the epoch loop + pi_E assembly (the wrap over the
+folded accumulator; the size receipt at epoch scale).

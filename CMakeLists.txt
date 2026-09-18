@@ -249,3 +249,8 @@ add_test(NAME step31_conformance COMMAND test_step31)
 add_executable(test_step32 conformance/test_step32.cpp)
 target_include_directories(test_step32 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
 add_test(NAME step32_conformance COMMAND test_step32)
+
+# == Step 33: f_exec circuit (DEC-231) ==
+add_executable(test_step33 conformance/test_step33.cpp)
+target_include_directories(test_step33 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+add_test(NAME step33_conformance COMMAND test_step33)

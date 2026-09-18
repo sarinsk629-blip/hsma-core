@@ -65,7 +65,7 @@ HSMA eliminates Maximum Extractable Value (MEV) at the cryptographic layer via a
 
 The protocol's safety rests on a \textit{combinatorial impossibility doctrine}: under adversarial weight $f < 0.20$, authenticated quorum forgery is structurally impossible ($\epsilon = 0$), not merely improbable. The total system soundness budget is $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch, dominated exclusively by the threshold-BLS unforgeability assumption. The C++20 reference implementation passes all conformance tests with \texttt{GATE GREEN}, the BLS12-377 group law is mathematically proven on 3 independent points, the BLS verification law is pairing-proven secret-free, and the M2 order-bound core is golden-proven end to end.
 
-This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 32/32 conformance tests passing.
+This document details: (1) the Pasta field arithmetic with wraparound soundness lemmas, (2) the Poseidon-3 hash and Sparse Merkle Tree state vault, (3) the Metastable Sub-Sampled Consensus with beacon-gated tie-breaking, (4) the Capped Cluster Hybrid weight engine, (5) the threshold-encrypted zero-MEV mempool, (6) the GKR/Sum-Check PoUW with Degree-2 LogUp activation tables, (7) the HyperNova NIVC state folding circuit, (8) the P2P gossip transport with beacon-seeded eclipse defense, (9) the end-to-end $\epsilon$-budget composition theorem, and (10) the verified C++20 implementation with 33/33 conformance tests passing.
 \end{abstract}
 
 \tableofcontents
@@ -561,7 +561,7 @@ hsma-core/
 |   +-- pairing.hpp # twist + Miller + Tate + BLS verify (DEC-198/199)
 |   +-- m2.hpp # M2 order-bound decryption shares (DEC-201..203)
 |   +-- m2prod.hpp # sigma_user + per-member partials (DEC-204..206)
-+-- conformance/            # Test suite (32/32 passing)
++-- conformance/            # Test suite (33/33 passing)
 |   +-- test_step2.cpp      # Field arithmetic tests
 |   +-- test_step3.cpp      # Numeric kernel tests
 |   +-- test_step4.cpp      # State vault tests
@@ -639,7 +639,7 @@ DIAG6:VERDICT ALL-OK
 22/25 Test #22: step22_conformance ...............   Passed    5.84 sec
 23/25 Test #23: step23_conformance ...............   Passed   23.31 sec
 24/25 Test #24: step24_conformance ...............   Passed    0.07 sec
-32/32 Test #25: step25_conformance ...............   Passed    0.04 sec
+33/33 Test #25: step25_conformance ...............   Passed    0.04 sec
 100% tests passed out of 25
 Total Test time (real) = 102.09 sec
 [emit] ./build/generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
@@ -673,7 +673,7 @@ under golden parity. The verbatim gate log above records the v1.0 baseline
 suite now stands at \textbf{12/12} with \textbf{18 generated headers}.
 \texttt{step9\_conformance} proves the threshold protocol layer (DEC-189..192): hash-to-G1
 (SHA-256 counter preimage, even-y law, cofactor-clear, $[r]H=\infty$), Feldman DKG
-pairing-free (32/32 share equations), threshold signing with the $\sigma = [S]H$ harness
+pairing-free (33/33 share equations), threshold signing with the $\sigma = [S]H$ harness
 law, and the \texttt{HSM\_BEACON\_V1} epoch beacon (53-byte preimage, chain $\times$4
 golden). \texttt{step10\_conformance} proves $F_{q2}$ ($\beta{=}5$, generator-discovered),
 the twist $E': y^2 = x^3 + (5,1)$ over $F_{q2}$ (search-discovered, $[r]G_2=\infty$), and
@@ -712,7 +712,7 @@ dual-layer Pedersen+WHIR honestly deferred), and the NIFS fold --- two verified 
 compress into one, \emph{exactly}, the operation that makes the 41-byte carrier an actual proof.
 
 \textbf{Implementation sync v1.0.5 (2026-09-15): Phase 1 opens, P1-01..04.} The
-conformance suite now stands at \textbf{32/32} with \textbf{32 generated headers}.
+conformance suite now stands at \textbf{33/33} with \textbf{32 generated headers}.
 P1-01 (DEC-218) refactors the constants generator into \texttt{scripts/gen/}
 (per-step modules + \texttt{gen\_common.py} shared library), byte-identical
 proven. P1-02 (DEC-219..221) verifies the interop bridge to canonical
@@ -756,7 +756,7 @@ Root Cause \#10 (h2c Exhaustion): hash-to-curve candidate exhaustion during fixt
 
 \subsection{Conformance Suite}
 \textbf{Implementation status (Phase 0).} Items 1--8, and 12--13 are machine-validated today by the
-32/32 conformance binaries --- item 6 by Step 12's \texttt{verify\_share}; item 4 (explicit
+33/33 conformance binaries --- item 6 by Step 12's \texttt{verify\_share}; item 4 (explicit
 cross-epoch replay negative) and item 5 ($\sigma_{\mathrm{user}}$ envelope authorization,
 forgery rejected) closed by Step 13; item 7 (SAT-proof: all illegal PC edges unsatisfiable)
 closed by Step 15's CCS constraint layer --- together with the step 9--12 threshold modules
@@ -807,7 +807,7 @@ Epoch & 600 s nominal; checkpoints $K=6$ (hourly); $T_{\text{fold}} = 120$ s \\
 
 % ════════════════════════════════════════════════════════════════════
 \section{Limitations and Honest Disclosure}
-Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing, the M2 order-bound core, and its production hardening (Steps 7--13); the folding arc is complete in Phase-0 form (Steps 14--21: semantics, constraints, the 41-byte accumulator, the pipeline, the sum-check engine, the commitment layer, the NIFS fold --- suite 32/32); the production proof system (homomorphic PCS + HyperNova multifold) and the remaining release gates are specified, not yet built; the full CycleFold curve operations are COMPLETE (P1-06..08: the Vesta field, the Vesta-domain Poseidon, both Pasta curve operation modules, and the CycleFold absorption primitive, all golden-proven).
+Metadata (sender, nonce, fee) remains visible for routing and pricing. Cross-domain MEV persists beyond any single-chain remedy. Threshold-BLS and KEM assumptions are quantum-vulnerable; post-quantum migration is reserved and unscheduled. The Holographic Boundary eliminates \emph{verification} storage, not data-availability duties. Prover concentration for $\pi_E$ assembly is mitigated by a permissionless publisher market, not eliminated. Liveness constants are simulation-calibrated (Phase-1 wind tunnel), not analytic. The edifice assumes H5 --- shipped circuits equal these specifications --- whose formal-verification track is a release blocker. HSMA is Phase 0: a verified bare-metal core; the threshold module is complete through the pairing, the M2 order-bound core, and its production hardening (Steps 7--13); the folding arc is complete in Phase-0 form (Steps 14--21: semantics, constraints, the 41-byte accumulator, the pipeline, the sum-check engine, the commitment layer, the NIFS fold --- suite 33/33); the production proof system (homomorphic PCS + HyperNova multifold) and the remaining release gates are specified, not yet built; the full CycleFold curve operations are COMPLETE (P1-06..08: the Vesta field, the Vesta-domain Poseidon, both Pasta curve operation modules, and the CycleFold absorption primitive, all golden-proven).
 
 \section{Conclusion}
 % ════════════════════════════════════════════════════════════════════
