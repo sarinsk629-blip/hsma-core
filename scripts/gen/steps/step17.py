@@ -176,7 +176,7 @@ def _step17():
          "inline constexpr unsigned G17F_COUNT2 = %du;" % count2,
          "} // namespace hsma::golden"]
     txt = "\n".join(L) + "\n"
-    open(_os8.path.join(outdir, "epoch_golden.hpp"), "w").write(txt)
+    open(_os8.path.join(outdir, "epoch17_golden.hpp"), "w").write(txt)   # CA-R152: step17 owns this file (step34 owns epoch_golden.hpp)
     print("[step17][emit] epoch_golden.hpp (order, order_root, epoch chain)")
 
 _step17()

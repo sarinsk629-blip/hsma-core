@@ -55,6 +55,13 @@ add_custom_command(
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_run_new.py
             --out ${GEN_DIR}
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen_run_new.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step14.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step17.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step31.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step32.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step33.py
+     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/gen/steps/step34.py
+ 
     COMMENT "[gen] deriving Montgomery constants + golden vectors (DEC-102)"
     VERBATIM)
 add_custom_target(hsma_generated DEPENDS ${GEN_OUTPUTS})

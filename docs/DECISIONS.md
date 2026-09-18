@@ -2348,3 +2348,24 @@ of the deciding command itself.
 CLOSED. THE EPOCH PROOF'S STRUCTURE IS COMPLETE: chain -> folds -> wrap.
 NEXT: P1-14 - pi_E at scale (real-size circuits, SMT witnesses at epoch
 scale, the full Poseidon unroll).
+- **CA-R152 - THE GOLDEN-FILENAME COLLISION LAW** - step17.py emitted
+G17F_* into epoch_golden.hpp (Step 17); P1-13b's step34.py emitted EP_* into
+the SAME filename - the sequential shared-namespace run let step34 overwrite
+step17, G17F_* vanished, and test_step17's compile failed - WHICH THE OLD
+GATE WOULD HAVE PAPERED OVER with a stale binary. FIXED: step17 ->
+epoch17_golden.hpp; test_step17 consumes fold_golden (G14F) + epoch17_golden
+(G17F) + the others - three emitters, three files, zero collisions. LAW:
+every emitter owns a UNIQUE golden filename.
+- **CA-R153 - the stale-gen law** - The CMake custom command's DEPENDS
+listed only gen_run_new.py - editing a step module did NOT trigger a regen.
+FIXED: explicit per-module DEPENDS for the Phase-1 emitters. LAW: a
+generator's dependency set includes every file it reads.
+- **CA-R154 - the runtime budget law** - The monolith's PHASE 1 runtime
+grew to ~6min and a 7-min timeout killed it (exit 143) - indistinguishable
+from a hang. LAW: long stages carry budgets sized to their slowest expected
+environment.
+- **CA-R155 - the gate's own syntax is gate-tested** - The CA-R151
+hardening insert left a dangling pipe fragment in gate.sh; the gate failed
+with a BASH SYNTAX ERROR - the verifier itself was unverified. LAW: any
+edit to gate.sh is followed by `bash -n scripts/gate.sh` before the next
+run; the gate's integrity checks apply to the gate.
