@@ -2454,3 +2454,10 @@ cache removal.
 **Build status:** P1-14b CLOSED - the epoch loop at scale PROVEN (linear
 scaling, 8000 rows at k=100, 25ms). The pi_E assembly is next: the wrap
 over the final vectors.
+- **CA-R163 - the session-close sweep law** - Every session ends with
+scripts/session_close.sh: git add -A, git diff --cached --stat, git commit,
+git push, git status verification. No targeted git add. No missed files.
+A session that ends without the sweep has files that exist only on local
+disk — invisible to GitHub, invisible to collaborators, invisible to the
+audit. This law exists because the DEC-232/233/234 ledger entries were
+each almost lost to targeted git add misses.
