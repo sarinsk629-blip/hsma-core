@@ -4,7 +4,6 @@
 #include <hsma/epoch.hpp>
 #include "fold_golden.hpp"
 #include "epoch17_golden.hpp"
-#include "epoch_golden.hpp"
 #include "m2_golden.hpp"
 #include <cstdio>
 #include <filesystem>
