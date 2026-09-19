@@ -2369,3 +2369,20 @@ hardening insert left a dangling pipe fragment in gate.sh; the gate failed
 with a BASH SYNTAX ERROR - the verifier itself was unverified. LAW: any
 edit to gate.sh is followed by `bash -n scripts/gate.sh` before the next
 run; the gate's integrity checks apply to the gate.
+- **CA-R156 - the stale-binary purge law** - Even after CA-R151, a stale
+test binary survived one more regen cycle and passed CTest while its
+source failed to compile (test_step34: EP_* removed by the step17
+collision regen; the old binary's baked-in constants still matched).
+FIXED: all stale binaries purged; the fresh build compiles against the
+CURRENT goldens. LAW: freshness is a property of the binary-to-golden
+pairing, not of either artifact alone; CLEAN-FIRST must include binaries.
+- **CA-R157 - the 71/71 build verification law** - The owner asked: "why
+did step pass but linking didn't?" The answer: ninja skips recompilation
+when the .cpp source hasn't changed, even if the INCLUDED golden headers
+have - the golden headers are invisible to ninja's timestamp check unless
+the DEPENDS graph captures them. The stale binary then runs with OLD
+baked-in constants while the gate sees "Passed." FIXED: all stale binaries
+purged; the fresh 71/71 build compiles every binary against the CURRENT
+goldens. LAW: a build system's timestamp check covers .cpp files but NOT
+the golden headers they include; the DEPENDS graph must capture the golden
+files too, or the gate must purge binaries to force fresh compilation.
