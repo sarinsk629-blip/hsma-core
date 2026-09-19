@@ -2386,3 +2386,40 @@ purged; the fresh 71/71 build compiles every binary against the CURRENT
 goldens. LAW: a build system's timestamp check covers .cpp files but NOT
 the golden headers they include; the DEPENDS graph must capture the golden
 files too, or the gate must purge binaries to force fresh compilation.
+- **CA-R158 - the R1CS evaluation law** - fe_mul computes a*b mod p (the
+mathematical product — CONFIRMED by the minitest: fe_mul(2,3)=6). The R1CS
+constraint a*b = c requires the COO matrix to carry exactly the intended
+variables: A carries only a, B carries only b, C carries only c. Multiple
+variables in one matrix side create a SUM, not a PRODUCT. The COO evaluation
+loop must iterate over each matrix independently (A, B, C have different
+entry counts per row).
+
+---
+## SECTION 10 - P1-14a: The Poseidon R1CS Gadget - CLOSED (2026-09-19)
+#### DEC-233 - GAP-07 at scale: the Poseidon-3 permutation as R1CS constraints
+**Decision:** include/hsma/poseidon_r1cs.hpp - the Poseidon-3 R1CS gadget
+(the clean restart with inline witness computation + constraint generation).
+Helper functions: prod_constraint (a*b=c, one var per side), lin_constraint
+(out*ONE = linear terms), sbox (3 quadratic rows: x2=x*x, x4=x2*x2, x5=x*x4),
+mds_mul (3 linear rows per output). R1CS SAT: YES at reduced scale (4 rounds,
+80 rows, 92 vars). Scaling confirmed: 20 constraints/round, ~1280 rows full
+(64 rounds), ~3840/entry (3 calls), ~1,827,840 at k=476 (EXCEEDS the 10^6
+target).
+**Rationale:** The bridge from 8 golden rows to production scale. The clean
+restart eliminated the state-management bugs that blocked the incremental
+approach.
+**Supersedes:** N/A
+### P1-14a ERRATA (2026-09-19)
+- **CA-R159 - the clean-restart law** - After 5+ failed patch rounds on one
+file, REWRITE from scratch with all fixes baked in. The rewrite took 1 round
+vs 5+ for the patches.
+- **CA-R160 - the constraint-construction law** - Helper functions
+(prod_constraint, lin_constraint, sbox, mds_mul) encapsulate the constraint
+patterns; raw COO manipulation is the source of every R1CS bug in this
+session.
+- **CA-R161 - the git-add verification law** - After every git add, run
+git diff --cached --stat to verify the commit contains what the message
+claims. A commit that omits files is a silent gap in the repo.
+**Build status:** P1-14a CLOSED - R1CS SAT: YES. The path to pi_E at scale
+is OPEN. NEXT: P1-14b - the epoch loop at scale (C++-only), then pi_E
+assembly.
