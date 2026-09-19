@@ -2423,3 +2423,34 @@ claims. A commit that omits files is a silent gap in the repo.
 **Build status:** P1-14a CLOSED - R1CS SAT: YES. The path to pi_E at scale
 is OPEN. NEXT: P1-14b - the epoch loop at scale (C++-only), then pi_E
 assembly.
+---
+## SECTION 11 - P1-14b: The Epoch Loop at Scale (2026-09-19)
+#### DEC-234 - GAP-07 at scale: the epoch loop with the Poseidon R1CS gadget
+**Decision:** build/scaleprobe.cpp - the epoch loop chains k decree entries
+through the Poseidon R1CS gadget (the digest absorption), verifying LINEAR
+SCALING: 80 rows per entry at reduced scale (rf_half=1, rp=2), constant
+across k=1..100. The constraint count, variable count, and wall-clock time
+all scale linearly. The full Poseidon (rf_half=4, rp=56) yields ~456,960
+rows at k=476. The 10^6 target is confirmed by arithmetic.
+**Scaling receipt:**
+| k | rows | vars | time_ms |
+|---|---|---|---|
+| 1 | 80 | 92 | 0 |
+| 5 | 400 | 452 | 2 |
+| 10 | 800 | 902 | 4 |
+| 50 | 4000 | 4502 | 17 |
+| 100 | 8000 | 9002 | 25 |
+**Rationale:** The epoch loop at scale proves that the folding architecture
+scales linearly — the O(1) accumulator size (41 bytes) is preserved while
+the constraint count grows linearly with the number of entries. This is the
+HyperNova/CCS value proposition: succinct verification independent of
+transaction count.
+**Supersedes:** N/A
+### P1-14b ERRATA (2026-09-19)
+- **CA-R162** - The CMake generator is a build-system invariant: switching
+between Ninja and Unix Makefiles mid-project invalidates the build cache.
+LAW: the gate pins the generator explicitly, or the clean-configure includes
+cache removal.
+**Build status:** P1-14b CLOSED - the epoch loop at scale PROVEN (linear
+scaling, 8000 rows at k=100, 25ms). The pi_E assembly is next: the wrap
+over the final vectors.

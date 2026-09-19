@@ -25,6 +25,11 @@
 
 namespace hsma::pr1cs {
 
+inline fp::fe mk_fe(const std::array<std::uint64_t,4>& c) noexcept {
+    fp::fe x{}; for (int k = 0; k < 4; ++k) x.l[k] = c[k]; return x;
+}
+
+
 using mfold::SparseMat;
 
 // the gadget result
@@ -49,8 +54,8 @@ inline Result build(
     SparseMat& A, SparseMat& B, SparseMat& C,
     std::vector<fp::fe>& w,
     unsigned s0_var, unsigned s1_var, unsigned s2_var,
-    const std::vector<std::uint64_t>& rc_canonical,  // flat: 3 per full round, 1 per partial
-    const std::vector<std::array<std::uint64_t, 3>>& mds_canonical,  // 9 entries
+    const std::vector<std::array<std::uint64_t,4>>& rc_canonical,  // RC constants (4 limbs each)
+    const std::vector<std::array<std::array<std::uint64_t,4>,3>>& mds_canonical,  // 3x3 MDS (4 limbs each)
     unsigned rf_half, unsigned rp
 ) noexcept {
     Result R;
@@ -135,7 +140,7 @@ inline Result build(
                 // A: 1 on prod_var, B: 1 on ONE, C: MDS[i][j] on sb[j]
                 // But we also need the prod_var's VALUE to be MDS[i][j] * w[sb[j]]
                 // We compute it:
-                fp::fe m = fp::fe_from_u64(mds_canonical[i][j]);
+                fp::fe m = mk_fe(mds_canonical[i][j]);
                 fp::fe val = fp::fe_mul(m, w[sb[j]]);
                 unsigned pv = (unsigned)w.size(); w.push_back(val);
                 // constraint: pv * ONE = MDS[i][j] * sb[j]
@@ -143,7 +148,7 @@ inline Result build(
                 A.row.push_back(row); A.col.push_back(pv); A.val.push_back(fp::fe_one());
                 B.row.push_back(row); B.col.push_back(0); B.val.push_back(fp::fe_one());
                 C.row.push_back(row); C.col.push_back(sb[j]);
-                C.val.push_back(fp::fe_from_u64(mds_canonical[i][j]));
+                C.val.push_back(mk_fe(mds_canonical[i][j]));
                 ++row;
                 prods[j] = pv;
             }
@@ -171,7 +176,7 @@ inline Result build(
         for (unsigned lane = 0; lane < 3; ++lane) {
             // ARK: add the round constant
             // create a constant variable for RC
-            unsigned rc_var = wconst(rc_canonical[rc_idx]);
+            unsigned rc_var = (unsigned)w.size(); w.push_back(mk_fe(rc_canonical[rc_idx]));
             ++rc_idx;
             // add: t = st[lane] + rc_var (linear constraint)
             fp::fe sum_val = fp::fe_add(w[st[lane]], w[rc_var]);
@@ -188,7 +193,7 @@ inline Result build(
     // partial rounds (sbox only on lane 0)
     for (unsigned r = 0; r < rp; ++r) {
         // ARK + sbox for lane 0 only
-        unsigned rc_var = wconst(rc_canonical[rc_idx]);
+        unsigned rc_var = (unsigned)w.size(); w.push_back(mk_fe(rc_canonical[rc_idx]));
         ++rc_idx;
         fp::fe sum_val = fp::fe_add(w[st[0]], w[rc_var]);
         unsigned t = (unsigned)w.size(); w.push_back(sum_val);
@@ -204,7 +209,7 @@ inline Result build(
     for (unsigned r = 0; r < rf_half; ++r) {
         unsigned sb[3];
         for (unsigned lane = 0; lane < 3; ++lane) {
-            unsigned rc_var = wconst(rc_canonical[rc_idx]);
+            unsigned rc_var = (unsigned)w.size(); w.push_back(mk_fe(rc_canonical[rc_idx]));
             ++rc_idx;
             fp::fe sum_val = fp::fe_add(w[st[lane]], w[rc_var]);
             unsigned t = (unsigned)w.size(); w.push_back(sum_val);
