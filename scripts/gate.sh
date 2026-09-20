@@ -12,6 +12,7 @@ cfg=$(mktemp); dg5=$(mktemp); dg6=$(mktemp)
 trap 'rm -f "$cfg" "$dg5" "$dg6"' EXIT
 
 echo "── [0/4] generate golden vectors (prerequisite for compilation) ──"
+mkdir -p build/generated
 python3 scripts/gen_run_new.py --out build/generated 2>&1 | tail -3
 GEN_EXIT=$?
 if [ "$GEN_EXIT" -ne 0 ]; then
