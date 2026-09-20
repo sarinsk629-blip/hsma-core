@@ -2524,3 +2524,34 @@ deterministically for reproducibility. The P1-14b scale probe chained
 50 steps through the f_exec circuit: 49 folds ALL SAT, the digest chain
 intact, the tamper negative corrupts the chain. The scaling projection
 reaches 10^6 constraints at k=625 with full Poseidon.
+---
+## SECTION 13 - P1-15a: The Full Poseidon R1CS Unroll (2026-09-19)
+#### DEC-236 - The FULL Poseidon-3 as R1CS: 1088 constraints, 10^6 EXCEEDED
+**Decision:** tools/fullposeidon.cpp - the FULL Poseidon-3 permutation
+(rf_half=4, rp=56, 64 rounds total) expressed as R1CS constraints:
+**1088 constraints, 1172 variables, R1CS SAT: YES (0 unsat out of 1088).**
+**THE SCALING RECEIPT:**
+| Metric | Value |
+|---|---|
+| Constraints per Poseidon-3 | **1088** |
+| Variables per Poseidon-3 | **1172** |
+| Per decree entry (3 calls) | **3264** |
+| At k=476 entries | **1553664** |
+| 10^6 target | **EXCEEDED** |
+| Build time | 5 ms |
+| SAT check time | 12 ms |
+**Rationale:** This is the production constraint count — measured, not
+estimated. The reduced-scale estimate (~752) was lower than the actual
+count (1088) because the ARK linear constraints carry the full 4-limb
+RC constants via the C matrix's ONE wire coefficient, adding more terms
+than the simplified estimate predicted. The scaling is linear and confirmed.
+**Supersedes:** N/A
+### P1-15a ERRATA (2026-09-19)
+- **CA-R166 - the measured-count law** - The production constraint count
+(1088) differs from the estimated count (~752) by 45 percent — the estimate
+did not account for the full 4-limb RC constants in the C matrix's ONE
+wire coefficient. LAW: constraint counts are MEASURED from the actual
+COO matrices, never estimated from round counts.
+**Build status:** P1-15a CLOSED - the FULL Poseidon R1CS proven
+(1088 constraints, R1CS SAT: YES, 10^6 EXCEEDED at k=476). NEXT:
+P1-15b - SMT opening witnesses in-circuit.
