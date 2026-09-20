@@ -18,6 +18,7 @@ HSMA is a Layer-1 protocol that eliminates MEV cryptographically (not economical
 git clone https://github.com/sarinsk629-blip/hsma-core.git
 cd hsma-core
 ./scripts/gate.sh
+# → the gate generates all 41 golden headers (~12min), then builds and runs all 34 tests
 # → 34/34 tests passed, GATE GREEN
 ```
 
