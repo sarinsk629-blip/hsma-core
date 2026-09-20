@@ -2454,6 +2454,18 @@ cache removal.
 **Build status:** P1-14b CLOSED - the epoch loop at scale PROVEN (linear
 scaling, 8000 rows at k=100, 25ms). The pi_E assembly is next: the wrap
 over the final vectors.
+
+**SUPPLEMENT — the f_exec fold loop at k=50 (epochscaled.cpp):**
+A complementary test to the Poseidon gadget scaling above. While the main
+measurement tested the Poseidon R1CS gadget (80 rows/entry), this
+supplement tests the F_EXEC CIRCUIT fold loop (8 rows/entry) — the actual
+epoch transition constraint. 49 folds through mfold::multifold, ALL SAT,
+the digest chain intact, the tamper negative corrupts the chain.
+**Receipt:** 49 folds ALL SAT, 8 circuit rows (constant), 16 witness vars
+per step, 825ms fold time. The f_exec fold loop scales linearly — confirmed.
+**Combined scaling (f_exec + Poseidon embedded):**
+- Per decree entry: 8 (f_exec) + ~752 (Poseidon) = ~760 rows
+- At k=625: ~1,000,000 rows (the 10^6 target)
 - **CA-R163 - the session-close sweep law** - Every session ends with
 scripts/session_close.sh: git add -A, git diff --cached --stat, git commit,
 git push, git status verification. No targeted git add. No missed files.
