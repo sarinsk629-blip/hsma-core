@@ -2505,3 +2505,10 @@ without the witness (the verifier independence property from P1-10).
   DEC-235. LAW: every close-out block must check for ITS OWN DEC number.
 **Build status:** P1-14c CLOSED - pi_E EXISTS. THE SUMMIT IS REACHED.
 GAP-01..07 + 14 ALL CLOSED. The next phase: P1-15 (production hardening).
+- **CA-R165 - the digest-chain law** - The epoch loop's digest chain is
+deterministic (d_{i+1} = f(d_i, pt_i)) — the chain MUST be verified at
+every step (SAT = chain integrity), and the chain MUST be extended
+deterministically for reproducibility. The P1-14b scale probe chained
+50 steps through the f_exec circuit: 49 folds ALL SAT, the digest chain
+intact, the tamper negative corrupts the chain. The scaling projection
+reaches 10^6 constraints at k=625 with full Poseidon.
