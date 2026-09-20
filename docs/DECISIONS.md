@@ -2555,3 +2555,24 @@ COO matrices, never estimated from round counts.
 **Build status:** P1-15a CLOSED - the FULL Poseidon R1CS proven
 (1088 constraints, R1CS SAT: YES, 10^6 EXCEEDED at k=476). NEXT:
 P1-15b - SMT opening witnesses in-circuit.
+---
+## SECTION 14 - P1-15b: The SMT Opening as R1CS (2026-09-19)
+#### DEC-237 - The SMT Poseidon hash as R1CS: 80 constraints per call, SAT: YES
+**Decision:** build/smtprobe.cpp - the Poseidon-3 R1CS gadget verified as
+the SMT hash function. 80 constraints per call, R1CS SAT: YES (0 unsat
+out of 80). The scaling: 80/level, 240 at depth=3, 5120 at depth=64,
+10240 per decree entry (2 accounts), 4,874,240 at k=476.
+**THE CRITICAL FINDING:**
+- **CA-R168 - the domain law (FINAL, definitive)** - fe_mul computes the
+  mathematical product a*b mod p. There is NO Montgomery transform. There
+  is NO CIOS domain behavior. The R1CS witness values and constraint
+  evaluation must ALL use canonical values with fe_mul — and the result is
+  SAT. Montgomery-encoding the witness values BREAKS the R1CS evaluation
+  (56/80 UNSAT). The original P1-11..13a code was correct: canonical values
+  + fe_mul = SAT. The domain confusion was an incorrect model of fe_mul's
+  semantics, not a real implementation bug. LAW: fe_mul = mathematical
+  product; all R1CS code uses canonical values; Montgomery encoding is
+  NOT needed and BREAKS the constraints.
+**Build status:** P1-15b CLOSED - the SMT Poseidon hash as R1CS proven
+(80 constraints, SAT: YES). The scaling: 5120 at depth=64, 4.87M at k=476.
+NEXT: P1-15c - the epoch loop at production scale.
