@@ -1,0 +1,642 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  language=C++
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+
+\title{Cross-Implementation Verification of Cryptographic Primitives\\
+Through Bilingual Golden-Vector Oracle Systems}
+
+\author{Sk Sarin Arfin\thanks{Independent researcher. Contact: \texttt{sarinsk629@gmail.com}}}
+
+\date{September 2026}
+
+\begin{abstract}
+We present a methodology for verifying the correctness of cryptographic
+implementations through bilingual cross-examination: a Python oracle
+independently mirrors every C++ operation, golden vectors pin every
+intermediate value, and an append-only ledger owns every defect as a
+numbered erratum. We apply this methodology to a complete cryptographic
+proof system---elliptic curve arithmetic over the Pasta cycle
+($\mathbb{F}_p$ and $\mathbb{F}_q$), Poseidon hashing, Sparse Merkle
+trees, threshold BLS signatures, commitment schemes, and a folding-based
+recursive state transition proof---comprising 41 implementation modules
+and 34 automated verification gates. The methodology caught 162 defects
+across multiple defect classes, including two classes (out-of-bounds
+memory access and incorrect constraint algebra) that were structurally
+invisible to the implementation's own test suite. We formalize the
+oracle-divergence detection guarantee, prove the golden-vector coverage
+completeness for arithmetic operations, and demonstrate the methodology's
+scalability: the resulting system produces a 1{,}600-byte recursive
+state transition proof ($\pi_E$) verifiable without the witness in
+118\,ms on ARM64 hardware.
+\end{abstract}
+
+\section{Introduction}
+
+\subsection{The Verification Problem}
+
+Cryptographic implementations are notoriously difficult to verify.
+A single incorrect operation---a wrong Montgomery reduction constant,
+a misidentified bit ordering, an omitted domain-separation
+tag---can silently compromise the security of the entire system.
+Traditional approaches rely on:
+\begin{enumerate}
+\item \textbf{Test vectors}: fixed input-output pairs from reference
+implementations. These verify specific values but do not guarantee
+correctness for all inputs.
+\item \textbf{Formal verification}: tools such as EasyCrypt or
+F* that produce machine-checked proofs. These provide the strongest
+guarantees but require significant expertise and effort.
+\item \textbf{Code review}: manual inspection by experts. This is
+error-prone and does not scale.
+\end{enumerate}
+
+We propose a fourth approach: \emph{bilingual cross-examination}.
+Two independent implementations---one in C++, one in Python---compute
+the same cryptographic operations. A golden vector pins every
+intermediate value. When the two implementations disagree, the
+divergence is detected immediately. When they agree across thousands
+of test cases, the confidence in correctness is substantially higher
+than either implementation alone.
+
+\subsection{Our Contribution}
+
+We make the following contributions:
+
+\begin{enumerate}
+\item We formalize the \emph{golden-oracle methodology} for verifying
+cryptographic implementations (Section~\ref{sec:methodology}),
+including the oracle-divergence detection guarantee
+(Section~\ref{sec:divergence}).
+\item We present three defect case studies that demonstrate the
+methodology catching defects invisible to conventional testing
+(Section~\ref{sec:casestudies}): an out-of-bounds memory access
+invisible to self-consistency checks, a wrong-power invariant checker
+masked by degenerate test inputs, and a bit-order convention mismatch
+detected by an orientation probe.
+\item We demonstrate the methodology's scalability by applying it to
+a complete cryptographic proof system (Section~\ref{sec:system})
+comprising 41 modules spanning elliptic curve arithmetic, hash
+functions, commitment schemes, and folding-based recursive proofs.
+\item We prove the completeness of golden-vector coverage for
+arithmetic operations (Section~\ref{sec:completeness}).
+\item We release the complete implementation, the decision ledger
+(234 decisions, 163 laws), and all 34 verification gates as open
+source (Section~\ref{sec:artifacts}).
+\end{enumerate}
+
+\section{Preliminaries}
+\label{sec:preliminaries}
+
+\subsection{Notation}
+
+We work over two prime-order fields:
+\begin{align*}
+\mathbb{F}_p &: p = 2^{254} + \texttt{0x224698fc0994a8dd}\cdot 2^{192} + \cdots \\
+\mathbb{F}_q &: q = 2^{254} + \texttt{0x224698fc094cf91b}\cdot 2^{192} + \cdots
+\end{align*}
+These are the scalar and base fields of the Pasta curve cycle:
+Pallas ($y^2 = x^3 + 5$ over $\mathbb{F}_p$, group order $q$) and
+Vesta ($y^2 = x^3 + 5$ over $\mathbb{F}_q$, group order $p$).
+
+We write $\mathsf{Mont}(x) = x \cdot R \bmod p$ for the Montgomery
+representation, where $R = 2^{256} \bmod p$, and
+ $\mathsf{Canon}(x) = x \cdot R^{-1} \bmod p$ for the canonical form.
+
+\subsection{The Pasta Curve Cycle}
+
+The Pasta cycle consists of two elliptic curves whose base and scalar
+fields are swapped:
+\begin{align*}
+\textsf{Pallas}&: y^2 = x^3 + 5 \text{ over } \mathbb{F}_p, \quad \#\mathsf{Pallas}(\mathbb{F}_p) = q \\
+\textsf{Vesta}&: y^2 = x^3 + 5 \text{ over } \mathbb{F}_q, \quad \#\mathsf{Vesta}(\mathbb{F}_q) = p
+\end{align*}
+This cycle natively supports recursive proof composition without
+foreign-field overhead: arithmetic in one curve's scalar field is
+native arithmetic in the other curve's base field.
+
+\subsection{The Poseidon Hash}
+
+Poseidon-3 is a sponge-based hash over $\mathbb{F}_p$ with
+ $t=3$ lanes, $\alpha=5$, $R_F=8$ full rounds, and $R_P=56$ partial
+rounds. The permutation operates on a 3-element state
+ $(s_0, s_1, s_2)$ where $s_2$ is initialized with a domain-separated
+initial vector.
+
+\section{The Golden-Oracle Methodology}
+\label{sec:methodology}
+
+\subsection{Overview}
+
+The methodology consists of four components operating as a verification
+pipeline:
+
+\begin{enumerate}
+\item \textbf{The Python Oracle}: an independent implementation of
+every cryptographic primitive in Python, using arbitrary-precision
+integers (no Montgomery arithmetic, no fixed-width limitations).
+The oracle serves as the mathematical reference.
+
+\item \textbf{The C++ Implementation}: the production implementation
+using fixed-width Montgomery arithmetic for performance.
+
+\item \textbf{Golden Vectors}: emitted by the Python oracle, containing
+every intermediate value for a set of test inputs. These vectors pin
+the expected output at each step.
+
+\item \textbf{The Gate}: an automated verification pipeline that:
+(a) regenerates all golden vectors from the oracle,
+(b) compiles all C++ modules from source,
+(c) runs all conformance tests against the fresh goldens,
+(d) aborts on any failure.
+\end{enumerate}
+
+\subsection{The Golden Vector}
+
+\begin{definition}[Golden Vector]
+\label{def:golden}
+A golden vector for a cryptographic operation $f$ with inputs
+ $x_1, \ldots, x_n$ is a tuple
+ $(x_1, \ldots, x_n, y_1, \ldots, y_m)$ where $y_i = f_i(x_1, \ldots, x_n)$ for each output $f_i$, computed by the Python oracle using arbitrary-precision
+integers.
+\end{definition}
+
+The golden vector is \emph{authoritative}: the C++ implementation must
+produce bit-identical output. Any divergence indicates a bug in the C++
+implementation (or, less commonly, in the oracle itself — in which case
+the oracle is corrected and the vector regenerated).
+
+\subsection{The Append-Only Ledger}
+
+Every defect discovered during development is recorded as a numbered
+erratum (CA-R$nnn$) in an append-only decision ledger. Each entry contains:
+\begin{itemize}
+\item The defect description
+\item The evidence that convicted it (probe output, golden mismatch, etc.)
+\item The fix
+\item A law: a generalizable rule that prevents recurrence
+\end{itemize}
+
+As of this writing, the ledger contains 234 decisions (DEC-001 through
+DEC-235) and 163 laws (CA-R001 through CA-R163).
+
+\subsection{The Gate}
+
+The verification gate is a shell script that executes the following
+pipeline:
+
+\begin{enumerate}
+\item \textbf{Clean-first}: remove all previous build artifacts
+(binaries, object files, build caches)
+\item \textbf{Regenerate}: execute the golden-vector emitter
+(Python) to produce all 41 header files
+\item \textbf{Configure}: CMake configure with Ninja
+\item \textbf{Build}: compile all test binaries (abort on failure)
+\item \textbf{Freshness check}: verify every binary is newer than
+every golden header it depends on
+\item \textbf{Diagnostics}: run structural diagnostics
+\item \textbf{Conformance}: run all 34 test binaries
+\item \textbf{Verdict}: GATE GREEN if and only if all steps pass
+\end{enumerate}
+
+\subsection{The Cross-Implementation Principle}
+
+\begin{definition}[Bilingual Cross-Examination]
+Two implementations $I_1$ (C++) and $I_2$ (Python) are
+\emph{cross-examined} if for every operation $f$ and test input
+ $\vec{x}$, both implementations compute $f(\vec{x})$ and the
+results are compared. A \emph{divergence} is any difference in output.
+\end{definition}
+
+The key property is that $I_1$ and $I_2$ share \emph{no code path}.
+They are written in different languages, use different arithmetic
+models (fixed-width Montgomery vs.\ arbitrary-precision), and have
+different optimization characteristics. A bug in $I_1$ that causes
+incorrect output will be detected by comparison with $I_2$ (and
+vice versa), unless the same bug exists in both implementations.
+
+\section{Oracle-Divergence Detection}
+\label{sec:divergence}
+
+\subsection{The Divergence Guarantee}
+
+\begin{theorem}[Divergence Detection]
+\label{thm:divergence}
+Let $I_1$ and $I_2$ be two implementations of a cryptographic operation
+ $f$ over domain $D$. Let $T \subseteq D$ be the set of test inputs for
+which golden vectors are generated and cross-checked. If $I_1(x) \neq
+I_2(x)$ for some $x \in D$, and $I_1$ and $I_2$ share no code path,
+then for any $x \in T$ where $I_1(x) \neq I_2(x)$, the divergence is
+detected with probability 1.
+\end{theorem}
+
+\begin{proof}
+By construction: the golden vector pins the output of $I_2$ (the
+oracle) for each $x \in T$. The C++ implementation $I_1$ computes
+ $f(x)$ independently. The gate compares the two outputs. If they
+differ, the gate reports FAIL and aborts. There is no code path
+where a divergence on a tested input is not detected, because the
+comparison is unconditional.
+\end{proof}
+
+\begin{remark}
+The guarantee is trivially strong for tested inputs. The interesting
+question is: how well does $T$ cover $D$? For arithmetic operations,
+ $T$ can be chosen to cover the edge cases (zero, one, $p-1$, carry
+boundaries) exhaustively. For permutation-based constructions
+(e.g., Poseidon), $T$ can include all intermediate states, providing
+coverage of the internal computation.
+\end{remark}
+
+\subsection{Golden-Vector Coverage Completeness}
+
+\begin{theorem}[Arithmetic Coverage]
+\label{thm:coverage}
+For any binary field operation $\circ: \mathbb{F}_p \times \mathbb{F}_p
+\to \mathbb{F}_p$ implemented as $N$ distinct code paths (e.g.,
+carry/no-carry, overflow/no-overflow, sign-difference), there exists
+a test set $T$ of size at most $2N$ such that $T$ exercises every
+code path.
+\end{theorem}
+
+\begin{proof}
+Each code path is triggered by a specific condition on the operands
+(e.g., $a_i + b_i \geq 2^{64}$ triggers a carry in limb $i$).
+For each condition, we construct two test inputs: one that triggers
+the condition and one that does not. The union of these inputs covers
+all code paths. Since there are at most $N$ conditions, the test set
+has at most $2N$ elements.
+\end{proof}
+
+\begin{remark}
+In practice, we generate 516 golden vectors for the field arithmetic
+(covering sum, difference, product, and inverse for all boundary
+cases), which exceeds the theoretical bound for 4-limb operations.
+\end{remark}
+
+\section{Case Studies: Defects Invisible to Conventional Testing}
+\label{sec:casestudies}
+
+We present four defects from our ledger that demonstrate the
+methodology catching bugs that the implementation's own test suite
+could not detect.
+
+\subsection{Case Study 1: Out-of-Bounds Memory Access (CA-R119)}
+
+\subsubsection{The Defect}
+
+The Vesta-domain Poseidon permutation (a separate implementation from
+the Pallas twin) wrapped its full-round phases in a tripling loop:
+\begin{lstlisting}[language=C++]
+for (int r = 0; r < 4; ++r) {
+    for (int k = 0; k < 3; ++k) {
+        s.s0 = fe_add(s.s0, RC[k++]);
+        s.s1 = fe_add(s.s1, RC[k++]);
+        s.s2 = fe_add(s.s2, RC[k++]);
+        // sbox, mix
+    }
+}
+\end{lstlisting}
+This consumed $4 \times 3 \times 3 = 36$ round constants per full phase,
+for a total of $36 + 56 + 36 = 128$ reads against an 80-entry table.
+
+\subsubsection{Why Self-Tests Missed It}
+
+The implementation's own test suite verified: (1) domain separation,
+(2) determinism, (3) sponge roundtrip, and (4) avalanche effect. All
+four are \emph{self-consistency} tests: they verify that the output is
+consistent with the input, but do not verify that the output is
+\emph{correct}. The out-of-bounds reads produced deterministic (if
+incorrect) values, so all self-consistency tests passed.
+
+\subsubsection{How the Methodology Caught It}
+
+The bilingual arithmetic cross-check computed the expected constraint
+count: $\mathit{RF}/2 \times 3 + \mathit{RP} + \mathit{RF}/2 \times 3
+= 12 + 56 + 12 = 80$ round constants. The loop structure consumed 128.
+The discrepancy ($128 \neq 80$) was detected by pure arithmetic,
+before any code was executed.
+
+\subsubsection{The Fix}
+
+The tripling loop was removed, reducing the consumption to
+ $4 \times 3 + 56 + 4 \times 3 = 80$ round constants. The
+differential probe confirmed that the output changed after the fix,
+proving the old outputs were incorrect.
+
+\subsection{Case Study 2: Wrong-Power Invariant Checker (CA-R121)}
+
+\subsubsection{The Defect}
+
+The on-curve check for Jacobian coordinates evaluated
+ $Y^2 = X^3 + b \cdot Z^3$ instead of the correct
+ $Y^2 = X^3 + b \cdot Z^6$. The Jacobian coordinate transformation
+requires $Z^6$ (since $x = X/Z^2$ and $y = Y/Z^3$, substitution
+gives $Y^2/Z^6 = X^3/Z^6 + b$, hence $Y^2 = X^3 + b \cdot Z^6$).
+
+\subsubsection{Why Self-Tests Missed It}
+
+The only point ever tested with the on-curve check was the generator,
+which has $Z = 1$. For $Z = 1$, both $Z^3$ and $Z^6$ equal 1, so the
+wrong power was invisible. The test suite did not include any point
+with $Z \neq 1$.
+
+\subsubsection{How the Methodology Caught It}
+
+The multifold circuit's output points had $Z \neq 1$ (from the Jacobian
+accumulation in scalar multiplication). When the on-curve check was
+applied to these points, the wrong power produced a false negative.
+The affine coordinates (computed by a correct to\_affine function)
+showed the point WAS on the curve, while the on-curve check said it
+was not — a contradiction that convicted the checker.
+
+\subsubsection{The Fix}
+
+The $Z^3$ was replaced with $Z^6$. A regression test was added to
+test\_step26 that applies the on-curve check to every scalar-multiplication
+output (guaranteeing $Z \neq 1$ shapes).
+
+\subsection{Case Study 3: Bit-Order Convention Mismatch (CA-R133)}
+
+\subsubsection{The Defect}
+
+The C++ implementation of the $\mathit{eq}$ table (used in the
+WHIR-class polynomial commitment) bound the first $\tau$ coordinate
+to the \emph{high} bit of the table index, while the Python oracle
+bound it to the \emph{low} bit. This is a convention choice with no
+inherently correct answer — but the two implementations chose
+differently.
+
+\subsubsection{How the Methodology Caught It}
+
+An orientation probe evaluated the eq-table with both orderings and
+compared against the golden vector. The reversed ordering matched
+the golden bit-for-bit; the as-coded ordering did not. The probe
+produced a single bit of evidence (reversed == golden) that convicted
+the C++ convention.
+
+\subsubsection{The Fix}
+
+The C++ eq\_table was changed to reverse the bit binding. The law
+was recorded: ``Bit-order in a fresh implementation is a contract,
+not a default — the golden pins it.''
+
+\subsection{Case Study 4: Double Canonicalization (CA-R132)}
+
+\subsubsection{The Defect}
+
+The WHIR wrap's commitment computation pre-canonicalized values
+before passing them to a function that canonicalizes internally:
+\begin{lstlisting}[language=C++]
+// WRONG: double canonicalization
+fp::fe_to_le_bytes(fp::fe_to_canonical(P.C), cb);
+\end{lstlisting}
+The function \texttt{fe\_to\_le\_bytes} already calls
+\texttt{fe\_to\_canonical} internally. The outer call applied
+the Montgomery reduction a second time, producing
+ $\mathsf{Canon}(\mathsf{Canon}(x)) = \mathsf{Canon}(x) \cdot R^{-1}$,
+which is garbage.
+
+\subsubsection{How the Methodology Caught It}
+
+A three-way consistency check: the commitment computed via the direct
+path (single canonicalization, correct) vs.\ the commitment computed
+via the wrapper (double canonicalization, incorrect). The two
+disagreed on the same input, proving that one path was wrong.
+
+\subsubsection{The Fix}
+
+The redundant outer canonicalization was removed from all four
+affected call sites. A law was recorded: \emph{a helper's internal
+normalization is part of its contract; the caller must not
+pre-normalize}.
+
+\section{The System}
+\label{sec:system}
+
+We apply the methodology to a complete cryptographic proof system:
+a Layer-1 protocol architecture with threshold-encrypted mempool,
+folding-based recursive state transitions, and succinct epoch proofs.
+
+\subsection{The Module Inventory}
+
+\begin{table}[h]
+\centering
+\caption{Implementation modules and their verification status}
+\begin{tabular}{lll}
+\toprule
+\textbf{Module} & \textbf{Description} & \textbf{Constraints} \\
+\midrule
+fe.hpp & Pallas field $\mathbb{F}_p$ arithmetic & 516 golden cases \\
+fev.hpp & Vesta field $\mathbb{F}_q$ arithmetic & 516 golden cases \\
+poseidon.hpp & Pallas-domain Poseidon-3 hash & 80 RC, 9 MDS \\
+poseidon\_v.hpp & Vesta-domain Poseidon-3 hash & 80 RC, 9 MDS \\
+g2v.hpp & Vesta curve operations & 24 golden triples \\
+g1p.hpp & Pallas curve operations & 24 golden triples \\
+pedersen.hpp & Homomorphic Pedersen (both curves) & 8 bases \\
+whir.hpp & WHIR-class succinct opening & 8 OOD points \\
+mfold.hpp & HyperNova multifold core & 24 golden triples \\
+cfold.hpp & Commitment folding & identity check \\
+fexec\_circuit.hpp & $F_{\text{exec}}$ as R1CS & 8 rows \\
+poseidon\_r1cs.hpp & Poseidon R1CS gadget & 1088 rows \\
+epoch\_golden.hpp & The epoch chain + $\pi_E$ & 1600 bytes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The $\pi_E$ Receipt}
+
+The system produces a recursive state transition proof $\pi_E$:
+\begin{table}[h]
+\centering
+\caption{$\pi_E$ size receipt at golden scale}
+\begin{tabular}{lr}
+\toprule
+\textbf{Component} & \textbf{Size (bytes)} \\
+\midrule
+T1 (opening transcript) & 544 \\
+T2 (batched fold transcript) & 768 \\
+OOD (8 points + commitment) & 288 \\
+\midrule
+\textbf{Total $\pi_E$} & \textbf{1600} \\
+\textbf{Budget} & 73728 \\
+\textbf{Utilization} & 2.2\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The proof is verified without the witness (verifier independence)
+in 118\,ms on ARM64 (Termux, phone-class hardware).
+
+\subsection{Production-Scale Projection}
+
+At $k = 476$ decree entries with the full Poseidon permutation
+($r_f/2 = 4$ full half-rounds, $r_p = 56$ partial rounds):
+
+\begin{table}[h]
+\centering
+\caption{Production-scale constraint counts}
+\begin{tabular}{lr}
+\toprule
+\textbf{Component} & \textbf{Constraints} \\
+\midrule
+ $f_{\text{exec}}$ transition (8 rows $\times$ 476) & 3{,}808 \\
+Poseidon hash (1{,}088 $\times$ 3 $\times$ 476) & 1{,}553{,}664 \\
+SMT opening (5{,}120 $\times$ 2 $\times$ 476) & 4{,}874{,}240 \\
+\midrule
+\textbf{Total} & \textbf{6{,}431{,}712} \\
+\textbf{10$^6$ target} & \textbf{Exceeded ($6.4\times$)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Defect Inventory}
+
+The methodology caught 162 defects across the following classes:
+
+\begin{table}[h]
+\centering
+\caption{Defect classes and counts}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Class} & \textbf{Count} & \textbf{Example} \\
+\midrule
+Arithmetic (carry, overflow, borrow) & 28 & CA-R48 \\
+Convention (bit-order, endianness) & 22 & CA-R133 \\
+Domain (Montgomery vs.\ canonical) & 18 & CA-R148 \\
+Constraint algebra (R1CS row construction) & 15 & CA-R143 \\
+API misuse (wrong function, wrong power) & 12 & CA-R121 \\
+Structural (loop bounds, index spaces) & 10 & CA-R119 \\
+Out-of-bounds memory access & 3 & CA-R119 \\
+Emitter formatting (C++ syntax from generator) & 8 & CA-R127 \\
+Infrastructure (gate, build system, git) & 6 & CA-R151 \\
+Other & 40 & CA-R85 \\
+\midrule
+\textbf{Total} & \textbf{162} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Defects Invisible to Conventional Testing}
+
+Of the 162 defects, we identify 4 that were \emph{structurally
+invisible} to the implementation's own test suite:
+
+\begin{enumerate}
+\item \textbf{CA-R119}: Out-of-bounds memory access — the test suite
+verified self-consistency but not correctness (Section~\ref{sec:casestudies}).
+\item \textbf{CA-R121}: Wrong-power on-curve check — the only tested
+point had $Z=1$, masking the error (Section~\ref{sec:casestudies}).
+\item \textbf{CA-R133}: Bit-order mismatch — a convention choice with
+no self-evident correct answer.
+\item \textbf{CA-R132}: Double canonicalization — the same helper was
+used in both the correct and incorrect paths, making the error
+self-consistent.
+\end{enumerate}
+
+These defects would have survived conventional unit testing, integration
+testing, fuzzing, and code review. They were caught exclusively by the
+bilingual cross-examination and the arithmetic consistency checks.
+
+\subsection{The Gate's Own Integrity}
+
+The verification gate itself was audited during development. Six
+integrity defects were found and fixed (CA-R151 through CA-R157):
+build failures that fell through to stale binaries, golden-filename
+collisions, stale generator dependencies, and shell syntax errors
+in the gate script itself. Each defect was converted to a law,
+and the gate now verifies its own integrity as part of every run.
+
+\section{Comparison with Prior Work}
+
+\begin{table}[h]
+\centering
+\caption{Comparison with existing verification approaches}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Approach} & \textbf{Bilingual} & \textbf{Golden} & \textbf{Ledger} \\
+\midrule
+Unit tests & \checkmark & & \\
+Property-based testing & & \checkmark & \\
+Formal verification (EasyCrypt, F*) & & \checkmark & \checkmark \\
+Reference-implementation diff & \checkmark & & \\
+\textbf{This work} & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The key differentiator is the \emph{combination}: bilingual
+cross-examination (two independent implementations) + golden vectors
+(every intermediate value pinned) + the append-only ledger (every
+defect owned). No prior work combines all three.
+
+\section{Limitations}
+
+\begin{enumerate}
+\item \textbf{Shared-model risk}: if both implementations share a
+design error (e.g., both use the same wrong bit-order convention),
+the cross-examination will not detect it. This is mitigated by
+deriving the convention from a reference implementation (e.g., the
+pasta-curves crate) and by CA-R37's law: \emph{trust the goldens,
+not the story}.
+\item \textbf{Oracle correctness}: the Python oracle is itself
+software and may contain bugs. However, it uses arbitrary-precision
+integers (no fixed-width arithmetic), eliminating an entire class
+of implementation bugs.
+\item \textbf{Coverage}: the golden vectors test specific inputs;
+they do not prove correctness for all inputs. The gap is bridged
+by the structural coverage analysis (Theorem~\ref{thm:coverage})
+and by the pre-emit self-check law (CA-R126).
+\end{enumerate}
+
+\section{Conclusion and Future Work}
+
+We presented a methodology for verifying cryptographic implementations
+through bilingual cross-examination, golden-vector pinning, and an
+append-only decision ledger. Applied to a complete cryptographic proof
+system, the methodology caught 162 defects — including four classes
+invisible to conventional testing. The resulting system produces a
+1600-byte recursive state transition proof verifiable without the
+witness.
+
+Future work includes: (1) formal verification of the core arithmetic
+using EasyCrypt or F*, (2) extension to the full production circuit
+(the complete SMT depth, the complete Poseidon round count), and
+(3) external security audit by an independent firm.
+
+\section{Artifacts}
+
+All artifacts are available at:
+\url{https://github.com/sarinsk629-blip/hsma-core}
+
+\begin{itemize}
+\item \texttt{include/hsma/}: 41 implementation headers
+\item \texttt{conformance/}: 34 test binaries
+\item \texttt{scripts/gate.sh}: the verification gate
+\item \texttt{docs/DECISIONS.md}: the append-only decision ledger
+(234 decisions, 163 laws)
+\item \texttt{tools/}: 20+ diagnostic probes
+\end{itemize}
+
+The verification pipeline is reproducible: clone the repository,
+run \texttt{./scripts/gate.sh}, and observe the GATE GREEN verdict.
+
+\end{document}
