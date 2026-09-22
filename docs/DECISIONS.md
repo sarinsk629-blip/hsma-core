@@ -2691,20 +2691,12 @@ explorer.
 ---
 ## SECTION 19 - P2-02: The Testnet Validator Node (2026-09-19)
 #### DEC-242 - The epoch node: networking + folding + pi_E in one binary
-**Decision:** tools/epoch_node.cpp - the first testnet validator binary
-that combines ALL layers: P2P networking (p2p.hpp), the folding core
-(mfold.hpp), the f_exec transition circuit (fexec_circuit.hpp), the
-WHIR-class succinct opening (whir.hpp), and the field arithmetic
-(fe.hpp). The node folds k=10 decree entries through the circuit,
-produces the pi_E via whir::wrap_open, verifies without the witness
-(wrap_verify ACCEPT), gossips the epoch header to peers, and enters
-the gossip loop. THE TESTNET VALIDATOR EXISTS.
-**Rationale:** The transition from "cryptographic code that works" to
-"a network node that runs." The epoch node is the first binary that
-combines every layer of the architecture in a single running process.
+**Decision:** tools/epoch_node.cpp - the testnet validator binary.
+Folds k=10 decree entries through the f_exec circuit, produces the
+pi_E via whir::wrap_open, verifies without the witness, gossips
+epoch headers to peers, enters the gossip loop.
 **Supersedes:** N/A
-**Build status:** P2-02 CLOSED - the testnet validator node EXISTS.
-NEXT: P2-03 - the state/epoch explorer, then multi-node testing.
+**Build status:** P2-02 CLOSED.
 ---
 ## SECTION 20 - P2-04: Multi-Node Testing (2026-09-19)
 #### DEC-243 - Two HSMA validators running simultaneously — the testnet is alive
