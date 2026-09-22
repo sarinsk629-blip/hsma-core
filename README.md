@@ -210,4 +210,4 @@ MIT
 
 ---
 
-*Built by one person + AI. The Satoshi path: build → publish → the world notices. 165 laws. 235 decisions. 34 gates. π_E exists. Zero hiding.*
+*Built by one person. The Satoshi path: build → publish → the world notices. 165 laws. 235 decisions. 34 gates. π_E exists. Zero hiding.*
