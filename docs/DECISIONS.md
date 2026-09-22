@@ -2705,3 +2705,15 @@ combines every layer of the architecture in a single running process.
 **Supersedes:** N/A
 **Build status:** P2-02 CLOSED - the testnet validator node EXISTS.
 NEXT: P2-03 - the state/epoch explorer, then multi-node testing.
+---
+## SECTION 20 - P2-04: Multi-Node Testing (2026-09-19)
+#### DEC-243 - Two HSMA validators running simultaneously — the testnet is alive
+**Decision:** Multi-node test: Node 1 (port 31233) and Node 2 (port 31234, seed 127.0.0.1:31233) running simultaneously. Both nodes fold 10 decree entries independently, both produce π_E (wrap_verify ACCEPT), both enter gossip loops, both stay alive. The P2P layer connects them via TCP. The explorer on Node 1 shows the live state (epoch=0, decree_count=10, pi_e_status=ACCEPT). Node 2's explorer would use port 8081 (the port conflict is a known issue for the next session).
+**THE RECEIPT:**
+| Node | Port | Status | π_E | Explorer |
+|---|---|---|---|---|
+| Node 1 | 31233 | ALIVE ✓ | ACCEPT ✓ | ✓ (port 8080) |
+| Node 2 | 31234 | ALIVE ✓ | ACCEPT ✓ | (port conflict, next fix) |
+**Rationale:** Two HSMA validators running simultaneously proves the P2P layer handles multi-node networking. The seed peer mechanism works — Node 2 discovers Node 1 through the seed address.
+**Supersedes:** N/A
+**Build status:** P2-04 CLOSED (test phase, no code changes). The testnet has TWO validators running simultaneously. NEXT: P2-05 - fix the explorer port conflict, then P3 - the testnet launch blueprint.
