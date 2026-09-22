@@ -141,6 +141,9 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
 
 // the explorer server: runs in a background thread
 inline void run_explorer(unsigned port, const NodeState& ns) noexcept {
+    // port is parameterized: Node 1 uses p2p_port (e.g. 31233 -> explorer 32233),
+    // Node 2 uses p2p_port + 1000 (e.g. 31234 -> explorer 32234).
+    // The caller (epoch_node.cpp) decides the explorer port based on the P2P port.
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return;
     int opt = 1;
