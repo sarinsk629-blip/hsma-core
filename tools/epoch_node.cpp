@@ -10,6 +10,7 @@
 #include <hsma/mfold.hpp>
 #include <hsma/fexec_circuit.hpp>
 #include <hsma/whir.hpp>
+#include <hsma/explorer.hpp>
 #include "fexec_golden.hpp"
 #include "pallas_params_gen.hpp"
 #include <cstdio>
@@ -280,6 +281,29 @@ int main(int argc, char* argv[]) {
     std::printf("  peers: %zu\n", peer_fds.size());
     std::printf("  entering gossip loop (listening for new decrees)...\n");
     std::printf("═══════════════════════════════════════\n");
+
+    // start the explorer (P2-03)
+    explorer::NodeState ns;
+    ns.epoch = current_epoch;
+    ns.decree_count = decree_count;
+    ns.k_entries = K_ENTRIES;
+    {   fp::fe dc = fp::fe_to_canonical(accumulator.z[0]);
+        char hex[128]; hex[0] = 0;
+        for (int k = 3; k >= 0; --k) { char tmp[20]; snprintf(tmp, sizeof(tmp), "%016llx", (unsigned long long)dc.l[k]); strcat(hex, tmp); }
+        ns.state_root_hex = hex; }
+    ns.pi_e_status = ok ? "ACCEPT" : "PENDING";
+    ns.pi_e_size = 1600;
+    ns.total_rows = (unsigned)A.row.size();
+    ns.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
+    ns.peer_count = peer_fds.size();
+    ns.port = my_port;
+    
+    // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
+    // for simplicity, use a fixed port: 8080
+    std::thread exp_thread([ns]() {
+        explorer::run_explorer(8080, ns);
+    });
+    exp_thread.detach();
     
     // enter the gossip loop (the node stays alive, accepting connections)
     while (true) {
