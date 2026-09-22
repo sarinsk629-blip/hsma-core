@@ -2690,14 +2690,11 @@ P2-02 - the node CLI with epoch folding integration, P2-03 - the epoch
 explorer.
 ---
 ## SECTION 19 - P2-02: The Testnet Validator Node (2026-09-19)
-#### DEC-242 - The epoch node: networking + folding + pi_E in one binary
-**Decision:** tools/epoch_node.cpp - the testnet validator binary.
+DEC-242: tools/epoch_node.cpp — the testnet validator binary.
 Folds k=10 decree entries through the f_exec circuit, produces the
 pi_E via whir::wrap_open, verifies without the witness, gossips
-epoch headers to peers, enters the gossip loop.
-**Supersedes:** N/A
-**Build status:** P2-02 CLOSED.
----
+epoch headers to peers, enters the gossip loop. Build status: P2-02 CLOSED.
+
 ## SECTION 20 - P2-04: Multi-Node Testing (2026-09-19)
 #### DEC-243 - Two HSMA validators running simultaneously — the testnet is alive
 **Decision:** Multi-node test: Node 1 (port 31233) and Node 2 (port 31234, seed 127.0.0.1:31233) running simultaneously. Both nodes fold 10 decree entries independently, both produce π_E (wrap_verify ACCEPT), both enter gossip loops, both stay alive. The P2P layer connects them via TCP. The explorer on Node 1 shows the live state (epoch=0, decree_count=10, pi_e_status=ACCEPT). Node 2's explorer would use port 8081 (the port conflict is a known issue for the next session).
