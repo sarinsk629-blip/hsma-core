@@ -300,8 +300,8 @@ int main(int argc, char* argv[]) {
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
     // for simplicity, use a fixed port: 8080
-    std::thread exp_thread([ns]() {
-        explorer::run_explorer(8080, ns);
+    std::thread exp_thread([ns, my_port]() {
+        explorer::run_explorer(my_port + 1000, ns);
     });
     exp_thread.detach();
     
@@ -338,6 +338,18 @@ int main(int argc, char* argv[]) {
                 if (p2p::recv_message(peer_fds[i], msg)) {
                     if (msg.type == p2p::EPOCH_HEADER) {
                         std::printf("[epoch] received epoch header from peer\n");
+                        // re-gossip to other peers
+                        for (std::size_t j = 0; j < peer_fds.size(); ++j) {
+                            if (j != i) p2p::send_message(peer_fds[j], msg);
+                        }
+                    } else if (msg.type == p2p::DECREE_ENTRY) {
+                        std::printf("[decree] received decree entry (%zu bytes)\n", msg.payload.size());
+                        // process the decree: extract the digest, fold it
+                        handle_decree(msg.payload);
+                        // re-gossip to other peers
+                        for (std::size_t j = 0; j < peer_fds.size(); ++j) {
+                            if (j != i) p2p::send_message(peer_fds[j], msg);
+                        }
                     } else if (msg.type == p2p::PING) {
                         p2p::Message pong{};
                         pong.type = p2p::PONG;
