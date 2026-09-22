@@ -2661,3 +2661,30 @@ LAW: the R1CS domain is CANONICAL. Period. No exceptions. No Montgomery.
 **Build status:** P1-15e CLOSED - the FULL Poseidon epoch loop proven
 (54,400 constraints, ALL SAT, 338ms). The production constraint system
 is COMPLETE. NEXT: P2 - the testnet blueprint.
+---
+## SECTION 18 - P2-01: The P2P Networking Layer (2026-09-19)
+#### DEC-241 - The P2P layer: peer discovery, gossip, PING/PONG, PEER_LIST exchange — ALL WORKING
+**Decision:** include/hsma/p2p.hpp + tools/node.cpp - the P2P networking
+layer for the HSMA testnet: TCP-based peer connections (POSIX sockets),
+message framing (magic "HSMA" + type + length-prefixed payload), peer
+discovery (seed nodes + PEER_LIST exchange), gossip loop (select-based
+event loop with PING/PONG keepalive), and message types (PEER_LIST,
+EPOCH_HEADER, DECREE_ENTRY, PING, PONG).
+**THE RECEIPT:**
+| Test | Result |
+|---|---|
+| Node 1 listens on 31233 | ✓ |
+| Node 2 listens on 31234 | ✓ |
+| Node 2 connects to Node 1 (seed peer) | ✓ |
+| External PING → PONG (Node 1) | ✓ |
+| External PING → PEER_LIST (Node 2) | ✓ |
+| PEER_LIST exchange (Node 2 knows Node 1) | ✓ |
+| Gossip loop active on both nodes | ✓ |
+**Rationale:** The P2P layer is the transition from cryptographic code
+to network code. The first networking module in HSMA's history — same
+methodology: header-only, no external dependencies, deterministic
+serialization.
+**Supersedes:** N/A
+**Build status:** P2-01 CLOSED - the P2P layer is functional. NEXT:
+P2-02 - the node CLI with epoch folding integration, P2-03 - the epoch
+explorer.
