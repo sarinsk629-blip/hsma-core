@@ -11,6 +11,7 @@
 #include <hsma/fexec_circuit.hpp>
 #include <hsma/whir.hpp>
 #include <hsma/explorer.hpp>
+#include <hsma/pouw.hpp>
 #include "fexec_golden.hpp"
 #include "pallas_params_gen.hpp"
 #include <cstdio>
@@ -153,6 +154,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
 }
 
 int main(int argc, char* argv[]) {
+    std::setvbuf(stdout, nullptr, _IONBF, 0); // [G7] lesson: redirected stdout was fully buffered - logs stayed empty
     unsigned my_port = p2p::DEFAULT_PORT;
     
     // parse arguments
@@ -282,6 +284,43 @@ int main(int argc, char* argv[]) {
     std::printf("  entering gossip loop (listening for new decrees)...\n");
     std::printf("═══════════════════════════════════════\n");
 
+    // ---- P2-06 (DEC-250): the epoch PoUW - deterministic, self-verified ----
+    // The epoch's own digest chain seeds a 64^3 GEMM (xorshift64* expansion
+    // of the chain tail - CA-R90 float-free); the node proves it FS-bound
+    // (DEC-248 v2) and verifies its OWN proof (CA-R126 applied to PoUW).
+    // Same epoch bytes -> same GEMM -> same weight. [G8]-testable.
+    unsigned pouw_inner = 64;
+    std::uint64_t pouw_weight = 0;
+    const char* pouw_verify = "PENDING";
+    {
+        const unsigned N = pouw_inner;
+        auto t0 = std::chrono::steady_clock::now();
+        std::uint64_t st = 0;
+        {   const auto& db = digest_chain.back();
+            for (int k = 0; k < 4; ++k) st = st * 0x9E3779B97F4A7C15ull + db[k]; }
+        auto rnd = [&st]() -> fp::fe {
+            st ^= st << 13; st ^= st >> 7; st ^= st << 17;
+            return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull); };
+        std::vector<fp::fe> Am((std::size_t)N*N), Bm((std::size_t)N*N), Cm((std::size_t)N*N);
+        for (auto& x : Am) x = rnd();
+        for (auto& x : Bm) x = rnd();
+        for (unsigned i = 0; i < N; ++i)
+            for (unsigned j = 0; j < N; ++j) {
+                fp::fe acc = fp::fe_zero();
+                for (unsigned k = 0; k < N; ++k)
+                    acc = fp::fe_add(acc, fp::fe_mul(Am[i*N+k], Bm[k*N+j]));
+                Cm[i*N+j] = acc;
+            }
+        pouw::GemmProofV2 PP = pouw::prove_gemm_v2(Am, Bm, Cm, N, N, N);
+        const bool vok = pouw::verify_gemm_v2(PP, Am, Bm, Cm);
+        pouw_verify = vok ? "ACCEPT" : "REJECT";
+        pouw_weight = vok ? pouw::weight(N, 1) : 0;
+        auto t1 = std::chrono::steady_clock::now();
+        const double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
+            current_epoch, N, pouw_verify, (unsigned long long)pouw_weight, ms);
+    }
+
     // start the explorer (P2-03)
     explorer::NodeState ns;
     ns.epoch = current_epoch;
@@ -297,6 +336,9 @@ int main(int argc, char* argv[]) {
     ns.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
     ns.peer_count = peer_fds.size();
     ns.port = my_port;
+    ns.pouw_inner = pouw_inner;
+    ns.pouw_weight = pouw_weight;
+    ns.pouw_verify = pouw_verify;
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
     // for simplicity, use a fixed port: 8080

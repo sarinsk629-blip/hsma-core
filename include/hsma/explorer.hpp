@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <cstdio>
+#include <cstdint>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -32,11 +33,14 @@ struct NodeState {
     std::size_t peer_count{};
     unsigned port{};
     std::string version{"0.1.0"};
+    unsigned pouw_inner{};             // P2-06: the epoch GEMM inner dimension
+    std::uint64_t pouw_weight{};       // verified MACs (0 if REJECT/PENDING)
+    std::string pouw_verify;           // "ACCEPT" | "REJECT" | "PENDING"
 };
 
 // build the JSON API response
 inline std::string build_json(const NodeState& ns) noexcept {
-    char buf[2048];
+    char buf[4096];
     std::snprintf(buf, sizeof(buf),
         "{\n"
         "  \"network\": \"hsma-testnet\",\n"
@@ -50,17 +54,21 @@ inline std::string build_json(const NodeState& ns) noexcept {
         "  \"total_constraints\": %u,\n"
         "  \"total_vars\": %u,\n"
         "  \"peers\": %zu,\n"
-        "  \"p2p_port\": %u\n"
+        "  \"p2p_port\": %u,\n"
+        "  \"pouw_inner\": %u,\n"
+        "  \"pouw_weight\": %llu,\n"
+        "  \"pouw_verify\": \"%s\"\n"
         "}",
         ns.version.c_str(), ns.epoch, ns.decree_count, ns.k_entries,
         ns.state_root_hex.c_str(), ns.pi_e_status.c_str(), ns.pi_e_size,
-        ns.total_rows, ns.total_vars, ns.peer_count, ns.port);
+        ns.total_rows, ns.total_vars, ns.peer_count, ns.port,
+        ns.pouw_inner, (unsigned long long)ns.pouw_weight, ns.pouw_verify.c_str());
     return std::string(buf);
 }
 
 // build the HTML dashboard
 inline std::string build_html(const NodeState& ns) noexcept {
-    char buf[4096];
+    char buf[8192];
     std::snprintf(buf, sizeof(buf),
         R"html(<!DOCTYPE html>
 <html>
@@ -88,6 +96,7 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
 <div class="card"><div class="label">Total Variables</div><div class="value">%u</div></div>
 <div class="card"><div class="label">Connected Peers</div><div class="value">%zu</div></div>
 <div class="card"><div class="label">P2P Port</div><div class="value">%u</div></div>
+<div class="card"><div class="label">PoUW Weight</div><div class="value">%llu <span style="font-size:0.55em;color:#888;">= %u&#179; verified MACs, %s</span></div></div>
 <div class="card"><div class="label">Version</div><div class="value">%s</div></div>
 </div>
 <p style="color:#666; margin-top:20px;">HSMA Testnet — Holographic Spin-Manifold Architecture</p>
@@ -99,6 +108,7 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
         ns.pi_e_status.c_str(),
         ns.pi_e_size,
         ns.total_rows, ns.total_vars, ns.peer_count, ns.port,
+        (unsigned long long)ns.pouw_weight, ns.pouw_inner, ns.pouw_verify.c_str(),
         ns.version.c_str());
     return std::string(buf);
 }

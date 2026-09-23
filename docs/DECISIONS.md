@@ -2890,3 +2890,37 @@ discipline. 165th defect owned.
 **Supersedes:** N/A
 **Build status:** DEFECT-165 CLOSED. NEXT: P2-06 - pouw::weight into
 the epoch_node explorer; P1-19 - Pedersen dual-layer binding.
+
+---
+## SECTION 22 - P2-06: The Epoch PoUW Integration (2026-09-23)
+#### DEC-250 - pouw::weight in the validator: the explorer shows verified MACs
+**Decision:** explorer.hpp NodeState gains pouw_inner/pouw_weight/
+pouw_verify (JSON fields + HTML card; bufs 2048/4096 -> 4096/8192).
+epoch_node.cpp: after epoch completion the node derives a 64^3 GEMM
+deterministically from the epoch's own digest chain (xorshift64*
+expansion of the chain tail - CA-R90 float-free), proves it FS-bound
+(DEC-248 v2 path), verifies its OWN proof (CA-R126 applied to PoUW),
+and reports the weight: 262,144 MACs on ACCEPT, 0 on REJECT. Node
+build moves to -O2 (the G6 finding: -O0 is a 6.2x bench tax). One
+line added: setvbuf(stdout, _IONBF) - redirected stdout was fully
+buffered, so [G7]'s log grep was empty while the JSON proved
+execution. docs/Total DECISIONS.md retained per maintainer decision:
+the genesis ledger (DEC-001..115, CA-1..CA-77 era) - historical
+artifact, never part of the active ledger.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G7] PoUW execution | ACCEPT + weight 262144 (JSON-proof; log artifact owned) |
+| [G8] determinism | kill + rerun -> 262144 == 262144 PASS |
+| [G9] explorer JSON | pouw_weight visible at /api |
+| 64^3 timing at -O2 | predicted ~0.6s band 0.4-1.2s - see [V1] line |
+**Rationale:** The P1-16..18 PoUW chain becomes a testnet-visible
+receipt: a validator whose explorer page displays the exact count of
+verified multiply-accumulates its epoch performed - reproducible from
+the epoch's own bytes.
+**Honest boundary:** node-local PoUW - the weight is a self-reported
+receipt at testnet grade until decrees carry GEMM commitments (P2-07);
+the explorer is a startup snapshot (P2-03 semantics).
+**Supersedes:** N/A
+**Build status:** P2-06 CLOSED. NEXT: P2-07 decree GEMM commitments;
+P1-19 Pedersen dual-layer witness binding.
