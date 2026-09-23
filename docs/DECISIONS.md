@@ -2789,3 +2789,30 @@ only by luck. 163rd defect owned.
 initial-claim, and mid-round semantics unchanged).
 **Build status:** DEFECT-163 CLOSED. NEXT: P1-18 - FS challenges + PCS
 bindings + epoch weight integration.
+
+---
+## SECTION 21 - P1-17b: DEFECT-164 (2026-09-23)
+#### DEC-247 - Nested clone shadowed build/generated; the gate's ambiguity FATAL refused to guess
+**Decision:** ~/hsma/hsma-core (the CA-R167 fresh-clone test clone)
+nested INSIDE the working repo tripped step7's generated-dir guard on
+the post-DEC-246 gate run: FATAL ambiguous generated dirs - refusing
+to guess. Inspection before removal: shadow HEAD f090f04 verified an
+ancestor of main (zero unique commits), zero tracked changes - pure
+dead weight. The '??' marker revealed a second untracked clone nested
+INSIDE the shadow (clones accumulate like sediment). Removed; gate
+re-run 34/34 GREEN. Hardening: hsma-core/ added to .gitignore - a
+nested clone shows as untracked, and a future 'git add .' would have
+swallowed the entire repository.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| shadow ancestry (merge-base) | f090f04 IS ancestor of main |
+| unique commits / tracked changes | 0 / 0 |
+| nested-nested clone inside shadow | present (untracked) - removed with parent |
+| gate after removal | 34/34 GREEN, 100%, 99.4s |
+**Rationale:** Environment defects are defects. The guard that refuses
+to guess is the feature - a gate that silently picked one generated
+dir would have verified goldens from a stale tree. 164th defect owned.
+**Supersedes:** N/A
+**Build status:** DEFECT-164 CLOSED. NEXT: P1-18 - HSM_POUW_v1 domain
+tag + FS challenges + commitment cross-checks + pcs at-point machinery.

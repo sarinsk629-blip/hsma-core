@@ -39,3 +39,4 @@ __pycache__/
 *.pyc
 docs/*.bak.*
 docs/*.pre-*
+hsma-core/
