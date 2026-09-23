@@ -105,7 +105,8 @@ inline Transcript prove_2(unsigned nv, const std::vector<fp::fe>& a_in,
     return T;
 }
 
-// Returns the failing round (nv == ACCEPT); 0 = initial-claim failure.
+// Returns: nv == ACCEPT; 0 = initial-claim failure; i = failing round;
+// nv+1 = final-eval mismatch (DEFECT-163, DEC-246).
 inline unsigned verify(const Transcript& T, const fp::fe& C) {
     if (!feq(T.claims[0], C)) return 0u;
     for (unsigned i = 0; i < T.nv; ++i) {
@@ -121,7 +122,7 @@ inline unsigned verify(const Transcript& T, const fp::fe& C) {
         if (!feq(nc, T.claims[i + 1])) return i;
     }
     const fp::fe fin = (T.d == 1u) ? T.fa : fe_mul(T.fa, T.fb);
-    if (!feq(fin, T.claims[T.nv])) return T.nv;
+    if (!feq(fin, T.claims[T.nv])) return T.nv + 1u; // DEFECT-163: was nv (== ACCEPT) - collision
     return T.nv;
 }
 

@@ -121,6 +121,17 @@ int main() {
                     pouw::verify_gemm(P3, ap, bp) ? "ACCEPT!!" : "REJECT");
     }
 
+    // ---- [G4] faked final eval: honest transcript, T.fa corrupted ----
+    // Pre-fix engine: sc::verify returned nv (looked ACCEPT); only the
+    // binding check saved PoUW. The standalone engine was unsound.
+    {   pouw::GemmProof P4 = P1;
+        P4.T.fa = fp::fe_add(P4.T.fa, fp::fe_one());
+        const unsigned vr4 = sc::verify(P4.T, P4.claim);
+        std::printf("[G4] fake final-eval: sc::verify=%u (nv=%u, expect %u) -> %s (must REJECT)\n",
+                    vr4, P4.T.nv, P4.T.nv + 1u,
+                    pouw::verify_gemm(P4, ap, bp) ? "ACCEPT!!" : "REJECT");
+    }
+
     // ---- [W] the weight + proof-size receipt ----
     {
         const std::size_t bytes = (P1.T.evals.size()*3 + P1.T.claims.size()

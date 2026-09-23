@@ -112,7 +112,7 @@ inline bool verify_gemm(const GemmProof& P,
     std::vector<fp::fe> aref, bref;
     pad_to(a_ref, nv, aref);
     pad_to(b_ref, nv, bref);
-    return (sc::verify(P.T, P.claim) != 0u)
+    return (sc::verify(P.T, P.claim) == P.T.nv)
         && sc::feq(P.T.fa, sc::direct_eval(aref, P.T.r))
         && sc::feq(P.T.fb, sc::direct_eval(bref, P.T.r));
 }

@@ -2762,3 +2762,30 @@ at T.r = P1-18.
 **Supersedes:** N/A
 **Build status:** P1-17 CLOSED - the PoUW wiring is PROVEN. NEXT:
 P1-18 - FS challenges + PCS bindings + epoch weight integration.
+
+---
+## SECTION 21 - P1-17a: DEFECT-163 (2026-09-23)
+#### DEC-246 - sc::verify final-eval failure returned nv (== ACCEPT)
+**Decision:** sumcheck.hpp verify(): final-eval mismatch now returns
+the distinct sentinel nv+1 (was nv - indistinguishable from ACCEPT);
+doc comment states the full convention (nv=ACCEPT, 0=initial claim,
+i=failing round, nv+1=final mismatch). pouw.hpp verify_gemm(): accept
+iff sc::verify(...) == T.nv (was != 0u - unsafe under the old
+convention). tools/pouwprobe.cpp gains [G4]: an honest transcript with
+T.fa corrupted by one must return nv+1 and REJECT.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G1] honest (nv=2) | verify=2 == nv -> ACCEPT |
+| [G4] faked final eval | verify=nv+1 -> REJECT |
+| [G2]/[G3] regression | unchanged REJECT |
+**Rationale:** Found by reading the engine body ([R1]) - the P1-17
+gates never tampered with fa/fb alone, so the collision was invisible
+to all three. PoUW was not exploitable (the fa/fb binding check covers
+the class - defense in depth held), but the standalone engine
+convention was unsound, and pouw's identity-only convention was safe
+only by luck. 163rd defect owned.
+**Supersedes:** Step-19 verify() return convention (honest-path,
+initial-claim, and mid-round semantics unchanged).
+**Build status:** DEFECT-163 CLOSED. NEXT: P1-18 - FS challenges + PCS
+bindings + epoch weight integration.
