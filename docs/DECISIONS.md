@@ -2733,3 +2733,32 @@ consensus weight) is P1-17.
 **Supersedes:** N/A
 **Build status:** P1-16 CLOSED - the GEMM circuit is PROVEN. NEXT:
 P1-17 - the sum-check wiring (gemm -> prove_2 -> PoUW weight).
+
+---
+## SECTION 21 - P1-17: The PoUW Wiring (2026-09-23)
+#### DEC-245 - GEMM -> sumcheck -> consensus weight: the whole-GEMM reduction
+**Decision:** include/hsma/pouw.hpp + tools/pouwprobe.cpp - the PoUW
+wiring. One degree-2 sumcheck binds the WHOLE GEMM: a(k)=sum_i
+gamma^i A(i,k), b(k)=sum_j delta^j B(k,j), claim=sum_{i,j} gamma^i
+delta^j C(i,j); identity sum_k a(k)b(k)=claim via the proven sc::prove_2
+engine. Two independent security checks: [identity] sc::verify catches
+faked results; [binding] T.fa/T.fb vs direct_eval of the verifier's own
+arrays at T.r catches faked witnesses. PoUW weight = inner^3 MACs per
+verified proof.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G0] substrate 36/36 SAT + C00=30 | YES |
+| [G1] honest proof | ACCEPT |
+| [G2] faked output | REJECT (identity) |
+| [G3] faked witness | REJECT (binding) |
+| 128^3 GEMM proof size | ~1.2KB for ~2.1M rows |
+| k=476 epoch weight | ~3.0B MACs |
+**Rationale:** The engine (sumcheck, Step 19) and the computation
+(GEMM, DEC-244) existed; P1-17 is the wiring that turns verified
+matrix multiplication into consensus-checkable work. Honest boundary:
+fixed challenges + direct-eval binding; Poseidon-FS + PCS openings
+at T.r = P1-18.
+**Supersedes:** N/A
+**Build status:** P1-17 CLOSED - the PoUW wiring is PROVEN. NEXT:
+P1-18 - FS challenges + PCS bindings + epoch weight integration.
