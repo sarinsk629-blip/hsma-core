@@ -2706,3 +2706,30 @@ epoch headers to peers, enters the gossip loop. Build status: P2-02 CLOSED.
 **Rationale:** Two HSMA validators running simultaneously proves the P2P layer handles multi-node networking. The seed peer mechanism works — Node 2 discovers Node 1 through the seed address.
 **Supersedes:** N/A
 **Build status:** P2-04 CLOSED (test phase, no code changes). The testnet has TWO validators running simultaneously. NEXT: P2-05 - fix the explorer port conflict, then P3 - the testnet launch blueprint.
+
+---
+## SECTION 20 - P1-16: The GKR/GEMM Layer (2026-09-20)
+#### DEC-244 - The GEMM circuit: matrix multiplication as R1CS, 36/36 SAT
+**Decision:** include/hsma/gkr.hpp + tools/gkrprobe.cpp - the GKR/PoUW
+substrate. GEMM (C[i][j] = sum_k A[i][k]*B[k][j]) as explicit R1CS:
+one product row per (i,j,k) binding A[i][k]*B[k][j] = P_k, one sum row
+per (i,j) binding C[i][j]*1 = sum(P_k). GemmCircuit exposes p_offset so
+product witnesses are COMPUTED, never assumed (the all-36-UNSAT defect
+is owned: unfilled witnesses). GKR attribution corrected:
+Goldwasser-Kalai-Rothblum (STOC 2008, "Delegating Computation").
+**THE RECEIPT:**
+| Test | Result |
+|---|---|
+| gkr.hpp syntax | CLEAN |
+| 3x3 GEMM rows | 36 = 9 outputs x (3 product + 1 sum) |
+| 3x3 GEMM vars | 55 = 1 ONE + 27 IO + 27 products |
+| R1CS SAT | 36/36 YES |
+| Known-answer C | [[30,24,18],[84,69,54],[138,114,90]] exact |
+| Scaling | n^2(n+1) rows; 128x128 ~ 2.11M rows |
+**Rationale:** The GEMM is the AI computation PoUW verifies. The
+engines (sumcheck, PCS, multifold) are proven and golden-pinned; P1-16
+supplies the computation they verify. The wiring (GEMM -> sumcheck ->
+consensus weight) is P1-17.
+**Supersedes:** N/A
+**Build status:** P1-16 CLOSED - the GEMM circuit is PROVEN. NEXT:
+P1-17 - the sum-check wiring (gemm -> prove_2 -> PoUW weight).
