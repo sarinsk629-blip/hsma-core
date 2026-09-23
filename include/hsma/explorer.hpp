@@ -73,6 +73,7 @@ inline std::string build_html(const NodeState& ns) noexcept {
         R"html(<!DOCTYPE html>
 <html>
 <head>
+<meta charset="utf-8">
 <title>HSMA Epoch Explorer</title>
 <style>
 body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; margin: 20px; }

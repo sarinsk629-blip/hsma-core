@@ -2924,3 +2924,18 @@ the explorer is a startup snapshot (P2-03 semantics).
 **Supersedes:** N/A
 **Build status:** P2-06 CLOSED. NEXT: P2-07 decree GEMM commitments;
 P1-19 Pedersen dual-layer witness binding.
+
+---
+## SECTION 22 - P2-06a: DEFECT-166 (2026-09-23)
+#### DEC-251 - build_html lacked a charset declaration; UTF-8 em-dash rendered as mojibake
+**Decision:** explorer.hpp build_html gains <meta charset="utf-8">.
+Found in the maintainer's own browser paste ('HSMA Testnet aE" ...')
+- the footer's em-dash rendered as Windows-1252 mojibake because no
+charset was declared. Also recorded: the 64^3 PoUW timing (1127ms)
+held the pre-committed 0.4-1.2s band but ran 2x over the ~0.6s point
+estimate - fixed/sublinear costs (witness fill, 3 sponge commitments)
+are a larger fraction at 64^3 than 128^3; the point estimate was
+decoration, the band was the claim.
+**Rationale:** The methodology doesn't rank defects; it owns them.
+166th defect owned.
+**Build status:** DEFECT-166 CLOSED.
