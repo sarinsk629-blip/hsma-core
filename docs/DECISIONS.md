@@ -2853,3 +2853,40 @@ witness binding; P2-06 - pouw::weight into epoch_node explorer.
 CA-R169: Every witness region a builder allocates must be addressable
 by the caller - offsets are API, not convention. (Born: P1-16, the
 36-UNSAT product-witness defect; fixed by exposing GemmCircuit.p_offset.)
+
+CA-R170: A verifier's success sentinel must be disjoint from every
+failure sentinel; a return-value collision is a soundness bug, not a
+style issue. (Born: DEFECT-163; pre-vindicated by pcs.hpp's
+PCS_REJECT_FINAL - the architecture knew the pattern, one engine
+drifted, the engine-body read caught it.)
+
+CA-R171: A commit message is a claim; the diff is the receipt. A
+message that asserts more than the diff contains is itself a defect.
+(Born: DEFECT-165 - the P1-18 close-out claimed 'Laws: CA-R169,
+CA-R170' while the diff held only CA-R169, because a presence guard
+matched a textual mention in the entry appended moments before.)
+
+---
+## SECTION 22 - P1-18a: DEFECT-165 (2026-09-23)
+#### DEC-249 - The law-append guard matched a mention, not the law; CA-R170 never landed
+**Decision:** The P1-18 close-out ran DEC-248 (whose text cites
+CA-R170) before the law-append script, whose guard was
+'CA-R170 not in d' - the citation satisfied the guard and the actual
+law body was never written. The commit message then overclaimed; the
+diff (39 insertions = DEC-248 + CA-R169 only) exposed it. Fix:
+CA-R170 appended under a canonical-marker guard (law-line format);
+CA-R171 codifies the lesson. G6 bench honesty note: the 28.7s receipt
+was an -O0 build; the -O2 number is the production figure.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| [laws] P1-18 output | appended: ['CA-R169'] only |
+| DECISIONS.md diff | 39 insertions - no CA-R170 body |
+| post-fix law-line grep 'CA-R170:' | present |
+| G6 -O2 rerun | see commit (predicted 2-8s band) |
+**Rationale:** Guards must match the canonical artifact marker, not
+any textual mention. The ledger's tooling must obey the ledger's
+discipline. 165th defect owned.
+**Supersedes:** N/A
+**Build status:** DEFECT-165 CLOSED. NEXT: P2-06 - pouw::weight into
+the epoch_node explorer; P1-19 - Pedersen dual-layer binding.
