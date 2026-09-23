@@ -20,6 +20,7 @@
 // bindings, epoch aggregation = P1-18.
 #pragma once
 #include <hsma/sumcheck.hpp>
+#include <hsma/pcs.hpp>
 #include <vector>
 #include <cstdint>
 
@@ -120,6 +121,85 @@ inline bool verify_gemm(const GemmProof& P,
 // PoUW consensus weight: one verified proof = inner^3 verified MACs
 inline std::uint64_t weight(unsigned inner, std::uint64_t proofs) noexcept {
     return (std::uint64_t)inner * inner * inner * proofs;
+}
+
+
+// ---- P1-18 (DEC-248): the FS-bound proof --------------------------------
+// Grinding kill: gamma/delta derive FROM the commitments (HSM_POUW_v1
+// domain) - commitments are fixed before challenges exist, so each grind
+// attempt faces fresh challenges (expected cost ~2^253).
+// Split-brain kill: the verifier recomputes every commitment from the
+// delivered arrays and cross-checks.
+// HONEST BOUNDARY: the Phase-0 PCS is a Sponge hash (NOT homomorphic,
+// NOT hiding) - the at-point Opening is production-faithful infrastructure;
+// standalone witness binding (verifier holds NO arrays) lands with the
+// Pedersen dual-layer (DEC-063/071). Until then direct_eval binding with
+// verifier-held arrays is retained.
+struct GemmProofV2 {
+    fp::fe comA{}, comB{}, comC{};   // Sponge commitments
+    fp::fe gamma{}, delta{};         // FS challenges (derived from the coms)
+    fp::fe claim{};                  // sumcheck claim over the output
+    Transcript T{};                  // the degree-2 sumcheck transcript
+    pcs::Opening O{};                // at-point opening at T.r (infrastructure)
+    unsigned rows{}, cols{}, inner{};
+};
+
+inline void fs_challenges(const fp::fe& comA, const fp::fe& comB,
+                          const fp::fe& comC,
+                          fp::fe& gamma, fp::fe& delta) noexcept {
+    gamma = poseidon3(dom::Dom::HSM_POUW_v1, comA, comB);
+    delta = poseidon3(dom::Dom::HSM_POUW_v1, gamma, comC);
+}
+
+inline GemmProofV2 prove_gemm_v2(
+    const std::vector<fp::fe>& A, const std::vector<fp::fe>& B,
+    const std::vector<fp::fe>& C,
+    unsigned rows, unsigned cols, unsigned inner) noexcept
+{
+    GemmProofV2 P;
+    P.rows = rows; P.cols = cols; P.inner = inner;
+    P.comA = pcs::commit(A);
+    P.comB = pcs::commit(B);
+    P.comC = pcs::commit(C);
+    fs_challenges(P.comA, P.comB, P.comC, P.gamma, P.delta);
+    P.claim = claim_from_C(C, rows, cols, P.gamma, P.delta);
+    std::vector<fp::fe> a, b, ap, bp;
+    fold_witness(A, B, rows, cols, inner, P.gamma, P.delta, a, b);
+    const unsigned nv = kdim(inner);
+    pad_to(a, nv, ap); pad_to(b, nv, bp);
+    P.T = sc::prove_2(nv, ap, bp);
+    P.O = pcs::open_2_at(ap, bp, P.T.r);
+    return P;
+}
+
+inline bool verify_gemm_v2(const GemmProofV2& P,
+                           const std::vector<fp::fe>& A_ref,
+                           const std::vector<fp::fe>& B_ref,
+                           const std::vector<fp::fe>& C_delivered) noexcept
+{
+    // (1) commitment cross-checks - the split-brain kill
+    if (!sc::feq(P.comA, pcs::commit(A_ref)))       return false;
+    if (!sc::feq(P.comB, pcs::commit(B_ref)))       return false;
+    if (!sc::feq(P.comC, pcs::commit(C_delivered))) return false;
+    // (2) FS recompute - the grinding kill
+    fp::fe g{}, d{};
+    fs_challenges(P.comA, P.comB, P.comC, g, d);
+    if (!sc::feq(g, P.gamma) || !sc::feq(d, P.delta)) return false;
+    // (3) output binding
+    if (!sc::feq(P.claim, claim_from_C(C_delivered, P.rows, P.cols, g, d)))
+        return false;
+    // (4) identity - CA-R170-conformant accept (== T.nv, never != 0)
+    if (sc::verify(P.T, P.claim) != P.T.nv) return false;
+    // (5) at-point opening: internal consistency + agrees with the transcript
+    if (pcs::verify_at(P.O, P.T.claims[0], P.T.r) != P.O.nv) return false;
+    if (!sc::feq(P.O.fa, P.T.fa) || !sc::feq(P.O.fb, P.T.fb)) return false;
+    // (6) witness binding (direct_eval, verifier-held arrays; dual-layer = P1-19)
+    const unsigned nv = kdim(P.inner);
+    std::vector<fp::fe> a, b, aref, bref;
+    fold_witness(A_ref, B_ref, P.rows, P.cols, P.inner, g, d, a, b);
+    pad_to(a, nv, aref); pad_to(b, nv, bref);
+    return sc::feq(P.T.fa, sc::direct_eval(aref, P.T.r))
+        && sc::feq(P.T.fb, sc::direct_eval(bref, P.T.r));
 }
 
 } // namespace hsma::pouw

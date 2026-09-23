@@ -2816,3 +2816,40 @@ dir would have verified goldens from a stale tree. 164th defect owned.
 **Supersedes:** N/A
 **Build status:** DEFECT-164 CLOSED. NEXT: P1-18 - HSM_POUW_v1 domain
 tag + FS challenges + commitment cross-checks + pcs at-point machinery.
+
+---
+## SECTION 22 - P1-18: The FS-Bound PoUW (2026-09-23)
+#### DEC-248 - HSM_POUW_v1 + FS challenges + commitment cross-checks + pcs at-point machinery
+**Decision:** (1) HSM_POUW_v1 appended to DOMAIN_TAGS in
+scripts/gen_constants.py - append-only before COUNT (positional enum
+law), IVs are string-derived so every existing domain is untouched
+(proven by append-only structural check + 34/34 gate). (2) pouw.hpp
+v2: fs_challenges (gamma = P3(POUW, comA, comB), delta = P3(POUW,
+gamma, comC)); prove_gemm_v2 commits BEFORE challenges exist (grind
+cost ~2^253); verify_gemm_v2 runs 6 checks: commitment cross-checks
+(split-brain kill), FS recompute, output binding, identity (== T.nv,
+CA-R170), at-point opening agreement, direct_eval witness binding.
+(3) pcs.hpp: open_2_at/verify_at - Step-20 fold machinery at
+caller-supplied points, CA-R78/79/80 inherited, sentinels conform to
+the pcs.hpp precedent (nv=ACCEPT, 0=initial, i=round, REJECT_FINAL).
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G] gate after tag append | 34/34 GREEN |
+| [AO] enum + TAG_NAMES append-only | OK |
+| [G1] honest v2 | ACCEPT |
+| [G2]/[G3]/[G5] faked output/witness/comC | REJECT |
+| [G4] faked final-eval under FS | REJECT (DEFECT-163 holds) |
+| [G6] 128^3 predictive | nv=7, verify=7, ACCEPT |
+**Rationale:** P1-17 wired the engine; P1-18 removes the two fixed-
+challenge assumptions. Honest boundary: the hash PCS cannot bind an
+opening to a commitment - standalone witness binding (verifier holds
+no arrays) = Pedersen dual-layer (DEC-063/071), P1-19.
+**Supersedes:** P1-17's fixed (gamma, delta) proof path (v1 retained
+for the P1-17 probe regression).
+**Build status:** P1-18 CLOSED. NEXT: P1-19 - Pedersen dual-layer
+witness binding; P2-06 - pouw::weight into epoch_node explorer.
+
+CA-R169: Every witness region a builder allocates must be addressable
+by the caller - offsets are API, not convention. (Born: P1-16, the
+36-UNSAT product-witness defect; fixed by exposing GemmCircuit.p_offset.)

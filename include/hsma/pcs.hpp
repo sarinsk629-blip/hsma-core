@@ -122,4 +122,73 @@ inline unsigned verify(const Opening& O, const fp::fe& C) {
     return O.nv;
 }
 
+
+// ---- P1-18 (DEC-248): at-point openings --------------------------------
+// open_2_at / verify_at: the Step-20 fold machinery at CALLER-SUPPLIED
+// points (e.g. a sumcheck transcript's T.r), instead of self-derived
+// points. Inherits the laws unchanged: CA-R78 (LSB-first), CA-R79 (d=2
+// products), CA-R80 (p2 = g(2)). HONEST ROLE: production-faithful
+// infrastructure for the PoUW wiring - the Phase-0 hash PCS cannot bind
+// an opening to a commitment (NOT homomorphic, NOT hiding); succinct
+// witness binding lands with the Pedersen dual-layer (DEC-063/071).
+inline Opening open_2_at(const std::vector<fp::fe>& a_in,
+                         const std::vector<fp::fe>& b_in,
+                         const std::vector<fp::fe>& r) {
+    const unsigned nv = unsigned(r.size());
+    Opening O;
+    if (a_in.size() != b_in.size() ||
+        a_in.size() != (std::size_t(1) << nv)) return O; // claims empty -> verify 0
+    O.nv = nv; O.d = 2;
+    fp::fe c = fp::fe_zero();
+    for (std::size_t i = 0; i < a_in.size(); ++i) c = fe_add(c, fe_mul(a_in[i], b_in[i]));
+    O.claims.push_back(c);
+    std::vector<fp::fe> a = a_in, b = b_in;
+    for (unsigned i = 0; i < nv; ++i) {
+        const std::size_t h = a.size() / 2;
+        fp::fe p0 = fp::fe_zero(), p1 = fp::fe_zero(), p2 = fp::fe_zero();
+        for (std::size_t j = 0; j < h; ++j) {
+            p0 = fe_add(p0, fe_mul(a[2*j], b[2*j]));
+            p1 = fe_add(p1, fe_mul(a[2*j+1], b[2*j+1]));
+            const fp::fe a2 = fe_sub(fe_add(a[2*j+1], a[2*j+1]), a[2*j]);   // CA-R80
+            const fp::fe b2 = fe_sub(fe_add(b[2*j+1], b[2*j+1]), b[2*j]);
+            p2 = fe_add(p2, fe_mul(a2, b2));
+        }
+        const fp::fe omr = fe_sub(fp::fe_one(), r[i]);
+        O.evals.push_back({p0, p1, p2});
+        O.claims.push_back(sc::lag2(r[i], p0, p1, p2));
+        for (std::size_t j = 0; j < h; ++j) {
+            a[j] = fe_add(fe_mul(a[2*j], omr), fe_mul(a[2*j+1], r[i]));
+            b[j] = fe_add(fe_mul(b[2*j], omr), fe_mul(b[2*j+1], r[i]));
+        }
+        a.resize(h); b.resize(h);
+    }
+    O.fa = a.empty() ? fp::fe_zero() : a[0];
+    O.fb = b.empty() ? fp::fe_zero() : b[0];
+    return O;
+}
+
+// verify_at: the pcs::verify round structure at external points, with an
+// explicit initial-claim check (the caller binds claims[0] to e.g.
+// T.claims[0]). Sentinels conform to CA-R170: nv == ACCEPT, 0 = initial
+// or arity failure, i = failing round, PCS_REJECT_FINAL = final mismatch.
+inline unsigned verify_at(const Opening& O, const fp::fe& claim,
+                          const std::vector<fp::fe>& r) {
+    if (O.claims.empty() || O.claims.size() != O.nv + 1) return 0u;
+    if (unsigned(r.size()) != O.nv) return 0u;
+    if (!sc::feq(O.claims[0], claim)) return 0u;
+    for (unsigned i = 0; i < O.nv; ++i) {
+        if (!sc::feq(fe_add(O.evals[i][0], O.evals[i][1]), O.claims[i])) return i;
+        fp::fe nc;
+        if (O.d == 1u)
+            nc = fe_add(fe_mul(O.evals[i][0], fe_sub(fp::fe_one(), r[i])),
+                        fe_mul(O.evals[i][1], r[i]));
+        else
+            nc = sc::lag2(r[i], O.evals[i][0], O.evals[i][1], O.evals[i][2]);
+        if (!sc::feq(nc, O.claims[i + 1])) return i;
+    }
+    const fp::fe fin = (O.d == 1u) ? O.fa : fe_mul(O.fa, O.fb);
+    if (!sc::feq(fin, O.claims[O.nv])) return PCS_REJECT_FINAL;
+    return O.nv;
+}
+
 } // namespace hsma::pcs
