@@ -2974,3 +2974,36 @@ three intended paths.
 **Rationale:** A test harness that misrepresents the wire format
 tests nothing. The node's rejection of malformed input is itself a
 security receipt. 169th defect owned.
+
+---
+## SECTION 22 - P2-07: Weight Consensus By Deterministic Recomputation (2026-09-23)
+#### DEC-253 - The epoch header carries the weight; peers cross-check by recomputation
+**Decision:** Both epoch-header construction sites (main + handle_decree)
+append pouw_inner (u32) + pouw_weight (u64) - the fields are
+file-scope (one truth, DEFECT-167's corrected design), and the PoUW
+block was MOVED before header construction (patching in place would
+have broadcast weight=0). Receive side: header payloads >= 52 bytes
+are cross-checked with the pointer accessors - peer weight vs local
+recomputed weight, AGREE/MISMATCH/param-mismatch, loud not fatal
+(testnet grade).
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| order proof | [pouw] epoch line BEFORE [gossip] header line |
+| [G10] honest weight (BE forge) | AGREE |
+| [G11] forged weight 999 (BE) | MISMATCH |
+| [G12] forged inner 63 (BE) | param mismatch |
+| [G-169] malformed LE forges | REJECTED (param path) - security held |
+**Rationale:** G8's determinism (identical weights across runs)
+becomes consensus: every node derives the same GEMM from the same
+epoch bytes, so a liar's weight disagrees with the network. No proof
+exchange needed at this PCS grade (a sumcheck transcript without
+bound inputs is internally fakeable - that is why binding checks
+exist); proof-carrying decrees wait for P1-19 (Pedersen).
+**Known boundaries:** (1) handle_decree headers carry the LAST
+verified weight, not a per-epoch recompute - P2-08 extracts the PoUW
+block into a shared function. (2) DEFECT-168 (documented, unfired):
+re-gossip has no seen-header dedup - P2-08. (3) send has no
+MSG_NOSIGNAL - P2-08. 169 defects owned.
+**Build status:** P2-07 CLOSED. NEXT: P2-08 hardening (dedup + SIGPIPE
++ shared PoUW function); P1-19 Pedersen dual-layer.

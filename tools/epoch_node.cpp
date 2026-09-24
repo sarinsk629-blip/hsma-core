@@ -31,6 +31,9 @@ static constexpr unsigned K_ENTRIES = 10;
 static mfold::SparseMat A, B, C;
 static mfold::Relaxed accumulator;
 static std::vector<std::array<std::uint64_t,4>> digest_chain;
+static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
+static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
+static const char* pouw_verify = "PENDING";
 
 // peer connections
 static std::vector<int> peer_fds;
@@ -136,7 +139,9 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         // digest from the accumulator's first z value
         fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
-        p2p::put_u32(hdr.payload, 1600); // the π_E size
+        p2p::put_u32(hdr.payload, 1600);
+    p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
+    p2p::put_u64(hdr.payload, pouw_weight); // the π_E size
         // hash: use the output variable's canonical form
         fp::fe ocanon = fp::fe_to_canonical(P.v);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
@@ -263,35 +268,11 @@ int main(int argc, char* argv[]) {
     std::printf("[pi_E] epoch %u: wrap_verify %s (stage=%u)\n",
         current_epoch, ok ? "ACCEPT" : "REJECT", stage);
     
-    // gossip the epoch header
-    p2p::Message hdr{};
-    hdr.type = p2p::EPOCH_HEADER;
-    p2p::put_u32(hdr.payload, current_epoch);
-    fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
-    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
-    p2p::put_u32(hdr.payload, 1600);
-    fp::fe ocanon = fp::fe_to_canonical(P.v);
-    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
-    
-    for (int fd : peer_fds) p2p::send_message(fd, hdr);
-    std::printf("[gossip] epoch header sent to %zu peers\n", peer_fds.size());
-    
-    std::printf("\n═══════════════════════════════════════\n");
-    std::printf("  EPOCH %u COMPLETE — π_E PRODUCED\n", current_epoch);
-    std::printf("  decree entries: %u\n", decree_count);
-    std::printf("  verify: %s\n", ok ? "ACCEPT" : "REJECT");
-    std::printf("  peers: %zu\n", peer_fds.size());
-    std::printf("  entering gossip loop (listening for new decrees)...\n");
-    std::printf("═══════════════════════════════════════\n");
-
     // ---- P2-06 (DEC-250): the epoch PoUW - deterministic, self-verified ----
     // The epoch's own digest chain seeds a 64^3 GEMM (xorshift64* expansion
     // of the chain tail - CA-R90 float-free); the node proves it FS-bound
     // (DEC-248 v2) and verifies its OWN proof (CA-R126 applied to PoUW).
     // Same epoch bytes -> same GEMM -> same weight. [G8]-testable.
-    unsigned pouw_inner = 64;
-    std::uint64_t pouw_weight = 0;
-    const char* pouw_verify = "PENDING";
     {
         const unsigned N = pouw_inner;
         auto t0 = std::chrono::steady_clock::now();
@@ -320,6 +301,29 @@ int main(int argc, char* argv[]) {
         std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
             current_epoch, N, pouw_verify, (unsigned long long)pouw_weight, ms);
     }
+
+    // gossip the epoch header
+    p2p::Message hdr{};
+    hdr.type = p2p::EPOCH_HEADER;
+    p2p::put_u32(hdr.payload, current_epoch);
+    fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
+    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
+    p2p::put_u32(hdr.payload, 1600);
+    p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
+    p2p::put_u64(hdr.payload, pouw_weight);
+    fp::fe ocanon = fp::fe_to_canonical(P.v);
+    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
+    
+    for (int fd : peer_fds) p2p::send_message(fd, hdr);
+    std::printf("[gossip] epoch header sent to %zu peers\n", peer_fds.size());
+    
+    std::printf("\n═══════════════════════════════════════\n");
+    std::printf("  EPOCH %u COMPLETE — π_E PRODUCED\n", current_epoch);
+    std::printf("  decree entries: %u\n", decree_count);
+    std::printf("  verify: %s\n", ok ? "ACCEPT" : "REJECT");
+    std::printf("  peers: %zu\n", peer_fds.size());
+    std::printf("  entering gossip loop (listening for new decrees)...\n");
+    std::printf("═══════════════════════════════════════\n");
 
     // start the explorer (P2-03)
     explorer::NodeState ns;
@@ -380,6 +384,26 @@ int main(int argc, char* argv[]) {
                 if (p2p::recv_message(peer_fds[i], msg)) {
                     if (msg.type == p2p::EPOCH_HEADER) {
                         std::printf("[epoch] received epoch header from peer\n");
+
+                        // P2-07 (DEC-253): weight consensus by deterministic recomputation.
+                        // Pointer accessors - DEFECT-167's second finding, fixed.
+                        if (msg.payload.size() >= 52) {
+                            const std::uint8_t* pl = msg.payload.data();
+                            const std::size_t pln = msg.payload.size();
+                            const unsigned peer_inner = p2p::get_u32(pl + pln - 12);
+                            const std::uint64_t peer_w = p2p::get_u64(pl + pln - 8);
+                            if (peer_inner == pouw_inner) {
+                                if (peer_w == pouw_weight)
+                                    std::printf("[pouw] peer weight %llu == local %llu -> AGREE\n",
+                                        (unsigned long long)peer_w, (unsigned long long)pouw_weight);
+                                else
+                                    std::printf("[pouw] peer weight %llu != local %llu -> MISMATCH\n",
+                                        (unsigned long long)peer_w, (unsigned long long)pouw_weight);
+                            } else {
+                                std::printf("[pouw] peer inner %u != local %u -> param mismatch\n",
+                                    peer_inner, pouw_inner);
+                            }
+                        }
                         // re-gossip to other peers
                         for (std::size_t j = 0; j < peer_fds.size(); ++j) {
                             if (j != i) p2p::send_message(peer_fds[j], msg);
