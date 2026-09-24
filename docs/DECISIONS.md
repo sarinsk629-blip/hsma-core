@@ -3111,3 +3111,46 @@ prediction, and a mismatch is RED regardless of who wrote it - or
 who ran the script. 176 defects owned.
 **Build status:** DEFECT-176 CLOSED; DEC-255 corrected by erratum.
 P2-08 seal pending the [R11] read disposition.
+
+---
+## SECTION 22 - P2-08c: DEFECTS 177-179 (2026-09-24)
+#### DEC-257 - The unread tail; the false erratum finding; the double advance
+**Decision:** [R11]+[R12] (first full read of handle_decree, lines
+60-250) detonated two prior claims and exposed one live defect.
+(1) DEFECT-179: DEFECT-171 was FALSE - the original tail (line ~213)
+already advanced the epoch AND reset decree_count; 'epochs never
+advance' was asserted from the 60-150 window - CA-R173 violation #2.
+(2) DEFECT-178: DEC-256's derived finding ('NO header-sent printf')
+was FALSE - handle_decree has '[gossip] epoch %u header sent...', a
+format the derive pattern (and both earlier greps) could not match.
+DEC-256's core claim (DEC-255 transcribed 2) stands; its explanation
+is corrected here. (3) DEFECT-177 (real, fired): P2-08's insert added
+a SECOND advance - [S10] shows '[gossip] epoch 2 header sent' in the
+OLD log (printf artifact; the old wire value was correct via -1, but
+the skip 1,3,5... would fire from the SECOND network epoch, which no
+prior test reached). Fix: duplicate advance deleted; the original
+tail is the single advance; header writes current_epoch directly
+(completed epoch at write time); insert's decree_count reset kept
+(idempotent with the tail reset).
+**CA-R176:** A defect claim of absence requires the whole scope to
+have been displayed. A read window proves absence only inside the
+window.
+**CA-R177:** A derived finding inherits its pattern's blind spots;
+verify the pattern against every expected format variant before
+deriving a negative.
+**THE RECEIPT (all values derived from build/node16b.log):**
+| Check | Result |
+|---|---|
+| pi_E epochs (log-derived) | [0, 1, 2] - startup + 2 network, consecutive |
+| pouw epochs (log-derived) | [0, 1, 2] - fresh call per epoch (FIX174 proof) |
+| wire epochs (log-derived) | [1, 2] - consecutive, no skip |
+| header-sent lines | 3 (predicted 3) |
+| epoch-3 leaks | 0 |
+| headers returned to decree peer | 2 - first closed-loop wire interaction |
+**Rationale:** Three defects, one root: claims outran reads. The full
+read corrected the record in both directions - a false defect (171)
+and a false erratum finding (178) - while exposing a real one (177)
+that two green runs masked by ending one epoch too early. [G16b]'s
+20 decrees were the first test to cross the second-epoch boundary.
+**Build status:** DEFECTS 177-179 CLOSED; P2-08 SEALS. NEXT: P2-09
+multi-node decree propagation; P1-19 Pedersen dual-layer.

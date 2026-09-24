@@ -187,14 +187,12 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         
         // P2-08: fresh weight for the epoch that just completed
         run_epoch_pouw();
-        // P2-08: DEFECT-171 - advance AFTER the weight receipt
-        ++current_epoch;
-        decree_count = 0;
+        decree_count = 0; // P2-08b: kept (idempotent with the tail reset)
         // gossip the epoch header to all peers
         p2p::Message hdr{};
         hdr.type = p2p::EPOCH_HEADER;
         // payload: epoch_num(4B) + digest(32B) + pi_e_size(4B) + hash(32B)
-        p2p::put_u32(hdr.payload, current_epoch - 1); // P2-08: the completed epoch
+        p2p::put_u32(hdr.payload, current_epoch); // P2-08b: the completed epoch (tail advances after)
         // digest from the accumulator's first z value
         fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
