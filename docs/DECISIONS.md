@@ -3154,3 +3154,60 @@ that two green runs masked by ending one epoch too early. [G16b]'s
 20 decrees were the first test to cross the second-epoch boundary.
 **Build status:** DEFECTS 177-179 CLOSED; P2-08 SEALS. NEXT: P2-09
 multi-node decree propagation; P1-19 Pedersen dual-layer.
+
+---
+## SECTION 22 - P2-09: Two-Node Convergence + DEFECTS 180-187 (2026-09-24)
+#### DEC-258 - htonl; the six-session phantom; the layout war; wire-verified convergence
+**Decision:** DEFECT-180: the cross-check read inner/weight
+tail-relatively; the FIX used offsets 40/44 from a fictional table
+(DEFECT-184: the 'digest(32B)' comment lies - the code writes 4xu32
+= 16B; real headers are 52B, inner@24/weight@28). DEFECT-181: the
+readiness poller doubled grep's '0' (|| echo 0 on grep -c). DEFECT-182
+(reclassification): 'multi-node functional' (DEC-243) was two SOLO
+nodes - the seed connect never succeeded, failing silently. DEFECT-183
+(mechanical root): connect_peer assigned host-order ip to
+network-order s_addr without htonl - connects dialed 1.0.0.127
+(byte-swapped): black-holed when a route existed, silently fast-failed
+when it did not; fixed + loud failure print; first successful seed
+connect at t=1s (NET2-seq). DEFECT-184 found by outcome-space audit
+(agree=0/mism=0 forces the third branch) and proven by [FR]: a forge
+packed hash-limb #2=6 at offset 40 and the checker read inner=6;
+fixed at the derived 24/28; [FR2] showed the forge's REAL values
+(64/999/63) - producer and checker share one layout law. DEFECT-185:
+a prior close-out let the commit run past a failed derive (7443203
+claimed 'AGREE' with agree=0 in the artifacts). DEFECT-186: FIX184-v1
+asserted a comment count of 2; the comment exists once; the assert
+fired pre-write. DEFECT-187: the DEFECT-185 repair used an
+if-wrapped heredoc that shattered in Termux paste - syntax errors,
+then BOTH branch messages printed ('committed and pushed' AND
+'NOTHING committed'); the Python never ran; the artifact hash
+(local == remote == 7443203) was the only truth. Recovered via the
+bare-heredoc pattern (15 prior close-outs) with all gating INSIDE
+Python: asserts -> ledger write -> git, one failure path.
+**Laws:** CA-R178 (wire offsets are layout tables, not tail
+arithmetic; harnesses derive from the producer's format); CA-R179
+(distributed tests gate on observed readiness, never calibrated
+sleeps); CA-R180 (printed correctness is not wire correctness);
+CA-R181 (a close-out gates its commit on its derive's exit code);
+CA-R182 (a gate's verdict lives in artifact state, not printed
+output - a gate whose failure mode can print the success message,
+or whose mechanism is fragile in its own deployment environment,
+is not a gate).
+**THE RECEIPT (derived from d_a/d_b logs):**
+| Check | node1 | node2 |
+|---|---|---|
+| pi_E / pouw epochs | [0, 1] / [0, 1] | [0, 1] / [0, 1] |
+| network folds | 10 | 10 |
+| headers received | 2 | 1 |
+| AGREE (real 52B headers) | 2 | 1 |
+| MISMATCH / param | 0/0 | 0/0 |
+**Hidden receipts (pre-fix c_a/c_b run):** identical misreads
+(997248501) of both nodes' epoch-1 hash bytes = byte-level proof of
+state convergence before the checker could read the layout; decree
+dedup held in a real ring; 2-node re-gossip no-ops explain 2/1.
+**Known boundaries (P2-10):** explicit digest comparison on the wire,
+own-header marking for 3+ rings, dead build_epoch_header helper
+conformed or deleted, decree faucet tool.
+**Build status:** P2-09 CLOSED - nodes connect, share entries, fold,
+converge, cross-check on the producer's real layout. The testnet
+blueprint loop is wire-PROVEN. NEXT: P2-10 or P1-19.

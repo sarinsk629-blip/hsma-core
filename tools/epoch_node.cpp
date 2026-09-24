@@ -191,7 +191,8 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         // gossip the epoch header to all peers
         p2p::Message hdr{};
         hdr.type = p2p::EPOCH_HEADER;
-        // payload: epoch_num(4B) + digest(32B) + pi_e_size(4B) + hash(32B)
+        // payload (DERIVED, 52B): epoch@0(4) digest@4(4xu32) size@20(4)
+        //   inner@24(4) weight@28(8) hash@36(4xu32) - DEFECT-184
         p2p::put_u32(hdr.payload, current_epoch); // P2-08b: the completed epoch (tail advances after)
         // digest from the accumulator's first z value
         fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
@@ -424,11 +425,11 @@ int main(int argc, char* argv[]) {
                         if (msg.payload.size() >= 52) {
                             const std::uint8_t* pl = msg.payload.data();
                             const std::size_t pln = msg.payload.size();
-                            // DEFECT-180 fix: ABSOLUTE layout offsets - the header is
-                            // epoch(4)|digest(32)|size(4)|inner(4)|weight(8)|hash(32);
-                            // inner@40, weight@44 for BOTH real 84B headers and 52B forges.
-                            const unsigned peer_inner = p2p::get_u32(pl + 40);
-                            const std::uint64_t peer_w = p2p::get_u64(pl + 44);
+                            // DEFECT-184 (v2): the DERIVED layout - epoch@0(4)
+                            // digest@4(4xu32=16) size@20(4) inner@24(4) weight@28(8)
+                            // hash@36(4xu32=16) = 52B total (X1/X2/FR receipts).
+                            const unsigned peer_inner = p2p::get_u32(pl + 24);
+                            const std::uint64_t peer_w = p2p::get_u64(pl + 28);
                             if (peer_inner == pouw_inner) {
                                 if (peer_w == pouw_weight)
                                     std::printf("[pouw] peer weight %llu == local %llu -> AGREE\n",
