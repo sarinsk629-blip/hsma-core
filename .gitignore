@@ -40,3 +40,4 @@ __pycache__/
 docs/*.bak.*
 docs/*.pre-*
 hsma-core/
+hsma_backup.tar.gz

@@ -3211,3 +3211,45 @@ conformed or deleted, decree faucet tool.
 **Build status:** P2-09 CLOSED - nodes connect, share entries, fold,
 converge, cross-check on the producer's real layout. The testnet
 blueprint loop is wire-PROVEN. NEXT: P2-10 or P1-19.
+
+---
+## SECTION 22 - P2-10: State Agreement On The Wire (2026-09-24)
+#### DEC-259 - The hash-field cross-check; DEFECTS 188-191; the vacuous-green class
+**Decision:** The P2-09 convergence proof had a gap: weight agreement
+is not state agreement. P2-10's first digest check (z[0] @ offset 4)
+passed VACUOUSLY - 'AGREES (0000000000000000)' - because
+accumulator.z[0] is a zero placeholder (explorer state_root 000..0
+since P2-05; DEFECT-190: a green check on a constant field). Masked
+by it, DEFECT-191: local high32(limb0) vs peer low32(limb1) - mixed
+semantics, invisible at zero. Fix: the state fingerprint is the
+header hash @36 - P.v, the whir commitment over the full evals
+vector, the field whose identical misreads (997248501) proved byte-
+level convergence in P2-09 - stored in g_hash at BOTH completion
+sites, consistent low32(limb-k) semantics. The sagree asymmetry
+([0] at node 1, [1] at node 2) is the epoch guard working: a header
+is state-checked only by a node that COMPLETED that epoch. DEFECT-188:
+the helper-deletion draft targeted the wrong file (p2p.hpp:158, not
+epoch_node.cpp) - count-assert refused (third save: 172, 186, 188).
+DEFECT-189: peer_epoch drafted without verifying extraction; [R15b]'s
+empty grep caught it. Housekeeping: smt_r1cs.hpp committed (P1-15b /
+DEC-237 artifact, unreviewed - verification queued P1-20); strays
+removed; tarball gitignored.
+**CA-R184:** An agreement check must be shown non-trivial to count as
+evidence. The close-out derive parses the fingerprint and REJECTS
+zero - no check on a constant field can pass vacuously again.
+**THE RECEIPT (derived from t2_a/t2_b logs):**
+| Check | node1 | node2 |
+|---|---|---|
+| weight AGREE / MISMATCH / param | 2 / 0 / 0 | 1 / 0 / 0 |
+| state AGREES (epoch) | [0] | [1] |
+| fingerprint | ['847ee3fbc13be11a'] | ['2aebe7a4ee0620e4'] |
+| state MISMATCH | 0 | 0 |
+**Rationale:** Epoch-0 AGREES = cross-process local-generation
+determinism (was consensus-critical if false). Epoch-1 AGREES =
+folded-state agreement after wire propagation, dedup, independent
+folding. Convergence is no longer inferred or accidental - named,
+ordered, non-vacuous, wire-verified. The blueprint loop: connect,
+share, fold, converge, cross-check WEIGHT AND STATE. 191 defects
+owned.
+**Build status:** P2-10 CLOSED. NEXT: P1-19 (Pedersen dual-layer) /
+P1-20 (verify the P1-15b artifact) / P2-11 (decree faucet).

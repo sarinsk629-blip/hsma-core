@@ -154,17 +154,9 @@ inline std::vector<PeerInfo> parse_peer_list(const std::uint8_t* data, std::size
     return peers;
 }
 
-// EPOCH_HEADER payload: [epoch_num(4B)] [digest(32B)] [pi_E_size(4B)] [pi_E_hash(32B)]
-inline std::vector<std::uint8_t> build_epoch_header(
-    std::uint32_t epoch_num, const std::uint8_t digest[32],
-    std::uint32_t pi_e_size, const std::uint8_t pi_e_hash[32]) noexcept {
-    std::vector<std::uint8_t> buf;
-    put_u32(buf, epoch_num);
-    buf.insert(buf.end(), digest, digest + 32);
-    put_u32(buf, pi_e_size);
-    buf.insert(buf.end(), pi_e_hash, pi_e_hash + 32);
-    return buf;
-}
+// EPOCH_HEADER payload (DERIVED, 52B): epoch@0 digest@4(4xu32)
+// size@20 inner@24 weight@28 hash@36(4xu32) - built inline at both
+// epoch sites; the old 32B-digest helper was layout fiction (DEFECT-184).
 
 // DECREE_ENTRY payload: [entry_data as raw bytes] (the decree to fold)
 

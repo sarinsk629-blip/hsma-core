@@ -34,6 +34,7 @@ static std::vector<std::array<std::uint64_t,4>> digest_chain;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
 static const char* pouw_verify = "PENDING";
+static std::uint32_t g_hash[4] = {0,0,0,0}; // P2-10a (DEFECT-190 fix): last completed epoch's P.v limbs - the REAL state fingerprint
 
 // peer connections
 static std::vector<int> peer_fds;
@@ -203,6 +204,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         // hash: use the output variable's canonical form
         fp::fe ocanon = fp::fe_to_canonical(P.v);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
+        for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
         
         // gossip to all peers
         for (int fd : peer_fds)
@@ -344,6 +346,7 @@ int main(int argc, char* argv[]) {
     p2p::put_u64(hdr.payload, pouw_weight);
     fp::fe ocanon = fp::fe_to_canonical(P.v);
     for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
+    for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
     
     for (int fd : peer_fds) p2p::send_message(fd, hdr);
     std::printf("[gossip] epoch header sent to %zu peers\n", peer_fds.size());
@@ -440,6 +443,28 @@ int main(int argc, char* argv[]) {
                             } else {
                                 std::printf("[pouw] peer inner %u != local %u -> param mismatch\n",
                                     peer_inner, pouw_inner);
+                            }
+                            // P2-10 (DEC-259): STATE agreement - the epoch digest.
+                            // peer digest @ offset 4 (4xu32, DEFECT-184 layout); local
+                            // anchor = accumulator.z[0] (holds the completed epoch's state;
+                            // current_epoch == peer_epoch + 1 on both completion paths).
+                            const std::uint32_t peer_epoch = p2p::get_u32(pl + 0);
+                            if (peer_epoch == current_epoch - 1) {
+                                // DEFECT-190 fix: offset-4 'digest' was a ZERO placeholder
+                                // (z[0]==0, explorer 000..0 since P2-05) - the old check was
+                                // vacuous. The REAL field: hash@36 = P.v (whir commitment
+                                // over the full evals vector). DEFECT-191 fix: consistent
+                                // limb semantics (low32 of limb k, both sides).
+                                const unsigned p0 = p2p::get_u32(pl + 36);
+                                const unsigned p1 = p2p::get_u32(pl + 40);
+                                const unsigned p2_ = p2p::get_u32(pl + 44);
+                                const unsigned p3 = p2p::get_u32(pl + 48);
+                                if (p0 == g_hash[0] && p1 == g_hash[1] && p2_ == g_hash[2] && p3 == g_hash[3])
+                                    std::printf("[state] epoch %u digest AGREES (%08x%08x)\n",
+                                        peer_epoch, p0, p1);
+                                else
+                                    std::printf("[state] epoch %u digest MISMATCH local=%08x%08x%08x%08x peer=%08x%08x%08x%08x\n",
+                                        peer_epoch, g_hash[0], g_hash[1], g_hash[2], g_hash[3], p0, p1, p2_, p3);
                             }
                         }
                         // re-gossip to other peers
