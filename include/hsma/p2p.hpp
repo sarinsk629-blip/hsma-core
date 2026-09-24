@@ -187,11 +187,16 @@ inline int create_listener(unsigned port) noexcept {
 
 // connect to a peer (returns socket fd or -1)
 inline int connect_peer(std::uint32_t ip, std::uint16_t port) noexcept {
+    // DEFECT-183: ip is HOST-order (the parser builds 0x7F000001 for
+    // 127.0.0.1 - its printf proves it). s_addr is NETWORK-order. Without
+    // htonl, the connect targeted 1.0.0.127 (byte-swapped): SYN black-holed
+    // via the default route when a route exists (the [DW]/[NET2] hang), or
+    // fast ENETUNREACH when it does not (P2-05's silent solo-run root).
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
     struct sockaddr_in addr{};
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = ip;
+    addr.sin_addr.s_addr = htonl(ip);
     addr.sin_port = htons(port);
     if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) { close(fd); return -1; }
     return fd;

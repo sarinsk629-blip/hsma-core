@@ -281,6 +281,11 @@ int main(int argc, char* argv[]) {
         if (fd >= 0) {
             peer_fds.push_back(fd);
             std::printf("[peer] connected to seed\n");
+        } else {
+            // DEFECT-183's lesson: a silent -1 hid this for six sessions
+            std::printf("[seed] connect to %u.%u.%u.%u:%u FAILED\n",
+                (sp.ip >> 24) & 0xFF, (sp.ip >> 16) & 0xFF,
+                (sp.ip >> 8) & 0xFF, sp.ip & 0xFF, sp.port);
         }
     }
     
@@ -419,8 +424,11 @@ int main(int argc, char* argv[]) {
                         if (msg.payload.size() >= 52) {
                             const std::uint8_t* pl = msg.payload.data();
                             const std::size_t pln = msg.payload.size();
-                            const unsigned peer_inner = p2p::get_u32(pl + pln - 12);
-                            const std::uint64_t peer_w = p2p::get_u64(pl + pln - 8);
+                            // DEFECT-180 fix: ABSOLUTE layout offsets - the header is
+                            // epoch(4)|digest(32)|size(4)|inner(4)|weight(8)|hash(32);
+                            // inner@40, weight@44 for BOTH real 84B headers and 52B forges.
+                            const unsigned peer_inner = p2p::get_u32(pl + 40);
+                            const std::uint64_t peer_w = p2p::get_u64(pl + 44);
                             if (peer_inner == pouw_inner) {
                                 if (peer_w == pouw_weight)
                                     std::printf("[pouw] peer weight %llu == local %llu -> AGREE\n",
