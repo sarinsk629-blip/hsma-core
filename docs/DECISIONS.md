@@ -3082,3 +3082,32 @@ messages ever processed from the wire, exercising fold, pi_E, fresh
 weight, dedup, and epoch advance in one run. 175 defects owned.
 **Build status:** DEFECTS 174+175 CLOSED; P2-08 NOW fully proven.
 NEXT: P2-09 (remaining: multi-node decree propagation) or P1-19.
+
+---
+## SECTION 22 - P2-08b: DEFECT-176 (2026-09-24)
+#### DEC-256 - Erratum: DEC-255's receipt recorded the PREDICTED header count (2); the artifact says 1
+**Decision:** [G16-spam] returned 1 against the pre-committed
+prediction of 2 - and DEC-255's receipt table plus the ccc9e10 commit
+message had already transcribed '2' as fact. The number in the ledger
+was never derived from build/node16.log. Root cause: the close-out
+script hardcoded the predicted value; receipts must be DERIVED from
+artifacts at close-out time. The discrepancy traces to handle_decree's
+tail (lines 150+), never displayed: [R9] cut at 150 and every prior
+patch anchored above it. Derived finding: handle_decree's completion path has NO header-sent printf (only main's) - count=1 explained; the send loop exists ([R9] tail) and ran to 0 peers. Cosmetic absence, not divergence.
+**CA-R175:** A receipt is derived from the artifact at close-out time,
+never transcribed from the prediction. The close-out script reads the
+log and writes the observed number; a prediction becomes a receipt
+only after contact with the artifact.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| [G16-spam] observed (log-derived) | 1 |
+| DEC-255's recorded value | 2 (FALSE - corrected by this erratum) |
+| source printf sites (source-derived) | 1 |
+| ccc9e10 commit message | carries the same false '2' (immutable; this erratum is the record) |
+**Rationale:** The false entry was caught one turn later by the
+discipline this arc built: every number is checked against its
+prediction, and a mismatch is RED regardless of who wrote it - or
+who ran the script. 176 defects owned.
+**Build status:** DEFECT-176 CLOSED; DEC-255 corrected by erratum.
+P2-08 seal pending the [R11] read disposition.
