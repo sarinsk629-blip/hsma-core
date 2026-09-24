@@ -3007,3 +3007,40 @@ re-gossip has no seen-header dedup - P2-08. (3) send has no
 MSG_NOSIGNAL - P2-08. 169 defects owned.
 **Build status:** P2-07 CLOSED. NEXT: P2-08 hardening (dedup + SIGPIPE
 + shared PoUW function); P1-19 Pedersen dual-layer.
+
+---
+## SECTION 22 - P2-08: The Hardening Pass (2026-09-23)
+#### DEC-254 - shared PoUW fn + dedup x2 + MSG_NOSIGNAL; DEFECTS 172+173 owned
+**Decision:** (1) run_epoch_pouw() extracted - main and handle_decree
+both call it; handle_decree headers now carry THIS epoch's freshly
+computed weight (DEC-253 boundary 1 closed). (2) seen_or_add()
+fingerprints (FNV-1a, FIFO 256): EPOCH_HEADER re-gossip guarded
+(DEFECT-168) and decree entry dedup (DEFECT-170 - a re-received
+decree would DOUBLE-FOLD into the accumulator; unfired, no senders
+yet). (3) DEFECT-171: both epoch paths advance current_epoch +
+reset decree_count (epochs never advanced before); handle_decree
+header writes current_epoch - 1 = the completed epoch. (4) send()
+hardened with MSG_NOSIGNAL (#ifndef guard) - SIGPIPE process death
+removed (DEC-253 boundary 3 closed). (5) DEFECT-172 owned: a patch
+anchor was a substring fragment matching inside a sibling's 8-space
+indentation; the count-assert refused. CA-R172: anchors are lines,
+not fragments. (6) DEFECT-173 owned: the 'shadowing/weight-0'
+defect claim from the P2P8 draft was FALSE - P2P7B step 3 had already
+removed the local decls; the claim was asserted from patch-lineage
+memory, not file state, and the v2 assert exposed it. CA-R173: a
+defect claim is a claim - verify against the artifact's current
+state; a guard firing on a false expectation means the expectation
+was the defect.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G13] same header x3 + variant | AGREE x3, suppressed x2, MISMATCH x1 |
+| [G14] 10 PING+RST | node alive, /api serving |
+| [G15] shared fn | 1 definition, 2 call sites |
+**Rationale:** Three documented boundaries and two latent defects
+closed in one pass; two process defects (172, 173) owned by the
+guards that caught them. Dedup failure direction is safe: a false
+positive only skips a re-gossip, never drops fresh state. 173
+defects owned.
+**Build status:** P2-08 CLOSED. NEXT: P2-09 decree senders (behavioral
+dedup + handle_decree epoch-advance test) or P1-19 Pedersen.

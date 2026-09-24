@@ -38,6 +38,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
 #include <fcntl.h>
 #include <netdb.h>
 #endif
@@ -199,7 +202,7 @@ inline bool send_message(int fd, const Message& msg) noexcept {
     auto buf = serialize(msg);
     std::size_t sent = 0;
     while (sent < buf.size()) {
-        auto n = send(fd, buf.data() + sent, buf.size() - sent, 0);
+        auto n = send(fd, buf.data() + sent, buf.size() - sent, MSG_NOSIGNAL);
         if (n <= 0) return false;
         sent += n;
     }

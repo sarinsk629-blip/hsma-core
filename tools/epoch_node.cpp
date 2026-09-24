@@ -38,6 +38,45 @@ static const char* pouw_verify = "PENDING";
 // peer connections
 static std::vector<int> peer_fds;
 
+// P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
+// Writes the file-scope globals; deterministic from the epoch's digest chain.
+static void run_epoch_pouw() {
+    // ---- P2-06 (DEC-250): the epoch PoUW - deterministic, self-verified ----
+    // The epoch's own digest chain seeds a 64^3 GEMM (xorshift64* expansion
+    // of the chain tail - CA-R90 float-free); the node proves it FS-bound
+    // (DEC-248 v2) and verifies its OWN proof (CA-R126 applied to PoUW).
+    // Same epoch bytes -> same GEMM -> same weight. [G8]-testable.
+    {
+        const unsigned N = pouw_inner;
+        auto t0 = std::chrono::steady_clock::now();
+        std::uint64_t st = 0;
+        {   const auto& db = digest_chain.back();
+            for (int k = 0; k < 4; ++k) st = st * 0x9E3779B97F4A7C15ull + db[k]; }
+        auto rnd = [&st]() -> fp::fe {
+            st ^= st << 13; st ^= st >> 7; st ^= st << 17;
+            return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull); };
+        std::vector<fp::fe> Am((std::size_t)N*N), Bm((std::size_t)N*N), Cm((std::size_t)N*N);
+        for (auto& x : Am) x = rnd();
+        for (auto& x : Bm) x = rnd();
+        for (unsigned i = 0; i < N; ++i)
+            for (unsigned j = 0; j < N; ++j) {
+                fp::fe acc = fp::fe_zero();
+                for (unsigned k = 0; k < N; ++k)
+                    acc = fp::fe_add(acc, fp::fe_mul(Am[i*N+k], Bm[k*N+j]));
+                Cm[i*N+j] = acc;
+            }
+        pouw::GemmProofV2 PP = pouw::prove_gemm_v2(Am, Bm, Cm, N, N, N);
+        const bool vok = pouw::verify_gemm_v2(PP, Am, Bm, Cm);
+        pouw_verify = vok ? "ACCEPT" : "REJECT";
+        pouw_weight = vok ? pouw::weight(N, 1) : 0;
+        auto t1 = std::chrono::steady_clock::now();
+        const double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
+            current_epoch, N, pouw_verify, (unsigned long long)pouw_weight, ms);
+    }
+
+}
+
 static fp::fe ld(const std::array<std::uint64_t,4>& c) {
     fp::fe x{}; std::memcpy(x.l.data(), c.data(), 32);
     fp::fe rr{}; std::memcpy(rr.l.data(), pallas_gen::RR.data(), 32);
@@ -76,7 +115,22 @@ static std::array<std::uint64_t,4> next_digest(
 }
 
 // handle an incoming decree entry: add it to the current epoch
+// P2-08: DEFECT-168 fix - seen-message fingerprints (FNV-1a, FIFO cap 256).
+// Safe failure direction: a false positive only skips a re-gossip/fold.
+static std::vector<std::uint64_t> seen_fps;
+static bool seen_or_add(const std::vector<std::uint8_t>& p) {
+    std::uint64_t h = 1469598103934665603ull;
+    for (std::uint8_t b : p) { h ^= b; h *= 1099511628211ull; }
+    for (std::uint64_t f : seen_fps) if (f == h) return true;
+    seen_fps.push_back(h);
+    if (seen_fps.size() > 256) seen_fps.erase(seen_fps.begin());
+    return false;
+}
+
 static void handle_decree(const std::vector<std::uint8_t>& payload) {
+    // P2-08: DEFECT-170 - a re-received decree would DOUBLE-FOLD into the
+    // accumulator. Fingerprint dedup, safe direction.
+    if (seen_or_add(payload)) { std::printf("[decree] duplicate entry - skipped\n"); return; }
     if (payload.size() < 32) return;
     
     // extract the digest from the payload (first 32 bytes = 4 u64 limbs)
@@ -135,13 +189,13 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         p2p::Message hdr{};
         hdr.type = p2p::EPOCH_HEADER;
         // payload: epoch_num(4B) + digest(32B) + pi_e_size(4B) + hash(32B)
-        p2p::put_u32(hdr.payload, current_epoch);
+        p2p::put_u32(hdr.payload, current_epoch - 1); // P2-08: the completed epoch
         // digest from the accumulator's first z value
         fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
         p2p::put_u32(hdr.payload, 1600);
     p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
-    p2p::put_u64(hdr.payload, pouw_weight); // the π_E size
+    p2p::put_u64(hdr.payload, pouw_weight); // P2-07: the weight (u64)
         // hash: use the output variable's canonical form
         fp::fe ocanon = fp::fe_to_canonical(P.v);
         for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
@@ -268,39 +322,7 @@ int main(int argc, char* argv[]) {
     std::printf("[pi_E] epoch %u: wrap_verify %s (stage=%u)\n",
         current_epoch, ok ? "ACCEPT" : "REJECT", stage);
     
-    // ---- P2-06 (DEC-250): the epoch PoUW - deterministic, self-verified ----
-    // The epoch's own digest chain seeds a 64^3 GEMM (xorshift64* expansion
-    // of the chain tail - CA-R90 float-free); the node proves it FS-bound
-    // (DEC-248 v2) and verifies its OWN proof (CA-R126 applied to PoUW).
-    // Same epoch bytes -> same GEMM -> same weight. [G8]-testable.
-    {
-        const unsigned N = pouw_inner;
-        auto t0 = std::chrono::steady_clock::now();
-        std::uint64_t st = 0;
-        {   const auto& db = digest_chain.back();
-            for (int k = 0; k < 4; ++k) st = st * 0x9E3779B97F4A7C15ull + db[k]; }
-        auto rnd = [&st]() -> fp::fe {
-            st ^= st << 13; st ^= st >> 7; st ^= st << 17;
-            return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull); };
-        std::vector<fp::fe> Am((std::size_t)N*N), Bm((std::size_t)N*N), Cm((std::size_t)N*N);
-        for (auto& x : Am) x = rnd();
-        for (auto& x : Bm) x = rnd();
-        for (unsigned i = 0; i < N; ++i)
-            for (unsigned j = 0; j < N; ++j) {
-                fp::fe acc = fp::fe_zero();
-                for (unsigned k = 0; k < N; ++k)
-                    acc = fp::fe_add(acc, fp::fe_mul(Am[i*N+k], Bm[k*N+j]));
-                Cm[i*N+j] = acc;
-            }
-        pouw::GemmProofV2 PP = pouw::prove_gemm_v2(Am, Bm, Cm, N, N, N);
-        const bool vok = pouw::verify_gemm_v2(PP, Am, Bm, Cm);
-        pouw_verify = vok ? "ACCEPT" : "REJECT";
-        pouw_weight = vok ? pouw::weight(N, 1) : 0;
-        auto t1 = std::chrono::steady_clock::now();
-        const double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-        std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
-            current_epoch, N, pouw_verify, (unsigned long long)pouw_weight, ms);
-    }
+    run_epoch_pouw(); // P2-08: shared - main + handle_decree
 
     // gossip the epoch header
     p2p::Message hdr{};
@@ -343,6 +365,10 @@ int main(int argc, char* argv[]) {
     ns.pouw_inner = pouw_inner;
     ns.pouw_weight = pouw_weight;
     ns.pouw_verify = pouw_verify;
+
+    // P2-08: DEFECT-171 - epoch 0 complete; the node now accepts epoch 1 decrees
+    ++current_epoch;
+    decree_count = 0;
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
     // for simplicity, use a fixed port: 8080
@@ -405,6 +431,9 @@ int main(int argc, char* argv[]) {
                             }
                         }
                         // re-gossip to other peers
+if (seen_or_add(msg.payload))
+    std::printf("[gossip] duplicate epoch header - re-gossip suppressed\n");
+else
                         for (std::size_t j = 0; j < peer_fds.size(); ++j) {
                             if (j != i) p2p::send_message(peer_fds[j], msg);
                         }
