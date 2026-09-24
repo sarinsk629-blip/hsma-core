@@ -3044,3 +3044,41 @@ positive only skips a re-gossip, never drops fresh state. 173
 defects owned.
 **Build status:** P2-08 CLOSED. NEXT: P2-09 decree senders (behavioral
 dedup + handle_decree epoch-advance test) or P1-19 Pedersen.
+
+---
+## SECTION 22 - P2-08a: DEFECTS 174+175 (2026-09-23)
+#### DEC-255 - The join that never happened; the commit message that overclaimed
+**Decision:** DEFECT-174: P2-08 step (b) built the modified line list
+but never assigned it back (missing s = "".join(out)) - the insert
+(fresh pouw + epoch advance in handle_decree) was silently absent
+while its assert passed, because the assert verified DISCOVERY (anchor
+found), not INTEGRATION (join-back). Caught by [G15]: grep showed 2
+hits under a label claiming 2 call sites - the label was the
+prediction speaking, the grep was the receipt. Committed consequence:
+handle_decree had current_epoch - 1 WITHOUT the advance (wrong epoch
+numbers) and no decree_count reset (header-per-decree spam) - latent
+until decree senders. DEFECT-175: the 1dcd7cd commit message claimed
+'epoch advance at both paths'; the diff has one (CA-R171, third
+self-application). Fix: the join + a POST-STATE integration assert
+(count == 3 before write). [G16] behavioral proof: 10 forged network
+decrees fold 1..10, pi_E epoch 1 ACCEPT, FRESH run_epoch_pouw call,
+duplicate decree deduped, follower decree restarts at 1/10 (reset
+proven), header count 2 (spam dead).
+**CA-R174:** A transform that is never assigned back is a transform
+that never happened. An assert on discovery proves nothing about
+integration - the proof of a line-based edit is the post-state grep,
+not the pre-state anchor.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [G15-fixed] grep | 3 hits (1 def + 2 call sites) |
+| [G16] 10 network decrees | fold 1..10 SAT, pi_E ACCEPT, fresh pouw |
+| [G16] duplicate decree | deduped |
+| [G16] follower decree | decree 1/10 (reset proven) |
+| [G16-spam] header count | 2 (startup + network epoch 1) |
+**Rationale:** The gate output contradicting its own label was the
+defect's signature. The fix's proof is behavioral: the first decree
+messages ever processed from the wire, exercising fold, pi_E, fresh
+weight, dedup, and epoch advance in one run. 175 defects owned.
+**Build status:** DEFECTS 174+175 CLOSED; P2-08 NOW fully proven.
+NEXT: P2-09 (remaining: multi-node decree propagation) or P1-19.

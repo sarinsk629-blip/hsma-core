@@ -185,6 +185,11 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         std::printf("[pi_E] epoch %u: wrap_verify %s (stage=%u)\n",
             current_epoch, ok ? "ACCEPT" : "REJECT", stage);
         
+        // P2-08: fresh weight for the epoch that just completed
+        run_epoch_pouw();
+        // P2-08: DEFECT-171 - advance AFTER the weight receipt
+        ++current_epoch;
+        decree_count = 0;
         // gossip the epoch header to all peers
         p2p::Message hdr{};
         hdr.type = p2p::EPOCH_HEADER;
