@@ -2958,3 +2958,19 @@ broadcast weight=0 - the second flaw the assert surfaced indirectly).
 is a defect before it runs. Count-asserts and signature greps are the
 pre-write gate. 167th defect owned.
 **Build status:** DEFECT-167 CLOSED.
+
+---
+## SECTION 22 - P2-07b: DEFECT-169 (2026-09-23)
+#### DEC-253a - The forge harness packed little-endian against a big-endian wire
+**Decision:** The P2-07 forge test used struct.pack('<I'/'<Q'); the
+p2p protocol is big-endian throughout (P2-01 framing 'big'; PEER_LIST
+decode 7f000001/7a01). The node read the exact packed bytes at the
+exact offsets and interpreted them BE: inner 64 -> 0x40000000 =
+1073741824 (x2), 63 -> 0x3F000000 = 1056964608 - all three forged
+headers REJECTED via the param-mismatch path. The cross-check is
+vindicated (no forged weight accepted, malformed input rejected);
+the harness is the defect. Re-run with '>I'/'>Q' to exercise the
+three intended paths.
+**Rationale:** A test harness that misrepresents the wire format
+tests nothing. The node's rejection of malformed input is itself a
+security receipt. 169th defect owned.
