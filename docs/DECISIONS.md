@@ -2939,3 +2939,22 @@ decoration, the band was the claim.
 **Rationale:** The methodology doesn't rank defects; it owns them.
 166th defect owned.
 **Build status:** DEFECT-166 CLOSED.
+
+---
+## SECTION 22 - P2-07a: DEFECT-167 (2026-09-23)
+#### DEC-252 - The P2-07 draft patch carried two flaws; both caught before any write
+**Decision:** (1) The draft assumed ONE epoch-header construction site;
+the file has two (main epoch-0 path + handle_decree epoch path), and
+the count-assert (anchor 2 != 1) refused to guess. (2) The draft's
+receive-side called get_u32/get_u64 with (vector, offset); the real
+signatures are pointer-based (const uint8_t*) - caught by the
+pre-patch signature grep. The script died at the first assert: nothing
+was written, and the subsequent [B2] CLEAN compiled the unchanged
+file. Corrected design: pouw weight fields become file-scope (one
+truth for both header sites + receive side), and the PoUW block moves
+BEFORE the header construction (patching in place would have
+broadcast weight=0 - the second flaw the assert surfaced indirectly).
+**Rationale:** A patch that assumes site-count or accessor signature
+is a defect before it runs. Count-asserts and signature greps are the
+pre-write gate. 167th defect owned.
+**Build status:** DEFECT-167 CLOSED.
