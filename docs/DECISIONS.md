@@ -3402,3 +3402,48 @@ external-submission correctness mode; testnet consensus keeps v2's
 deterministic recompute.
 **Build status:** P1-19 CLOSED. NEXT: P1-22 (homomorphic fold
 commitments) or P2-12 (multi-faucet convergence).
+
+---
+## SECTION 23 - P2-12: The Multi-Faucet Convergence Run (2026-09-24)
+#### DEC-264 - The complete blueprint, tool-driven: two nodes, two faucets, one state
+**Decision:** The first multi-party run with EVERY decree entering
+through the public tool: faucet 1 -> node 1 (5 decrees, seed 0x6f),
+faucet 2 -> node 2 (5 decrees, seed 0xde), nodes seed-connected; each
+node folds 5 local + 5 propagated (DEF-170 dedup carrying the cross-
+node set); both complete epoch 1. Headers cross between nodes AND
+return down each faucet socket TWICE (own node's header + the peer's
+re-gossiped twin) - all four deliveries byte-identical: the
+duplication IS the convergence made visible (own-header marking
+remains the P2-10 boundary; idempotent receipts at 2 nodes). State
+verification is MUTUAL and COMPLEMENTARY: node 1 (completed epoch 0
+first) verified node 2's epoch-0 state; node 2 (completed epoch 1
+first) verified node 1's epoch-1 state - together both epochs, both
+states, wire-confirmed. Prediction miss owned: [0,1]/[1] was
+predicted against DEC-259's own recorded [0]/[1] shape; the derive
+assert refused and the gate held - the shape is completion-order-
+dependent and empirically stable across two independent runs.
+Cross-run determinism receipt #3: epoch-0 fingerprint 847ee3fbc13be11a
+reproduces across a third independent process invocation.
+**Structural honesty:** the split-input convergence relies on both
+nodes observing near-identical global arrival order (0.3s spacing >>
+localhost delay) - a high-latency WAN would diverge orders; the state
+cross-check DETECTS divergence, resolution is consensus-layer future
+work (MSSC). The safety net is proven; the resolver is queued.
+**THE RECEIPT (derived from mf_a/mf_b/mf_f1/mf_f2):**
+| Check | node1 | node2 |
+|---|---|---|
+| folds (5 local + 5 propagated) | 10 | 10 |
+| pi_E epochs | [0, 1] | [0, 1] |
+| weight AGREE / MISMATCH | 2 / 0 | 1 / 0 |
+| state AGREES (epoch checked) | [0] | [1] |
+| fingerprints | ['847ee3fbc13be11a'] | ['5db8a81ea7f626a3'] |
+| faucet deliveries (4x) | ['5db8a81ea7f626a3', '5db8a81ea7f626a3'] / ['5db8a81ea7f626a3', '5db8a81ea7f626a3'] - ONE hash |
+**Rationale:** The blueprint loop - connect, share, fold, converge,
+cross-check weight AND state - has run END-TO-END through the public
+interface, with split inputs converging to byte-identical state,
+four-fold attested on the wire and mutually state-verified. A
+community member reproduces the entire testnet behavior with
+faucet.py and two terminals.
+**Build status:** P2-12 CLOSED - the launch blueprint's dress
+rehearsal PASSED. NEXT: P1-22 (homomorphic fold commitments) or
+Phase 3 (MSSC - the agreement layer).

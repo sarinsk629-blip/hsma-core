@@ -53,26 +53,30 @@ def main():
         s.send(MAGIC + bytes([T_DECREE]) + len(d).to_bytes(4,'big') + d)
         print('[faucet] duplicate sent (node must skip - DEFECT-170)')
 
-    print('[faucet] waiting for the epoch header on this socket...')
+    print('[faucet] waiting for epoch header(s) on this socket...')
     t0 = time.time()
+    seen = 0
     while time.time() - t0 < 45:
         try: mtype, payload = recv_message(s)
-        except socket.timeout: break
+        except (socket.timeout, ConnectionError) as e:
+            print(f'[faucet] socket ended ({type(e).__name__}) after {seen} header(s)')
+            break
         if mtype == T_EPOCH_HEADER and len(payload) >= 52:
             epoch  = struct.unpack('>I', payload[0:4])[0]
             inner  = struct.unpack('>I', payload[24:28])[0]
             weight = struct.unpack('>Q', payload[28:36])[0]
             hsh = payload[36:52].hex()
-            print(f'[faucet] EPOCH HEADER RECEIVED: epoch={epoch} inner={inner} '
+            seen += 1
+            print(f'[faucet] EPOCH HEADER #{seen}: epoch={epoch} inner={inner} '
                   f'weight={weight} hash={hsh[:16]}')
             print(f'[faucet] RECEIPT: {a.count} decrees -> epoch {epoch} completed, '
                   f'weight {weight} verified MACs, state hash {hsh[:16]}')
-            s.close()
-            return 0
-        # PEER_LIST / PONG / duplicates of earlier headers - keep waiting
-    print('[faucet] TIMEOUT: no epoch header in 45s (mid-epoch fill? watch the node log)')
+    if seen == 0:
+        print('[faucet] TIMEOUT: no epoch header in 45s (mid-epoch fill? watch the node log)')
+        s.close()
+        return 1
     s.close()
-    return 1
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
