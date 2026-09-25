@@ -3325,3 +3325,35 @@ byte-exact across independent process invocations. 195 defects
 owned; no new defects this phase.
 **Build status:** P2-11 CLOSED. NEXT: P1-21 (real SMT opening: mux +
 binding + depth-N) or P1-19 (Pedersen dual-layer).
+
+---
+## SECTION 23 - P1-21: The Real SMT Opening (2026-09-24)
+#### DEC-262 - Direction mux + root binding + depth-N: DEF-192/193/195 repaired in-circuit
+**Decision:** build_smt_opening2 - the SMT opening as it was always
+claimed: (1) direction multiplexer - t=dir*sib, u=dir*cur, sel0=t-u+cur,
+sel1=u-t+sib, boolean row dir*dir=dir; dir=1 hashes (sib, cur, IV),
+dir=0 hashes (cur, sib, IV); 5 rows + 2 vars per level. (2) root
+binding - w[expected]*1 = w[chain_tip] as a constraint row; the
+prover's chain terminates at the CLAIMED root and a wrong claim
+UNSATs. (3) explicit iv_var - any depth, no lane collision (DEF-195).
+(4) SmtResult2.n_rows = ACTUAL rows (DEF-194). Probe (smt21probe):
+depth-1/2/3 all SAT matching an independent mux-semantics mirror
+(86/171/256 rows); [G-dir-neg] dir=1 circuit vs dir=0 expected root
+UNSATs (the mux is LIVE - v1's [G-dir] showed identical roots);
+[G-root-neg] expected=root+1 UNSATs (binding live). v1 retained as
+the depth-1 legacy layer; header relabeled FIXED-in-v2.
+**CA-R186:** A proof binds only what it constrains. A chain without
+an expected-root constraint proves any root; a selector without a
+boolean constraint selects nothing. The gap between 'computes' and
+'proves' is exactly the missing rows.
+**THE RECEIPT (parsed from build/smt21.log):**
+| Gate | Result |
+|---|---|
+| [G2-d1] depth-1 | SAT, mirror YES, 86 rows |
+| [G2-d2] depth-2 MIXED | SAT, mirror YES, 171 rows (v1-impossible) |
+| [G2-d3] depth-3 | SAT, mirror YES, 256 rows |
+| [G-dir-neg] | UNSAT (mux live) |
+| [G-root-neg] | UNSAT (binding live) |
+| scaling | 85/level + 1; depth-64 ~5,441 rows; k=476 x2 ~5.18M |
+**Build status:** P1-21 CLOSED. NEXT: P1-19 (Pedersen dual-layer) or
+P2-12 (multi-faucet convergence run).
