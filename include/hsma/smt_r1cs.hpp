@@ -1,10 +1,13 @@
 // HSMA :: smt_r1cs.hpp - P1-15b (GAP-07 SMT, DEC-237).
-// The SMT opening proof as R1CS constraints.
-// Each level: hash(current_hash, sibling_hash) = parent_hash (Poseidon-2)
+// The SMT opening chain as R1CS - STATUS (P1-20/DEC-260): depth-1 VERIFIED
+// (SAT, output matches independent mirror); the four gaps below are OWNED.
+// Each level: hash(cur, sib, IV) via the Poseidon-3 R1CS gadget (reduced perm).
 // The Poseidon-2 gadget reuses poseidon_r1cs.hpp's build() with a 2-input state.
-// The direction bit (left or right sibling) is encoded as the argument order.
-// The root output must match the expected root (the R1CS constraint).
-// HONEST BOUNDARY: the SMT depth is parameterized (golden: 3, production: 64).
+// DEF-192: the direction bit is INERT - levels always hash (cur, sib) in that order.
+// DEF-193: NO root binding - the output is the chain tip; binding is the caller's job (P1-21).
+// DEF-194: sketch metadata - iv param used only in an always-3 ternary; n_rows stale.
+// DEF-195: depth>=2 BROKEN - s2_var=3 collides with sibling lane z[3]; depth-1 only.
+// HONEST BOUNDARY: depth parameterized (golden depth-1 verified; 64 = P1-21).
 // The full 64-depth unroll = 64 * ~363 = ~23,232 constraints per opening.
 // At k=476 entries * 2 accounts: ~22M constraints (production hardware needed).
 #pragma once

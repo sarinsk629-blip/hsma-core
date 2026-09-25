@@ -3253,3 +3253,42 @@ share, fold, converge, cross-check WEIGHT AND STATE. 191 defects
 owned.
 **Build status:** P2-10 CLOSED. NEXT: P1-19 (Pedersen dual-layer) /
 P1-20 (verify the P1-15b artifact) / P2-11 (decree faucet).
+
+---
+## SECTION 23 - P1-20: The P1-15b Artifact Verified (2026-09-24)
+#### DEC-260 - build_smt_opening executed for the first time; DEFECTS 192-195 owned
+**Decision:** P1-20 closed the honesty debt from DEC-259: smt_r1cs.hpp
+was committed with zero executions. The probe (tools/smt20probe.cpp)
+ran build_smt_opening for the first time: [G+] depth-1 SAT YES (80
+rows, DEC-237's count confirmed); [G-sem] output == an independent
+line-faithful mirror of the reduced permutation (the constraints
+encode the computation); [G-dir] direction bit flipped -> IDENTICAL
+root (DEF-192: the channel the header claims 'is encoded as the
+argument order' is INERT - the code's own comment disclaims it);
+[G-any] a different leaf still SATs with a different root (DEF-193:
+no root binding - the header claims 'must match the expected root');
+[G-coll] depth-2 output == mirror with the IV OVERRIDDEN by
+sibling[1] (DEF-195: s2_var hardcoded 3 collides with the documented
+sibling lane z[3]); [G-meta] R.n_rows=0 vs actual=80 (DEF-194: stale
+metadata + the always-3 ternary + the dead iv param). DEC-237's own
+claim audited: GADGET-level only - HONEST; the earlier suspicion of
+ledger overclaim is REFUTED on the record. The artifact header
+relabeled to describe reality; P1-21 queued (direction multiplexer +
+in-circuit root binding + depth-N layout).
+**CA-R185:** A committed header is a claim about the body. Four
+defects lived in a file whose header promised what its own inline
+comments disclaimed - the file contradicted itself, and only
+executing it settled which half was true. Verification means running
+the body against the claim, not reading either.
+**THE RECEIPT (parsed from build/smt20.log):**
+| Gate | Result |
+|---|---|
+| [G+] depth-1 SAT | YES, 80 rows |
+| [G-sem] mirror match | YES |
+| [G-dir] dead channel | CONFIRMED |
+| [G-any] no binding | CONFIRMED |
+| [G-coll] depth-2 IV collision | CONFIRMED |
+| [G-meta] stale n_rows | 0 vs 80 |
+**Build status:** P1-20 CLOSED - the repo no longer carries
+unreceipted code. 195 defects owned. NEXT: P1-21 (real SMT opening)
+or P2-11 (decree faucet).
