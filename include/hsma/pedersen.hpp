@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 namespace hsma::pedutil {
 // 32 LE bytes -> scalar < ORDER. digest < 2^256, ORDER > 2^254.9, so at most
@@ -83,6 +84,20 @@ inline PtV commit(const std::uint64_t m[8][4], const std::uint64_t r[4],
     PtV C = g2v::Vmul(g2v::generator(), r);
     for (unsigned i = 0; i < 8; ++i)
         C = g2v::Vadd(C, g2v::Vmul(base_h(i, ORDER), m[i]));
+    return C;
+}
+
+// P1-19 (DEC-263): vector commitment with PER-POSITION distinct bases.
+// CA-R187: the 8-base batch commit repeats h_j every 8 positions - for
+// n > 8, a delta at position i and -delta at position i+8 (same base)
+// commits identically (kernel shift; demonstrated in p19probe [P3-forge]).
+// Distinct bases per position close the kernel: forgery requires a
+// multi-base representation break (DLP-hard).
+inline PtV commit_vec(const std::vector<fp::fe>& v, const std::uint64_t r[4],
+                      const std::uint64_t ORDER[4]) noexcept {
+    PtV C = g2v::Vmul(g2v::generator(), r);
+    for (unsigned k = 0; k < v.size(); ++k)
+        C = g2v::Vadd(C, g2v::Vmul(base_h(k, ORDER), v[k].l.data()));
     return C;
 }
 } // namespace hsma::pedv

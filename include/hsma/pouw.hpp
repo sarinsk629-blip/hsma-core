@@ -21,6 +21,7 @@
 #pragma once
 #include <hsma/sumcheck.hpp>
 #include <hsma/pcs.hpp>
+#include <hsma/pedersen.hpp>
 #include <vector>
 #include <cstdint>
 
@@ -202,4 +203,34 @@ inline bool verify_gemm_v2(const GemmProofV2& P,
         && sc::feq(P.T.fb, sc::direct_eval(bref, P.T.r));
 }
 
+
+// ---- P1-19 (DEC-263): the externally-submittable verifier (v3) ----
+// The last PoUW asterisk dies: verify_gemm_v2 required a_ref/b_ref from
+// the verifier's own recomputation - useless for external submissions.
+// v3 binds the SUBMITTED arrays to the REGISTERED model via Pedersen
+// vector commitments (per-position distinct bases, CA-R187), then runs
+// the FULL v2 chain on the submission. The verifier NEVER performs the
+// n^3 multiply. Honest boundary: O(n^2) submission bandwidth; succinct
+// no-submission binding = the homomorphic fold (P1-22, DEC-071).
+inline bool ped_eq(const g2v::PtV& P, const g2v::PtV& Q) noexcept {
+    g2v::PtV NQ;
+    NQ.x = Q.x; NQ.y = fq::fev_sub(fq::fev_zero(), Q.y); NQ.z = Q.z;
+    return fq::fev_is_zero(g2v::Vadd(P, NQ).z);   // P + (-Q) == inf <=> P == Q (fq/fev: CA-R117)
+}
+
+inline bool verify_gemm_v3(const GemmProofV2& P,
+                           const std::vector<fp::fe>& A_sub,
+                           const std::vector<fp::fe>& B_sub,
+                           const std::vector<fp::fe>& C_sub,
+                           const g2v::PtV& regA, const g2v::PtV& regB,
+                           const std::uint64_t r_pub[4],
+                           const std::uint64_t ORDER[4]) noexcept
+{
+    // (0) registration binding - the front door. A SELF-CONSISTENT proof
+    // over a DOCTORED model dies here and only here ([P3-fakeA]).
+    if (!ped_eq(pedv::commit_vec(A_sub, r_pub, ORDER), regA)) return false;
+    if (!ped_eq(pedv::commit_vec(B_sub, r_pub, ORDER), regB)) return false;
+    // (1..6) the full v2 chain on the submitted arrays
+    return verify_gemm_v2(P, A_sub, B_sub, C_sub);
+}
 } // namespace hsma::pouw

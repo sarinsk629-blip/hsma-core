@@ -3357,3 +3357,48 @@ boolean constraint selects nothing. The gap between 'computes' and
 | scaling | 85/level + 1; depth-64 ~5,441 rows; k=476 x2 ~5.18M |
 **Build status:** P1-21 CLOSED. NEXT: P1-19 (Pedersen dual-layer) or
 P2-12 (multi-faucet convergence run).
+
+---
+## SECTION 23 - P1-19: The Externally-Submittable PoUW (2026-09-24)
+#### DEC-263 - Pedersen registration binding; the kernel finding; the last asterisk dies
+**Decision:** (1) CA-R187 (found while designing v3): a vector
+commitment's binding strength equals its distinct-base count - the
+8-base batch commit repeated per chunk is forgeable by kernel shift
+(delta at position i, -delta at i+8); [P3-forge] DEMONSTRATED it on
+the naive summed-commit pattern. Fix: pedv::commit_vec - per-position
+distinct bases; [P3-fix] shows the same delta now DIFFERs. cfold
+scoping ([R8]): NCOLS=8 = z-width=8 - width matches base count by
+design; the kernel only opens past 8 (ledger note, no defect).
+(2) verify_gemm_v3: registration front door - submitted A,B bound to
+REGISTERED Pedersen vectors (ped_eq via fev negation, fq:: namespace,
+DEF-197), then the FULL v2 chain on the submission. [P3-fakeA]: a
+SELF-CONSISTENT proof over a shifted model - every v2 check passes
+it - dies at Pedersen alone. The verifier NEVER performs the n^3
+multiply. Honest boundary: O(n^2) submission bandwidth; succinct
+no-submission binding = the homomorphic fold (P1-22, DEC-071).
+(3) DEF-196: a post-state assert demanded a transcribed count
+(verify_gemm_v3 x2; actual x1) - CA-R188: assert expectations are
+derived from the payload, counted not estimated. DEF-197: PtV
+coordinates are fev (fq::), not fe - the 2-cycle's field seam, first
+executable consequence of CA-R117's lineage. DEF-198: draft indexed
+m1[k/8][k%8][j] into m1[8][4].
+**CA-R188:** An assert's expected counts are derived from the payload
+by counting, never estimated at write time.
+**THE RECEIPT (parsed from build/p19.log):**
+| Gate | Result |
+|---|---|
+| [P3-forge] kernel shift | DEMONSTRATED |
+| [P3-fix] commit_vec binding | YES |
+| [P3-ok] external flow | ACCEPT (verifier never multiplied) |
+| [P3-fakeA] doctored model | REJECT, Pedersen-caught |
+| [P3-fakeC] tampered output | REJECT |
+| [P3-time] n=64 | prover 580 ms / verifier 17042 ms |
+**Timing honesty:** the DLP front door dominates at n=64 (17042 ms
+verifier vs 580 ms prover - ~128 scalar-muls at ~1-2 ms each); this
+measures the Layer-1/Layer-2 boundary DEC-071 named: Pedersen for
+registration (once, off hot path), hash/WHIR for the hot path, the
+homomorphic fold (P1-22) for fold-forever commitments. v3 = the
+external-submission correctness mode; testnet consensus keeps v2's
+deterministic recompute.
+**Build status:** P1-19 CLOSED. NEXT: P1-22 (homomorphic fold
+commitments) or P2-12 (multi-faucet convergence).
