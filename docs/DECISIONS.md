@@ -3292,3 +3292,36 @@ the body against the claim, not reading either.
 **Build status:** P1-20 CLOSED - the repo no longer carries
 unreceipted code. 195 defects owned. NEXT: P1-21 (real SMT opening)
 or P2-11 (decree faucet).
+
+---
+## SECTION 23 - P2-11: The Decree Faucet (2026-09-24)
+#### DEC-261 - The testnet becomes drivable: one command, self-verifying receipt
+**Decision:** tools/faucet.py - submits N decree entries (big-endian
+wire, the DEFECT-169 law) and waits for the EPOCH_HEADER the node
+returns down the SAME socket - handle_decree gossips to ALL peers
+including the decreer ([R11]; the j!=i exclusion lives only in the
+receive-side re-gossip). Parses the DEFECT-184 layout (inner@24,
+weight@28, hash@36) and prints a self-verifying receipt. --dupe
+resends the first decree to exercise the DEFECT-170 dedup. The
+close-out derive asserts epoch=1, inner=64, weight=262144, a
+NON-ZERO state hash (CA-R184), AND cross-run hash determinism:
+the re-run with the same --seed must reproduce the first run's
+epoch-1 fingerprint byte-exact (deterministic decrees -> identical
+folded state -> identical P.v).
+**THE RECEIPT (parsed from build/faucet_out.txt):**
+| Field | Value |
+|---|---|
+| epoch / inner / weight | 1 / 64 / 262144 |
+| state hash (16-hex) | 1f45d6b532acf231 |
+| cross-run determinism | 1f45d6b532acf231 == first-run hash - PASS |
+| node-side corroboration | 10 folds SAT, pi_E epoch 1 ACCEPT, header to 1 peers (= the faucet) |
+**Rationale:** The networking arc (P2-06..P2-10) was fully
+wire-proven but driverless - every decree came from inline test
+scripts. The faucet makes the testnet community-drivable: one
+command, and the receipt parsed from the wire is the proof the work
+landed. The cross-run hash match is a bonus consensus receipt: the
+full pipeline (fold -> pi_E -> pouw -> state hash) reproduces
+byte-exact across independent process invocations. 195 defects
+owned; no new defects this phase.
+**Build status:** P2-11 CLOSED. NEXT: P1-21 (real SMT opening: mux +
+binding + depth-N) or P1-19 (Pedersen dual-layer).
