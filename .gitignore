@@ -1,43 +1,41 @@
-# Prerequisites
+# ══ HSMA ignore registry (CA-R196: the ignore list is itself documented) ══
+
+# ── Regenerable runtime outputs: the generator and cmake reproduce these ──
+build/
+cmake-build-debug/
+cmake-build-release/
 *.d
-# Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
-# Precompiled Headers
 *.gch
 *.pch
-# Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
-# Fortran module files
 *.mod
 *.smod
-# Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-# Executables
 *.exe
 *.out
 *.app
-# Build directories
-build/
-cmake-build-debug/
-cmake-build-release/
-# IDEs
+
+# ── Environment and editor noise ──
 .vscode/
 .idea/
-# OS
 .DS_Store
 Thumbs.db
-# Python
 __pycache__/
 *.pyc
-docs/*.bak.*
-docs/*.pre-*
-hsma-core/
+
+# ── Local-only artifacts, not part of the tracked record ──
+# hsma_backup.tar.gz: the maintainer's local safety tarball (redundant to the repo)
 hsma_backup.tar.gz
+# hsma-core/: nested-clone defense (DEF-164 / DEC-247)
+hsma-core/
+# docs/*.bak.*: editor backup files
+docs/*.bak.*

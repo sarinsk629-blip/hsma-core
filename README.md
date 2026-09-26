@@ -6,7 +6,7 @@
 [![Headers](https://img.shields.io/badge/headers-41-blueviolet)]
 [![π_E](https://img.shields.io/badge/π_E-1600_bytes-red)]
 
-**A verified Layer-1 protocol architecture with zero-MEV consensus, folding-based recursive state transitions, and succinct epoch proofs also HSMA cryptographically proves AI execution at consensus speed. It moves beyond traditional Proof of Stake and Proof of Work by utilizing Verifiable AI Inference as Proof of Useful Work (PoUW) — built by one person with 165 laws and zero hiding.**
+**A verified Layer-1 protocol architecture with zero-MEV consensus, folding-based recursive state transitions, and succinct epoch proofs also HSMA cryptographically proves AI execution at consensus speed. It moves beyond traditional Proof of Stake and Proof of Work by utilizing Verifiable AI Inference as Proof of Useful Work (PoUW) — built by one person with 195 laws and zero hiding.**
 
 ## What This Is
 
@@ -80,9 +80,9 @@ The scaling is **linear in k** — confirmed at k=1, 5, 10, 50, 100.
 
 This project maintains:
 
-- **An append-only decision ledger** (docs/DECISIONS.md): 235 decisions, 165 laws, every supersession chain traceable, zero silent regressions
+- **An append-only decision ledger** (docs/DECISIONS.md): 267 decisions, 195 laws, every supersession chain traceable, zero silent regressions
 - **A golden-oracle bilingual proving system**: Python computes the truth, C++ reproduces it bit-for-bit, the goldens arbitrate
-- **An adversarial review culture**: 162 errata, every one owned with a named fix — including a publicly-derivable KEM key caught by design (CA-R61) and an out-of-bounds memory access invisible to self-consistency tests (CA-R119)
+- **An adversarial review culture**: 208 errata, every one owned with a named fix — including a publicly-derivable KEM key caught by design (CA-R61) and an out-of-bounds memory access invisible to self-consistency tests (CA-R119)
 - **A byte-identical refactor discipline**: structure changes require byte-identical output proof
 - **The pre-emit self-check law**: every golden emitter validates every receipt before writing (CA-R126)
 - **The domain law**: fe_mul computes a*b mod p (the mathematical product) — proven by the minitest and three independent probes (CA-R148)
@@ -170,7 +170,7 @@ hsma-core/
 │   └── ...
 ├── docs/
 │   ├── whitepaper.tex         # Full technical specification
-│   ├── DECISIONS.md           # The decision ledger (235 entries, 165 laws)
+│   ├── DECISIONS.md           # The decision ledger (235 entries, 195 laws)
 │   ├── eprint/                # The ePrint paper (v2 staged)
 │   ├── eprint_v2/             # The methodology paper for resubmission
 │   ├── grants/                # The grant wishlist and readiness pack
@@ -210,4 +210,4 @@ MIT
 
 ---
 
-*Built by one person. The Satoshi path: build → publish → the world notices. 165 laws. 235 decisions. 34 gates. π_E exists. Zero hiding.*
+*Built by one person. The Satoshi path: build → publish → the world notices. 195 laws. 267 decisions. 34 gates. π_E exists. Zero hiding.*

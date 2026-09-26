@@ -10,7 +10,9 @@ import os
 import hashlib
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BUILD_GEN = os.path.join(REPO_ROOT, "build", "generated")
+# P3-0a (DEF-201): the tracked home. The old join composed "build"+
+# "generated" - invisible to the literal sweep, fatal to every loader/emitter.
+BUILD_GEN = os.path.join(REPO_ROOT, "generated")
 _M64 = (1 << 64) - 1
 
 def _mod_from_gen(header_name):

@@ -3529,3 +3529,40 @@ twice.
 owned. NEXT: P3-0b - the MSSC design contract (whitepaper section 3:
 k=20->40, alpha=0.75, beta=150, phi_floor=0.50, DEC-016 vote preimage,
 beacon-gated breaker) against consensus.hpp / g1net.hpp / threshold.
+
+---
+## SECTION 24 - P3-0a-c: The Full-Visibility Extraction (2026-09-24)
+#### DEC-268 - Every source and provenance artifact tracked; the ignore list documents itself
+**Decision:** The maintainer mandate 'no file or folder of ours remains
+invisible on GitHub' executed with classification discipline (CA-R189/
+R190/R195 applied): (1) build/*.cpp diff-classified vs tools/ -
+identical copies deleted (content lives in the tracked home),
+diverged/unique moved to tracked attic/; idprobe.py, gc.cpp likewise.
+(2) ref_*.rs diff vs docs/refs/. (3) scripts/gen/build (pre-split
+generator goldens) diff vs generated/ - identical deleted, divergent
+preserved in attic/gen_build_pre_split/; the stale dir removed.
+(4) ark2 deduped vs ark; ark3 (empty) removed. (5) ark / pyecc /
+pairing_crate -> tracked third_party/ - reference provenance cited in
+the ledger is now visible (pre-move reference sweep: zero consumers).
+(6) build/snap -> attic/snap_p1_18/ (P1-18 receipt inputs). (7) the
+five empty libhsma_* module dirs + .github/workflows gained .gitkeep -
+empty dirs are now visible on GitHub. (8) .gitignore rewritten with
+every entry's reason inline (CA-R196); docs/*.pre-* un-ignored (the
+pre-dedup whitepaper is tracked). (9) README public numbers synced:
+195 laws, 267 decisions, 208 errata. [V1] refinement recorded:
+DEF-208's fossil was a pre-split-era epoch_golden (step17-era G17F
+format predating the step34 emitter; step17.py:179 and step34.py:194
+are the two owners, test_step17 consumes epoch17_golden).
+**CA-R196:** The repository is the complete record: every source,
+provenance, and reference artifact is tracked; only regenerable
+runtime outputs are ignored, and every ignore entry documents its
+reason. 'Nothing hidden' means: what is invisible is exactly what the
+pipeline regenerates.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| staged set | third_party + attic + .gitkeep x6 + gitignore + README, zero build/ leakage |
+| pre-move reference sweep | zero consumers of the crate homes |
+| README numbers | 195/267/208 synced |
+**Build status:** P3-0a-c CLOSED. The repository is now the complete,
+self-describing record. NEXT: P3-0b - the MSSC design contract.
