@@ -3812,3 +3812,36 @@ P3-2b (wire convergence), P3-3 (beacon deadlock), P3-3b (aggregate
 verify). The MSSC mechanism is COMPLETE at testnet scale.
 NEXT: Phase 4 (the M2 Commit-then-Simulate ceremony) or P3-4 (DKG
 rotation).
+
+---
+## SECTION 25 - P3-2c: The Fresh-Clone DEFECT (2026-09-26)
+#### DEC-276 - msscloop.hpp used floating-point arithmetic; the fresh clone caught it
+**Decision:** DEF-222: msscloop.hpp used `double alpha = 0.75` and
+`(double)agreeing / (double)sampled` for the alpha and phi_floor
+checks - a DEC-090 violation that the dev clone's stale build cache
+masked (the lint target wasn't re-running). The FRESH clone
+(sarinsk's second terminal, `rm -rf && git clone && gate.sh`) caught
+it immediately: the CA-R191 FAILED-target tripwire fired, the gate
+went RED on the first contact with a newcomer's machine. Fix: the
+alpha and phi_floor thresholds moved to BASIS-POINT integer arithmetic
+(alpha_bp=7500, phi_floor_bp=5000) with integer cross-multiplication
+(`agreeing * 10000 >= alpha_bp * sampled`) - the same pattern the
+consensus.hpp automaton already uses (params::ALPHA_BP). No float,
+no division, cross-hardware deterministic.
+**CA-R202:** The fresh-clone test is the DEFINITIVE verification -
+a dev clone's stale build cache can mask defects for sessions.
+**CA-R203:** New code must pass `check_no_fp.sh` BEFORE the commit,
+not after the fresh clone catches it. The lint's comment-stripping
+(DEF-203) means only real float tokens trigger - there is no excuse
+for a double in the numeric core.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| [lint] check_no_fp.sh | exit 0, float-free |
+| [G-fresh] the full gate | 34/34 GREEN, 100.06s |
+| the MSSC convergence (mssc2probe) | unchanged (the integer math is equivalent) |
+**Rationale:** The fresh clone caught what six dev-clone gates missed.
+CA-R167's first-clone-experience law now has a second data point: the
+fresh clone is not just a UX test, it is a CORRECTNESS test.
+**Build status:** DEF-222 CLOSED. The MSSC loop is float-free.
+NEXT: the fresh clone confirms GATE GREEN on GitHub HEAD.

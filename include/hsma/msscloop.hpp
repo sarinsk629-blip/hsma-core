@@ -23,8 +23,9 @@ using consensus::Kind;
 using consensus::State;
 
 struct Config {
-    double alpha = 0.75;
-    double phi_floor = 0.50;
+    // CA-R200/DEC-090: basis-point integer arithmetic (no float, cross-hardware deterministic)
+    std::uint64_t alpha_bp = 7500;       // 75.00%
+    std::uint64_t phi_floor_bp = 5000;   // 50.00%
     unsigned beta = 5;
     unsigned k = 2;
     unsigned stall_limit = 50;
@@ -59,7 +60,8 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
     std::uint64_t sampled = ns.self_weight;
     for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i)
         sampled += ns.peers[i].weight;
-    if (ns.total_weight > 0 && (double)sampled / (double)ns.total_weight < cfg.phi_floor) {
+    if (ns.total_weight > 0 &&
+        sampled * 10000ull < cfg.phi_floor_bp * ns.total_weight) {
         rr.kind = Kind::FloorAbort;
         ns.stall++;
         return rr;
@@ -71,8 +73,8 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
         if (peer_prefs[i] == ns.preference) agreeing += ns.peers[i].weight;
     rr.agreeing_weight = agreeing;
 
-    const double frac = (double)agreeing / (double)sampled;
-    if (frac >= cfg.alpha) {
+    // alpha check: agreeing * 10000 >= alpha_bp * sampled (integer, no division)
+    if (agreeing * 10000ull >= cfg.alpha_bp * sampled) {
         ns.confidence++;
         ns.stall = 0;
         rr.kind = (ns.confidence >= cfg.beta) ? Kind::Confirmed : Kind::NoQuorum;
