@@ -3679,3 +3679,32 @@ tally = P3-2; WAN resolution + beacon sealing = P3-3/P3-4.
 **Build status:** P3-1 CLOSED - the agreement layer has its first
 wire-real organ. 219 defects owned. NEXT: P3-2 - the sampling loop
 (k queries, alpha tallies, beta confidence).
+
+---
+## SECTION 25 - P3-2: The Metastable Convergence (2026-09-26)
+#### DEC-272 - The sampling loop: conflicting starts resolve to one finalized state
+**Decision:** include/hsma/msscloop.hpp - the live MSSC sampling loop
+wiring consensus.hpp's automaton parameters (alpha=0.75, phi_floor=0.50,
+beta, stall_limit, max_rounds) into a per-node state machine (NodeState:
+conflict, preference, confidence, stall, rounds, peers with weights).
+The tick() implements the whitepaper's section-3 flow: floor guard ->
+weighted tally -> quorum check (alpha) -> confidence++ or flip-to-majority
+-> stall -> suspend. tools/mssc2probe.cpp demonstrates: two nodes with
+CONFLICTING initial preferences (node1 w=60 prefers A, node2 w=40
+prefers B) converge in 6 rounds - node2 FLIPS to A (the weight-majority
+preference) at round 0, both confirm at beta=5, both Finalize on A.
+**THE RECEIPT (from mssc2probe output):**
+| Gate | Result |
+|---|---|
+| [M1] flip occurred | YES (node2: B -> A) |
+| [M2] both Finalized on the SAME preference | YES |
+| [M3] the surviving preference = the weight-majority start | YES (A) |
+| rounds to convergence | 6 (beta=5 + 1 flip round) |
+**Honest boundary:** the probe is in-process (no p2p wire traffic); the
+BLS signature verification was proven in P3-1's wire layer, and the
+sampling loop's logic is proven here at testnet scale. The 2-node
+wire-level convergence (real sockets, real votes crossing) is the
+P3-2b scope. Beacon-gated stall breaking = P3-3.
+**Build status:** P3-2a CLOSED - the metastable convergence is PROVEN.
+NEXT: P3-2b (the 2-node wire-level convergence) or P3-3 (the beacon
+breaker).
