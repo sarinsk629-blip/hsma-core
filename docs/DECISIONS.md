@@ -3708,3 +3708,38 @@ P3-2b scope. Beacon-gated stall breaking = P3-3.
 **Build status:** P3-2a CLOSED - the metastable convergence is PROVEN.
 NEXT: P3-2b (the 2-node wire-level convergence) or P3-3 (the beacon
 breaker).
+
+---
+## SECTION 25 - P3-2b: The Wire-Level Convergence (2026-09-26)
+#### DEC-273 - Two nodes, conflicting preferences, one finalized state: the MSSC resolves on the network
+**Decision:** epoch_node gains the live MSSC integration: (1) the
+MSSC init derives self_member from the port (31233->1/A/w60,
+31234->2/B/w40), sets conflicting initial preferences, and registers
+peer weights; (2) a 1s select-loop timeout with a time-gated vote tick
+sends the signed preference (msscvote::encode_vote) and ticks
+msscloop::tick with stored peer preferences; (3) the vote handler
+stores verified peer preferences (g_peer_prefs) for the loop's input.
+DEF-221 owned: the multi-patch script's partial-state assumption was
+wrong in both directions - the first script's assert killed everything
+before the write, so patches 1-4 never landed despite the [B5]-CLEAN
+output being the stale binary.
+**CA-R201:** A multi-patch script is idempotent (skip-if-marker-
+present, not skip-if-anchor-present - the anchor pre-exists by
+definition), saves incrementally after each patch, and reports which
+patches it applied. The atomic-block pattern is correct for <=3
+patches; for >=5, incremental saves are the only safe form.
+**THE RECEIPT (derived from w_a.log/w_b.log):**
+| Check | node1 (w=60) | node2 (w=40) |
+|---|---|---|
+| initial preference | A | B |
+| final preference | A | A (FLIPPED) |
+| kind at convergence | Confirmed (kind=3) | Confirmed (kind=3) |
+| verified votes received | 8 | 8 |
+**Rationale:** The P2-12 boundary - 'convergence relies on
+near-symmetric delivery; resolution is future architecture' - is
+resolved. The resolution architecture exists and runs on real TCP:
+two nodes with conflicting preferences, exchanging BLS-signed votes
+every second, converge to one finalized state through the
+weight-weighted sampling loop.
+**Build status:** P3-2b CLOSED. NEXT: P3-3 (the beacon breaker on the
+proven beacon substrate) or the aggregate-verify optimization.

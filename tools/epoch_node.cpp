@@ -13,6 +13,9 @@
 #include <hsma/explorer.hpp>
 #include <hsma/pouw.hpp>
 #include <hsma/msscvote.hpp>
+#include <hsma/msscloop.hpp>
+#include <map>
+#include <chrono>
 #include <hsma/threshold/dkg.hpp>
 #include <hsma/threshold/g2.hpp>
 #include "fexec_golden.hpp"
@@ -38,6 +41,12 @@ static std::vector<std::array<std::uint64_t,4>> digest_chain;
 // test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
 static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
 static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
+static msscloop::NodeState g_mssc;
+static std::map<std::uint64_t, consensus::Digest> g_peer_prefs;
+static unsigned g_self_member = 1;
+static threshold::Fr g_own_share;
+static std::chrono::steady_clock::time_point g_last_tick;
+static msscloop::Config g_cfg;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
 static const char* pouw_verify = "PENDING";
@@ -252,6 +261,23 @@ int main(int argc, char* argv[]) {
         }
         std::printf("[vote] test committee registered: 3 members\n");
     }
+    {   g_self_member = (my_port == p2p::DEFAULT_PORT) ? 1 : 2;
+        g_own_share = threshold::dkg::share_for(g_test_poly, g_self_member);
+        const char* pref_str = (g_self_member == 1) ? "decreeA" : "decreeB";
+        g_mssc.conflict = consensus::sha256d((const std::uint8_t*)"conflict_set_0", 14);
+        g_mssc.preference = consensus::sha256d((const std::uint8_t*)pref_str, strlen(pref_str));
+        g_mssc.self_weight = (g_self_member == 1) ? 60 : 40;
+        g_mssc.total_weight = 100;
+        if (g_self_member == 1)
+            g_mssc.peers.push_back({0x7F000001, 31234, 40});
+        else
+            g_mssc.peers.push_back({0x7F000001, 31233, 60});
+        g_last_tick = std::chrono::steady_clock::now();
+        std::printf("[mssc] member %u: weight %llu, initial pref %s\n",
+            g_self_member, (unsigned long long)g_mssc.self_weight, pref_str);
+    }
+    {
+    }
     
     // the initial accumulator: fresh with d0->d1
     auto d1 = next_digest(d0, 0);
@@ -420,7 +446,35 @@ int main(int argc, char* argv[]) {
         for (int fd : peer_fds) if (fd > max_fd) max_fd = fd;
         
         struct timeval tv{};
-        tv.tv_sec = 30;
+        // P3-2b: the MSSC vote tick (fires every 1s)
+        {
+            auto now = std::chrono::steady_clock::now();
+            if (std::chrono::duration<double>(now - g_last_tick).count() >= 1.0) {
+                g_last_tick = now;
+                {
+                    auto pre = msscvote::vote_preimage(0,
+                        consensus::sha256d((const std::uint8_t*)"wr",2),
+                        g_mssc.conflict, g_mssc.rounds,
+                        g_mssc.preference);
+                    auto sig = msscvote::sign_vote(g_own_share, pre);
+                    auto msg = msscvote::encode_vote(0,
+                        consensus::sha256d((const std::uint8_t*)"wr",2),
+                        g_mssc.conflict, g_mssc.rounds,
+                        g_mssc.preference, sig);
+                    for (int fd : peer_fds) p2p::send_message(fd, msg);
+                }
+                if (!g_peer_prefs.empty()) {
+                    std::vector<consensus::Digest> pp;
+                    for (const auto& [id, pref] : g_peer_prefs) pp.push_back(pref);
+                    auto rr = msscloop::tick(g_mssc, g_cfg, pp);
+                    std::printf("[mssc] round %u: pref=%s conf=%u kind=%d\n",
+                        g_mssc.rounds,
+                        g_mssc.preference == consensus::sha256d((const std::uint8_t*)"decreeA",7) ? "A" : "B",
+                        g_mssc.confidence, (int)rr.kind);
+                }
+            }
+        }
+        tv.tv_sec = 1;
         tv.tv_usec = 0;
         
         int ready = select(max_fd + 1, &read_set, nullptr, nullptr, &tv);
@@ -454,7 +508,7 @@ int main(int argc, char* argv[]) {
                             for (const auto& [jid, Y] : g_members) {
                                 // DEF-219: bls_verify_aff crashes on edge-case Y (z=0 etc) -
                                 // pre-validate: the G2 point must not be infinity
-                                if (threshold::g2::is_inf(Y)) {
+                                if (threshold::g2::PisInf(Y)) {
                                     std::printf("[voted] member %llu: Y is INF - skip\n",
                                         (unsigned long long)jid);
                                     continue;
@@ -467,9 +521,10 @@ int main(int argc, char* argv[]) {
                         } else {
                             std::printf("[voted] DECODE FAILED\n");
                         }
-                        if (accepted)
+                        if (accepted) {
+                            g_peer_prefs[member] = dv.preference;
                             std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
-                        else
+                        } else
                             std::printf("[vote] REJECT (bad signature or unknown member)\n");
                     } else if (msg.type == p2p::EPOCH_HEADER) {
                         std::printf("[epoch] received epoch header from peer\n");
