@@ -1,0 +1,15 @@
+[faucet] 127.0.0.1:31233 | 10 decrees | seed 0xc0ffee
+[faucet] connected
+[faucet] decree 1/10 sent
+[faucet] decree 2/10 sent
+[faucet] decree 3/10 sent
+[faucet] decree 4/10 sent
+[faucet] decree 5/10 sent
+[faucet] decree 6/10 sent
+[faucet] decree 7/10 sent
+[faucet] decree 8/10 sent
+[faucet] decree 9/10 sent
+[faucet] decree 10/10 sent
+[faucet] waiting for the epoch header on this socket...
+[faucet] EPOCH HEADER RECEIVED: epoch=1 inner=64 weight=262144 hash=1f45d6b532acf231
+[faucet] RECEIPT: 10 decrees -> epoch 1 completed, weight 262144 verified MACs, state hash 1f45d6b532acf231

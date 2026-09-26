@@ -1,0 +1,84 @@
+[1/1] Cleaning all built files...
+Cleaning... 12 files.
+[1/26] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/26] Building CXX object CM   all 16 generated headers present
+── [3/4] diagnostics ────────────────────────────
+SEED: fault=0 allocs=66
+LOOKUP: OK  bal=1000 nonce=0
+TLEAF tag=2 (want 2)
+REC   tag=3 (want 3)  
+STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
+VERDICT: canonical-at-rest (DEC-123 held)
+DIAG6:SAMPLE-DETERMINISTIC OK
+DIAG6:CONTEXT-BINDING LIVE
+DIAG6:QUORUM-PATH LIVE (kind=2)
+DIAG6:BREAKER-DETERMINISTIC OK delay=35
+DIAG6:VERDICT ALL-OK
+   authentic + healthy
+── [4/4] conformance suite ──────────────────────
+Test project /data/data/com.termux/files/home/hsma/build
+      Start  1: contract_identity
+ 1/10 Test  #1: contract_identity ................   Passed    0.03 sec
+      Start  2: step2_conformance
+ 2/10 Test  #2: step2_conformance ................   Passed    0.04 sec
+      Start  3: step3_conformance
+ 3/10 Test  #3: step3_conformance ................   Passed    0.05 sec
+      Start  4: step4_conformance
+ 4/10 Test  #4: step4_conformance ................   Passed    0.15 sec
+      Start  5: step5_conformance
+ 5/10 Test  #5: step5_conformance ................   Passed    0.14 sec
+      Start  6: step6_conformance
+ 6/10 Test  #6: step6_conformance ................   Passed    0.18 sec
+      Start  7: step7_conformance
+ 7/10 Test  #7: step7_conformance ................   Passed    0.04 sec
+      Start  8: step8_conformance
+ 8/10 Test  #8: step8_conformance ................   Passed    0.09 sec
+      Start  9: step9_conformance
+ 9/10 Test  #9: step9_conformance ................   Passed    0.20 sec
+      Start 10: step10_conformance
+10/10 Test #10: step10_conformance ...............   Passed    0.10 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =   1.05 sec
+═══════════ GATE GREEN ═══════════
+ all constants derived, validated, emitted.
+[step7][prov] kernel parameter x = 0x8508c00000000001 (identity x^4 - x^2 + 1 == r)
+[validate] bls-r: matches documented r, MR-52 prime, bits=253, 2-adicity(r-1)=47, inv0=OK
+[step7][emit] bls_params_gen.hpp
+[step7][emit] threshold_golden.hpp (64 pairs, DKG n=5/t=3, tamper divergence asserted)
+[t8] params OK
+[t8] ks drawn (r-limit draws healthy)
+[t8] bls_q_params_gen.hpp written
+[t8] bls_curve_golden.hpp written
+[validate] bls-q: MR-52 prime, 377 bits, ancestry OK, 2adic(q-1)=46
+[step8][emit] bls_q_params_gen.hpp (q, mont consts, GEN)
+[step8][emit] bls_curve_golden.hpp (48 fq pairs, 4+4+4 triples, 8 tonelli)
+[t9] params OK
+[t9] h2g1 x4 OK (on-curve, [r]H=inf oracle-checked)
+[t9] DKG n=5/t=3 OK (commitments, 25/25 share equations, PK)
+[t9] threshold sigs x3 OK (law sigma == [S]H oracle-checked)
+[t9] beacon chain x4 OK (threshold-signed, SHA-256 digested)
+[step9][emit] threshold_sig_golden.hpp (h2g1 x4, DKG n=5/t=3 + PK, sigs x3, beacon x4)
+[t10] beta=5 h2=2^502 b2=(5,1)
+[t10] F_q2 pairs x32 OK
+[t10] E' triples x4+4+4 OK
+[t10] G2 generator: [h2]P ok, [r]G2=inf verified
+[validate] twist: beta=5, b2=(5,1), h2 bits=502
+[step10][emit] bls_g2_params_gen.hpp (beta, b2, h2, G2 generator)
+[step10][emit] g2_curve_golden.hpp (32 fq2 pairs, 4+4+4 E' triples)
+[13/26] Building CXX object CMakeFiles/test_step2.dir/conformance/test_step2.cpp.o
+[14/26] Building CXX object CMakeFiles/test_step3.dir/conformance/test_step3.cpp.o
+[15/26] Linking CXX executable test_step3
+[16/26] Linking CXX executable test_step2
+[17/26] Building CXX object CMakeFiles/diag_step6.dir/conformance/diag_step6.cpp.o
+[18/26] Building CXX object CMakeFiles/test_step6.dir/conformance/test_step6.cpp.o
+[19/26] Linking CXX executable diag_step6
+[20/26] Linking CXX executable test_step6
+[21/26] Building CXX object CMakeFiles/diag_step5.dir/conformance/diag_step5.cpp.o
+[22/26] Linking CXX executable diag_step5
+[23/26] Building CXX object CMakeFiles/test_step4.dir/conformance/test_step4.cpp.o
+[24/26] Linking CXX executable test_step4
+[25/26] Building CXX object CMakeFiles/test_step5.dir/conformance/test_step5.cpp.o
+[26/26] Linking CXX executable test_step5

@@ -1,0 +1,4 @@
+── [0/4] generate golden vectors (prerequisite for compilation) ──
+    with open(path) as f:
+         ~~~~^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/data/data/com.termux/files/home/hsma/build/generated/pallas_params_gen.hpp'

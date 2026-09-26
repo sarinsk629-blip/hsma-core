@@ -1,0 +1,158 @@
+[validate] pallas: prime ✓  bits=255  2-adicity=32  log2(p)=254.000000000000
+[emit] build/generated/pallas_params_gen.hpp
+[flags] -DHSMA_PALLAS_N0=0x8c46eb20ffffffff -DHSMA_PALLAS_P_HI=0x4000000000000000
+[validate] vesta: prime ✓  bits=255  2-adicity=32  log2(p)=254.000000000000
+[emit] build/generated/vesta_params_gen.hpp
+[flags] -DHSMA_VESTA_N0=0x992d30ecffffffff -DHSMA_VESTA_P_HI=0x4000000000000000
+[emit] build/generated/field_golden.hpp (2472 cases)
+[emit] build/generated/rnte_golden.hpp (32 cases)
+[poseidon] MDS proven (all minors nonsingular); 80 RCs derived
+[emit] build/generated/poseidon_params_gen.hpp
+[emit] build/generated/domain_registry_gen.hpp
+[emit] build/generated/poseidon_golden.hpp
+[emit] build/generated/smt_golden.hpp  (roots A/AB/A1/TX anchored, proof fold verified)
+[emit] build/generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=22)
+[done] all constants derived, validated, emitted.
+[step7][prov] kernel parameter x = 0x8508c00000000001 (identity x^4 - x^2 + 1 == r)
+[validate] bls-r: matches documented r, MR-52 prime, bits=253, 2-adicity(r-1)=47, inv0=OK
+[step7][emit] bls_params_gen.hpp
+[step7][emit] threshold_golden.hpp (64 pairs, DKG n=5/t=3, tamper divergence asserted)
+[t8] params OK
+[t8] ks drawn (r-limit draws healthy)
+[t8] bls_q_params_gen.hpp written
+[t8] bls_curve_golden.hpp written
+[validate] bls-q: MR-52 prime, 377 bits, ancestry OK, 2adic(q-1)=46
+[step8][emit] bls_q_params_gen.hpp (q, mont consts, GEN)
+[step8][emit] bls_curve_golden.hpp (48 fq pairs, 4+4+4 triples, 8 tonelli)
+[t9] params OK
+[t9] h2g1 x4 OK (on-curve, [r]H=inf oracle-checked)
+[t9] DKG n=5/t=3 OK (commitments, 25/25 share equations, PK)
+[t9] threshold sigs x3 OK (law sigma == [S]H oracle-checked)
+[t9] beacon chain x4 OK (threshold-signed, SHA-256 digested)
+[step9][emit] threshold_sig_golden.hpp (h2g1 x4, DKG n=5/t=3 + PK, sigs x3, beacon x4)
+[t10] beta=5 h2=2^502 b2=(5,1)
+[t10] F_q2 pairs x32 OK
+[t10] E' triples x4+4+4 OK
+[t10] G2 generator: [h2]P ok, [r]G2=inf verified
+[validate] twist: beta=5, b2=(5,1), h2 bits=502
+[step10][emit] bls_g2_params_gen.hpp (beta, b2, h2, G2 generator)
+[step10][emit] g2_curve_golden.hpp (32 fq2 pairs, 4+4+4 E' triples)
+[t10b] tower: gamma=(5,1), delta=v (w²=v, w⁶=γ)
+[t10b] w⁶ = γ verified
+[t10b] twist map: ψ(Q) on E verified
+[t10b] non-degenerate: e(G1, G2) != 1
+[t10b] bilinearity verified: e([2]P,[3]Q) == e(P,Q)⁶
+[t10b] BLS LAW VERIFIED: e([S]H, G2gen) == e(H, [S]G2gen)  (secret-free)
+[t10b] tampered sigma rejected (soundness)
+[t10b] threshold t-of-n aggregate VERIFIED (partials + Lagrange -> e == e)
+[t10b] generating pairing goldens...
+[t10b] miller goldens x8 OK
+[t10b] pairing goldens x4 OK
+[t10b] BLS cases x4 (3 pass + 1 tamper) OK
+[step10b][emit] pairing_golden.hpp (miller x8, pairings x4, BLS x4, threshold x1, e_1)
+[emit] ./build/generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
+[step11] sim_beacon RETIRED from the golden path (DEC-200):
+[step11] consensus_golden.hpp re-emitted with HSM_BEACON_V1 over the G7 committee
+[t12] envelopes x4 encrypted (G2-plane KEM + Phase-0 DEM)
+[t12] ordering lock: beacon-shuffled order=[0, 3, 2, 1] (REAL beacon, Step 11 chain)
+[t12] shares x12 pairing identities + attestations x12 verified (oracle)
+[t12] aggregate + decrypt roundtrip x4 OK (k matches, tag matches, payload recovered)
+[t12] malformed share REJECTED by pairing identity (item 6)
+[t12] wrong-order_root attestation REJECTED (order-bound)
+[t12] tampered ciphertext REJECTED by DEM tag
+[step12][emit] m2_golden.hpp (envelopes x4, order, shares x12, attestations x12, keys)
+[t13] sigma_user x4 signed + pairing-verified (DEC-204)
+[t13] forged sigma_user REJECTED (item 5 closed)
+[t13] partials x2 subsets -> identical aggregate == [S]H (DEC-205)
+[t13] beacon-from-partials == harness chain (cross-checked)
+[t13] 2-of-5 partials REJECTED (t-threshold enforced)
+[t13] cross-epoch replay REJECTED (item 4 explicit)
+[step13][emit] m2prod_golden.hpp (user keys x4, sigma_user x4, partials x2 subsets, aggregates)
+[t14] honest epoch folded: 5 entries (4 EXEC + 1 SKIP) + 1 PAD; final states verified
+[t14] padding-neutrality: sans-PAD final digest IDENTICAL
+[t14] chain dependency: different prev_digest -> different final
+[t14] negatives: binding / nonce / insolvent-EXEC all REJECTED
+[step14][emit] fold_golden.hpp (accounts, 6 entries, verdicts, digest chain, finals)
+[t15] honest epoch: 24 constraints fired, ALL SATISFIED (binding+nonce+lt+debit+credit+skip_burn+pad)
+[t15] adversarial binding: constraint 'binding' VIOLATED
+[t15] adversarial nonce: constraint 'nonce' VIOLATED
+[t15] adversarial lt_gate: constraint 'lt_gate' VIOLATED
+[t15] adversarial lt_gate_exec: constraint 'lt_gate' VIOLATED
+[t15] 4 adversarial traces: each VIOLATES exactly the named constraint
+[t15] PC matrix: 4 valid transitions, 5 unsatisfiable (SAT-proof)
+[step15][emit] ccs_golden.hpp (constraint counts, PC matrix proof)
+[t16] succinctness: accumulator size = 41 bytes, CONSTANT across 7 entries
+[t16] cross-epoch chain: epoch 1 -> epoch 2 (prev=32 bytes, both 41)
+[t16] NIVC selector: 4 valid / 5 invalid transitions
+[t16] 20-entry epoch: accumulator size STILL 41 bytes (O(1) in entry count)
+[step16][emit] nivc_golden.hpp (acc size, epoch digests, counts)
+[t17] phi2 ordering: order=[1, 2, 0, 3], order_root computed (real beacon)
+[t17] phi5-7 fold: 5 entries processed, accumulator sealed (41B)
+[t17] epoch chain: epoch 1 -> epoch 2 (cross-epoch via final digest)
+[t17] succinctness: accumulator 41B through the FULL pipeline (M2 + fold)
+[step17][emit] epoch_golden.hpp (order, order_root, epoch chain)
+[t18] sampler deterministic: 2000 draws x2 runs IDENTICAL
+[t18] weight-proportional: heavy=1623 light=377 (ratio 4.31, expected 4.00)
+[t18] taxonomy: caps enforced P0=4KB P1=2KB P2=64KB P3=128KB; P3 pull-only; P3 cap == MAX_PROOF_BYTES
+[t18] contact: AccountID=pk-bound; rebind blocked same-epoch, allowed E+1; transport-ID rotation keeps AccountID
+[t18] EMA: 24h half-life = 499992/1e6 (want 500000); 48h recovery to core (874984); impulse bound 25000/h; thresholds classified
+[step18][emit] g1_golden.hpp (sampler inputs, seeds x4, first-10 draws, 2000-draw histogram, taxonomy, account IDs x4, EMA trace)
+[t19] sc1 (d=1, nv=4): 4 rounds ACCEPT; dual-path final == claim
+[t19] sc2 (d=2, nv=4): 4 rounds ACCEPT; dual-path product == claim
+[t19] sc3 (d=2, nv=3): 3 rounds ACCEPT; dual-path product == claim
+[t19] negatives: claim-tamper REJECTED @0; eval-tamper REJECTED @1; final-tamper REJECTED @final
+[step19][emit] sumcheck_golden.hpp (3 transcripts, arrays, INV2, dual-path pins)
+[t20] commit parity: C == sponge(evals) x3; binding (A vs A+B, single-elem tamper); determinism
+[t20] points: r_i = P3(SC, C, i) x11 total; derivation deterministic
+[t20] open d=1 nv=4: ACCEPT; v == f(r) dual-path pinned
+[t20] open d=2 nv=4 + d=2 nv=3: ACCEPT; v == f(r)*h(r) dual-path pinned
+[t20] negatives: v-tamper REJECTED @final; eval-tamper REJECTED @1; claim-tamper REJECTED @0
+[step20][emit] pcs_golden.hpp (3 instances, commits, points, openings, INV2, dual-path pins)
+[t21] instances: 3 strict constructed (z_i in {0, C/(AB)}), all satisfy u=1 E=0
+[t21] fold1 (strict+strict): r pinned, E=rT, satisfies EXACTLY
+[t21] fold2 (relaxed+strict): chain depth 2, satisfies EXACTLY; u accumulates
+[t21] determinism: re-fold -> r/z/E byte-identical
+[t21] negatives: tampered-T REJECTED @elem 3; tampered-r still satisfying (validity is r-polynomial - binding lives in the pinned transcript golden)
+[step21][emit] nifs_golden.hpp (3 instances, 2 chained folds, r/u/z/E/T pins, commitments)
+[t22] headers x2: heights 100/101, fold-chained digests, REAL beacon chain (53-B preimages)
+[t22] certs x2: G7 threshold sigma over HSM_CERT_v1 preimages (123 B) — one committee, five pillars
+[t22] light-client verify x2 ACCEPT: e(sigma, G2gen) == e(H(pre), Y) — ONE pairing per header
+[t22] chain continuity: digest_E1 == F_head(digest_E0, decree_E1) — verified
+[t22] negatives: tampered-height / chain-break / stale-beacon / genesis-sync-all REJECTED
+[step22][emit] cert_golden.hpp (headers, sigmas 96-B, H pins, Y, G2gen, chain)
+[t23] phi0-1: real beacon x2; envelopes x3 (shared-secret KDF, DEM, tags); sigma_user x3 law-verified
+[t23] phi2: ordering lock under the REAL beacon: order=[0, 1, 2]
+[t23] phi3-4: shares x9 + identities, attestations x9, aggregates x3, k2==k x3, payloads recovered x3
+[t23] phi5-6: fold over the shuffled order: 3 entries (SKIP 25%-burn live), chain x3, close -> 41B
+[t23] phi7: cert over (height=7, sroot, chain link, beacon) - ONE pairing
+[t23] seam negatives: tampered-R / tampered-oroot / tampered-height all REJECTED
+[step23][emit] e2e_golden.hpp (one epoch, phi0-phi7, every seam pinned)
+[step24][emit] vesta_field_golden.hpp (516 cases over F_q Vesta)
+[step25] q_vesta bits: 255
+[step25] MDS Cauchy 3x3: all minors nonsingular ✓
+[step25] 80 round constants derived (DRBG + rejection)
+[step25] IVs derived for 4 Vesta-domain tags
+[step25][emit] vesta_poseidon_params_gen.hpp (MDS 3x3, RC x80, IVs x4)
+[step26] generator (-1, 2) on curve y^2 = x^3 + 5: VERIFIED
+[step26] 1*G = (0x400000000000000000, 0x2)
+[step26] 2*G = (0x1c0000000000000000, 0x2b0000000000000000)
+[step26] 3*G = (0x8e7566fbaa967edb84, 0x301d0a4cc182e0f438)
+[step26] 4*G = (0x18db920d8e4a51c0c4, 0xd704e91a9bd6f5acbf)
+[step26] 5*G = (0x330aaaecedffbd4ccd, 0x470a2a2a4ab53eedb1)
+[step26] 6*G = (0x5076391b23ae1f01fa, 0x250aa777e538185183)
+[step26] 7*G = (0x19a43814b1ab00cc22, 0x2388f4cb15cf251174)
+[step26] 8*G = (0x345decb06f7143c0e8, 0x181898f3218e4cb2d0)
+[step26] 9*G = (0xcced27ab1c7ae06573, 0x27adf0837cdc635df9)
+[step26] 10*G = (0x28e3a8ca8437adbbfd, 0x7cca9a8a7b524c89a5)
+[step26] 11*G = (0x318360e51a6d285e47, 0x1de115c9a74da05add)
+[step26] 12*G = (0x86fa596e8c590a73c9, 0x214ebfa2c6460093d1)
+[step26] 13*G = (0x27f41e2129822820a5, 0x2bd0b2e5b3b9b9c235)
+[step26] 14*G = (0x14e93f88ed040a40c2, 0x22d1c0fa191f0f4794)
+[step26] 15*G = (0x1e2d37ff92657f4f70, 0x23eaae355231142ef8)
+[step26] 16*G = (0x2b63203d6bb657e0ed, 0x355deeeca4dbc28cba)
+[step26] 8 addition triples verified
+[step26] 8 doubling cases verified
+[step26] 8 scalar-mul cases computed (inf → (0,0))
+[step26] subgroup: [p]G = inf VERIFIED (the 2-cycle property)
+[step26][emit] vesta_curve_golden.hpp (add x8, dbl x8, mul x8, gen, order)
+[gen-new] all chunks executed in one shared namespace

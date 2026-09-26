@@ -1,0 +1,147 @@
+[1/1] Cleaning all built files...
+Cleaning... 41 files.
+[1/38] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/38] Building CXX object CM   all 22 generated headers present
+── [3/4] diagnostics ────────────────────────────
+SEED: fault=0 allocs=66
+LOOKUP: OK  bal=1000 nonce=0
+TLEAF tag=2 (want 2)
+REC   tag=3 (want 3)  
+STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
+VERDICT: canonical-at-rest (DEC-123 held)
+DIAG6:SAMPLE-DETERMINISTIC OK
+DIAG6:CONTEXT-BINDING LIVE
+DIAG6:QUORUM-PATH LIVE (kind=2)
+DIAG6:BREAKER-DETERMINISTIC OK delay=98
+DIAG6:VERDICT ALL-OK
+   authentic + healthy
+── [4/4] conformance suite ──────────────────────
+Test project /data/data/com.termux/files/home/hsma/build
+      Start  1: contract_identity
+ 1/16 Test  #1: contract_identity ................   Passed    0.03 sec
+      Start  2: step2_conformance
+ 2/16 Test  #2: step2_conformance ................   Passed    0.03 sec
+      Start  3: step3_conformance
+ 3/16 Test  #3: step3_conformance ................   Passed    0.04 sec
+      Start  4: step4_conformance
+ 4/16 Test  #4: step4_conformance ................   Passed    0.13 sec
+      Start  5: step5_conformance
+ 5/16 Test  #5: step5_conformance ................   Passed    0.13 sec
+      Start  6: step6_conformance
+ 6/16 Test  #6: step6_conformance ................   Passed    0.19 sec
+      Start  7: step7_conformance
+ 7/16 Test  #7: step7_conformance ................   Passed    0.03 sec
+      Start  8: step8_conformance
+ 8/16 Test  #8: step8_conformance ................   Passed    0.08 sec
+      Start  9: step9_conformance
+ 9/16 Test  #9: step9_conformance ................   Passed    0.20 sec
+      Start 10: step10_conformance
+10/16 Test #10: step10_conformance ...............   Passed    0.11 sec
+      Start 11: step10b_conformance
+11/16 Test #11: step10b_conformance ..............   Passed   14.55 sec
+      Start 12: step12_conformance
+12/16 Test #12: step12_conformance ...............   Passed   46.15 sec
+      Start 13: step13_conformance
+13/16 Test #13: step13_conformance ...............   Passed    7.44 sec
+      Start 14: step14_conformance
+14/16 Test #14: step14_conformance ...............   Passed    0.31 sec
+      Start 15: step15_conformance
+15/16 Test #15: step15_conformance ...............   Passed    0.17 sec
+      Start 16: step16_conformance
+16/16 Test #16: step16_conformance ...............   Passed    0.61 sec
+
+100% tests passed out of 16
+
+Total Test time (real) =  70.25 sec
+═══════════ GATE GREEN ═══════════
+[validate] bls-r: matches documented r, MR-52 prime, bits=253, 2-adicity(r-1)=47, inv0=OK
+[step7][emit] bls_params_gen.hpp
+[step7][emit] threshold_golden.hpp (64 pairs, DKG n=5/t=3, tamper divergence asserted)
+[t8] params OK
+[t8] ks drawn (r-limit draws healthy)
+[t8] bls_q_params_gen.hpp written
+[t8] bls_curve_golden.hpp written
+[validate] bls-q: MR-52 prime, 377 bits, ancestry OK, 2adic(q-1)=46
+[step8][emit] bls_q_params_gen.hpp (q, mont consts, GEN)
+[step8][emit] bls_curve_golden.hpp (48 fq pairs, 4+4+4 triples, 8 tonelli)
+[t9] params OK
+[t9] h2g1 x4 OK (on-curve, [r]H=inf oracle-checked)
+[t9] DKG n=5/t=3 OK (commitments, 25/25 share equations, PK)
+[t9] threshold sigs x3 OK (law sigma == [S]H oracle-checked)
+[t9] beacon chain x4 OK (threshold-signed, SHA-256 digested)
+[step9][emit] threshold_sig_golden.hpp (h2g1 x4, DKG n=5/t=3 + PK, sigs x3, beacon x4)
+[t10] beta=5 h2=2^502 b2=(5,1)
+[t10] F_q2 pairs x32 OK
+[t10] E' triples x4+4+4 OK
+[t10] G2 generator: [h2]P ok, [r]G2=inf verified
+[validate] twist: beta=5, b2=(5,1), h2 bits=502
+[step10][emit] bls_g2_params_gen.hpp (beta, b2, h2, G2 generator)
+[step10][emit] g2_curve_golden.hpp (32 fq2 pairs, 4+4+4 E' triples)
+[t10b] tower: gamma=(5,1), delta=v (w²=v, w⁶=γ)
+[t10b] w⁶ = γ verified
+[t10b] twist map: ψ(Q) on E verified
+[t10b] non-degenerate: e(G1, G2) != 1
+[t10b] bilinearity verified: e([2]P,[3]Q) == e(P,Q)⁶
+[t10b] BLS LAW VERIFIED: e([S]H, G2gen) == e(H, [S]G2gen)  (secret-free)
+[t10b] tampered sigma rejected (soundness)
+[t10b] threshold t-of-n aggregate VERIFIED (partials + Lagrange -> e == e)
+[t10b] generating pairing goldens...
+[t10b] miller goldens x8 OK
+[t10b] pairing goldens x4 OK
+[t10b] BLS cases x4 (3 pass + 1 tamper) OK
+[step10b][emit] pairing_golden.hpp (miller x8, pairings x4, BLS x4, threshold x1, e_1)
+[emit] ./generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=376)
+[step11] sim_beacon RETIRED from the golden path (DEC-200):
+[step11] consensus_golden.hpp re-emitted with HSM_BEACON_V1 over the G7 committee
+[t12] envelopes x4 encrypted (G2-plane KEM + Phase-0 DEM)
+[t12] ordering lock: beacon-shuffled order=[0, 3, 2, 1] (REAL beacon, Step 11 chain)
+[t12] shares x12 pairing identities + attestations x12 verified (oracle)
+[t12] aggregate + decrypt roundtrip x4 OK (k matches, tag matches, payload recovered)
+[t12] malformed share REJECTED by pairing identity (item 6)
+[t12] wrong-order_root attestation REJECTED (order-bound)
+[t12] tampered ciphertext REJECTED by DEM tag
+[step12][emit] m2_golden.hpp (envelopes x4, order, shares x12, attestations x12, keys)
+[t13] sigma_user x4 signed + pairing-verified (DEC-204)
+[t13] forged sigma_user REJECTED (item 5 closed)
+[t13] partials x2 subsets -> identical aggregate == [S]H (DEC-205)
+[t13] beacon-from-partials == harness chain (cross-checked)
+[t13] 2-of-5 partials REJECTED (t-threshold enforced)
+[t13] cross-epoch replay REJECTED (item 4 explicit)
+[step13][emit] m2prod_golden.hpp (user keys x4, sigma_user x4, partials x2 subsets, aggregates)
+[t14] honest epoch folded: 5 entries (4 EXEC + 1 SKIP) + 1 PAD; final states verified
+[t14] padding-neutrality: sans-PAD final digest IDENTICAL
+[t14] chain dependency: different prev_digest -> different final
+[t14] negatives: binding / nonce / insolvent-EXEC all REJECTED
+[step14][emit] fold_golden.hpp (accounts, 6 entries, verdicts, digest chain, finals)
+[t15] honest epoch: 24 constraints fired, ALL SATISFIED (binding+nonce+lt+debit+credit+skip_burn+pad)
+[t15] adversarial binding: constraint 'binding' VIOLATED
+[t15] adversarial nonce: constraint 'nonce' VIOLATED
+[t15] adversarial lt_gate: constraint 'lt_gate' VIOLATED
+[t15] adversarial lt_gate_exec: constraint 'lt_gate' VIOLATED
+[t15] 4 adversarial traces: each VIOLATES exactly the named constraint
+[t15] PC matrix: 4 valid transitions, 5 unsatisfiable (SAT-proof)
+[step15][emit] ccs_golden.hpp (constraint counts, PC matrix proof)
+[t16] succinctness: accumulator size = 41 bytes, CONSTANT across 7 entries
+[t16] cross-epoch chain: epoch 1 -> epoch 2 (prev=32 bytes, both 41)
+[t16] NIVC selector: 4 valid / 5 invalid transitions
+[t16] 20-entry epoch: accumulator size STILL 41 bytes (O(1) in entry count)
+[step16][emit] nivc_golden.hpp (acc size, epoch digests, counts)
+[21/38] Building CXX object CMakeFiles/test_step2.dir/conformance/test_step2.cpp.o
+[22/38] Building CXX object CMakeFiles/test_step3.dir/conformance/test_step3.cpp.o
+[23/38] Linking CXX executable test_step2
+[24/38] Linking CXX executable test_step3
+[25/38] Building CXX object CMakeFiles/diag_step5.dir/conformance/diag_step5.cpp.o
+[26/38] Building CXX object CMakeFiles/test_step15.dir/conformance/test_step15.cpp.o
+[27/38] Building CXX object CMakeFiles/test_step14.dir/conformance/test_step14.cpp.o
+[28/38] Building CXX object CMakeFiles/test_step4.dir/conformance/test_step4.cpp.o
+[29/38] Linking CXX executable diag_step5
+[30/38] Building CXX object CMakeFiles/diag_step6.dir/conformance/diag_step6.cpp.o
+[31/38] Linking CXX executable test_step14
+[32/38] Linking CXX executable test_step4
+[33/38] Linking CXX executable test_step15
+[34/38] Building CXX object CMakeFiles/test_step6.dir/conformance/test_step6.cpp.o
+[35/38] Linking CXX executable diag_step6
+[36/38] Linking CXX executable test_step6
+[37/38] Building CXX object CMakeFiles/test_step5.dir/conformance/test_step5.cpp.o
+[38/38] Linking CXX executable test_step5

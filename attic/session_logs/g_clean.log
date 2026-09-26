@@ -1,0 +1,93 @@
+[1/73] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/73] Building CXX object CMakeFiles/params_probe.dir/src/params_probe.cpp.o
+[3/73] ── [3/4] diagnostics ────────────────────────────
+SEED: fault=0 allocs=66
+LOOKUP: OK  bal=1000 nonce=0
+TLEAF tag=2 (want 2)
+REC   tag=3 (want 3)  
+STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
+VERDICT: canonical-at-rest (DEC-123 held)
+DIAG6:SAMPLE-DETERMINISTIC OK
+DIAG6:CONTEXT-BINDING LIVE
+DIAG6:QUORUM-PATH LIVE (kind=2)
+DIAG6:BREAKER-DETERMINISTIC OK delay=98
+DIAG6:VERDICT ALL-OK
+   authentic + healthy
+── [4/4] conformance suite ──────────────────────
+Test project /data/data/com.termux/files/home/hsma/build
+      Start  1: contract_identity
+ 1/34 Test  #1: contract_identity ................   Passed    0.02 sec
+      Start  2: step2_conformance
+ 2/34 Test  #2: step2_conformance ................   Passed    0.03 sec
+      Start  3: step3_conformance
+ 3/34 Test  #3: step3_conformance ................   Passed    0.04 sec
+      Start  4: step4_conformance
+ 4/34 Test  #4: step4_conformance ................   Passed    0.13 sec
+      Start  5: step5_conformance
+ 5/34 Test  #5: step5_conformance ................   Passed    0.10 sec
+      Start  6: step6_conformance
+ 6/34 Test  #6: step6_conformance ................   Passed    0.19 sec
+      Start  7: step7_conformance
+ 7/34 Test  #7: step7_conformance ................   Passed    0.02 sec
+      Start  8: step8_conformance
+ 8/34 Test  #8: step8_conformance ................   Passed    0.05 sec
+      Start  9: step9_conformance
+ 9/34 Test  #9: step9_conformance ................   Passed    0.21 sec
+      Start 10: step10_conformance
+10/34 Test #10: step10_conformance ...............   Passed    0.09 sec
+      Start 11: step10b_conformance
+11/34 Test #11: step10b_conformance ..............   Passed   15.81 sec
+      Start 12: step12_conformance
+12/34 Test #12: step12_conformance ...............   Passed   47.51 sec
+      Start 13: step13_conformance
+13/34 Test #13: step13_conformance ...............   Passed    7.70 sec
+      Start 14: step14_conformance
+14/34 Test #14: step14_conformance ...............   Passed    0.33 sec
+      Start 15: step15_conformance
+15/34 Test #15: step15_conformance ...............   Passed    0.15 sec
+      Start 16: step16_conformance
+16/34 Test #16: step16_conformance ...............   Passed    0.60 sec
+      Start 17: step17_conformance
+17/34 Test #17: step17_conformance ...............   Passed    0.14 sec
+      Start 18: step18_conformance
+18/34 Test #18: step18_conformance ...............   Passed    0.27 sec
+      Start 19: step19_conformance
+19/34 Test #19: step19_conformance ...............   Passed    0.05 sec
+      Start 20: step20_conformance
+20/34 Test #20: step20_conformance ...............   Passed    0.07 sec
+      Start 21: step21_conformance
+21/34 Test #21: step21_conformance ...............   Passed    0.06 sec
+      Start 22: step22_conformance
+22/34 Test #22: step22_conformance ...............   Passed    6.15 sec
+      Start 23: step23_conformance
+23/34 Test #23: step23_conformance ...............   Passed   22.84 sec
+      Start 24: step24_conformance
+24/34 Test #24: step24_conformance ...............   Passed    0.13 sec
+      Start 25: step25_conformance
+25/34 Test #25: step25_conformance ...............   Passed    0.04 sec
+      Start 26: step26_conformance
+26/34 Test #26: step26_conformance ...............   Passed    0.04 sec
+      Start 27: step27_conformance
+27/34 Test #27: step27_conformance ...............   Passed    0.08 sec
+      Start 28: step28_conformance
+28/34 Test #28: step28_conformance ...............   Passed    0.04 sec
+      Start 29: step29_conformance
+29/34 Test #29: step29_conformance ...............   Passed    0.24 sec
+      Start 30: step30_conformance
+30/34 Test #30: step30_conformance ...............   Passed    0.43 sec
+      Start 31: step31_conformance
+31/34 Test #31: step31_conformance ...............   Passed    0.06 sec
+      Start 32: step32_conformance
+32/34 Test #32: step32_conformance ...............   Passed    0.10 sec
+      Start 33: step33_conformance
+33/34 Test #33: step33_conformance ...............   Passed    0.05 sec
+      Start 34: step34_conformance
+34/34 Test #34: step34_conformance ...............   Passed    0.05 sec
+
+100% tests passed out of 34
+
+Total Test time (real) = 103.96 sec
+═══════════ GATE GREEN ═══════════
+ep32.cpp.o
+[73/73] Linking CXX executable test_step32

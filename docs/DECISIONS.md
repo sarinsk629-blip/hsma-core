@@ -3599,3 +3599,35 @@ real CI workflow after the token gains workflow scope.
 | workflow-scope landmine | 0 staged |
 **Build status:** P3-0a-d CLOSED. NEXT: P3-0b - the MSSC design
 contract (whitepaper section 3).
+
+---
+## SECTION 24 - P3-0a-e: The Session Receipts Archived (2026-09-26)
+#### DEC-270 - Run evidence preserved; the tree-count question answered
+**Decision:** The maintainer's 'add everything' resolved by
+classification, not bulk copy. (1) The pasted 192-dir/862-file tree
+was the PRE-extraction snapshot (it lists build/ark2, build/ref_*.rs,
+build/*.cpp - all relocated/deleted by 910ce49; [F0] verified).
+(2) The count's arithmetic: .git (the repository's own history -
+never pushed; every clone regenerates it) + build/ binaries
+(~50 executables) + cmake/ninja machinery + ~130 logs + ~30 test-
+vault .bins. (3) The record-valued remainder is NOW tracked:
+188 session logs (g7..g34 gate runs, node runs, the recovery
+arc) + faucet/multi-faucet receipts + oracle/tool transcripts + the
+P3-0a determinism manifest -> attic/session_logs/; test-vault .bin
+directories -> attic/test_vaults/. (4) CA-R197 ground truth:
+git ls-files --others --exclude-standard == 0 after this commit.
+**CA-R196 (the matching criterion, restated):** GitHub matches the
+repository when untracked-not-ignored is EMPTY - not when tree
+counts match; tree counts .git and regenerable outputs, which are
+not record. What remains invisible is exactly: build/ binaries +
+cmake machinery + hsma_backup.tar.gz - regenerable or local-only,
+each documented in .gitignore.
+**THE RECEIPT:**
+| Check | Result |
+|---|---|
+| session logs archived | 188 files |
+| test vaults archived | 26 dirs |
+| untracked-not-ignored | 0 |
+| build/ residue | binaries + cmake only |
+**Build status:** P3-0a-e CLOSED. NEXT: P3-0b - the MSSC design
+contract (whitepaper section 3).

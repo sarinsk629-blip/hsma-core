@@ -1,0 +1,39 @@
+[1/1] Cleaning all built files...
+Cleaning... 4 files.
+[1/58] DEC-090: enforcing float-free numeric core
+FAILED: [code=1] CMakeFiles/lint_dec090 /data/data/com.termux/files/home/hsma/build/CMakeFiles/lint_dec090 
+cd /data/data/com.termux/files/home/hsma && /data/data/com.termux/files/usr/bin/bash /data/data/com.termux/files/home/hsma/scripts/check_no_fp.sh
+DEC-090 VIOLATION — floating point in numeric core:
+include/hsma/g2v.hpp:123:// Scalar multiplication: MSB-first double-and-add
+[2/58] Building CXX object CMakeFiles/test_step26.dir/conformance/test_step26.cpp.o
+FAILED: [code=1] CMakeFiles/test_step26.dir/conformance/test_step26.cpp.o 
+/data/data/com.termux/files/usr/bin/c++  -I/data/data/com.termux/files/home/hsma/include -I/data/data/com.termux/files/home/hsma/build/generated -Os -DNDEBUG -std=c++20 -MD -MT CMakeFiles/test_step26.dir/conformance/test_step26.cpp.o -MF CMakeFiles/test_step26.dir/conformance/test_step26.cpp.o.d -o CMakeFiles/test_step26.dir/conformance/test_step26.cpp.o -c /data/data/com.termux/files/home/hsma/conformance/test_step26.cpp
+In file included from /data/data/com.termux/files/home/hsma/conformance/test_step26.cpp:3:
+/data/data/com.termux/files/home/hsma/build/generated/vesta_curve_golden.hpp:19:3: error: expected '}'
+   19 | }};
+      |   ^
+/data/data/com.termux/files/home/hsma/build/generated/vesta_curve_golden.hpp:10:51: note: to match this '{'
+   10 | inline constexpr std::array<VestaAdd, 8> VEC_ADD {{{{
+      |                                                   ^
+/data/data/com.termux/files/home/hsma/conformance/test_step26.cpp:79:2: error: expected '}'
+   79 | }
+      |  ^
+/data/data/com.termux/files/home/hsma/build/generated/vesta_curve_golden.hpp:10:50: note: to match this '{'
+   10 | inline constexpr std::array<VestaAdd, 8> VEC_ADD {{{{
+      |                                                  ^
+/data/data/com.termux/files/home/hsma/conformance/test_step26.cpp:79:2: error: expected ';' after top level declarator
+   79 | }
+      |  ^
+      |  ;
+/data/data/com.termux/files/home/hsma/conformance/test_step26.cpp:79:2: error: expected '}'
+/data/data/com.termux/files/home/hsma/build/generated/vesta_curve_golden.hpp:7:24: note: to match this '{'
+    7 | namespace hsma::golden {
+      |                        ^
+4 errors generated.
+[3/58] Building CXX object CMakeFiles/test_step8.dir/conformance/test_step8.cpp.o
+[4/58] Building CXX object CMakeFiles/test_step10.dir/conformance/test_step10.cpp.o
+[5/58] Building CXX object CMakeFiles/test_step7.dir/conformance/test_step7.cpp.o
+[6/58] Building CXX object CMakeFiles/test_step10b.dir/conformance/test_step10b.cpp.o
+[7/58] Building CXX object CMakeFiles/test_step9.dir/conformance/test_step9.cpp.o
+[8/58] Building CXX object CMakeFiles/test_step12.dir/conformance/test_step12.cpp.o
+[9/58] Building CXX object CMakeFiles/test_step13.dir/conformance/test_step13.cpp.o

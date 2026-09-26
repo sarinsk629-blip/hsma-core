@@ -1,0 +1,18 @@
+[tool] seed-derived OK · 2adic(q-1)=46 · ancestry PROVEN
+[selftest] rt=400 assoc=250 dist=250 fermat=60 euler=60 ts=60 oracle=60
+[selftest] ALL PASS — curve work authorized
+[tool] b PINNED = 1 (canonical BLS12-377) - order #E=h1*r PROVEN on 3 pts
+[stage] S1 generator ready
+[stage] S2 fc built
+[stage] S3 pc built
+[sc] iter=0 calling Pmul
+[sc] iter=0 Pmul done
+[sc] iter=1 calling Pmul
+[sc] iter=1 Pmul done
+[sc] iter=2 calling Pmul
+[sc] iter=2 Pmul done
+[stage] S4 sc built
+[stage] S5 hc built
+[stage] S6 sg built
+[stage] S7 cf built
+[done-bls]

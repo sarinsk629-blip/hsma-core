@@ -1,0 +1,59 @@
+[1/3] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/3] Building CXX object CMakeFiles/test_step34.dir/conformance/test_step34.cpp.o
+FAI✗ BUILD INCOMPLETE: test_step34 missing (CA-R151)
+/test_step34.cpp.o 
+/data/data/com.termux/files/usr/bin/c++  -I/data/data/com.termux/files/home/hsma/include -I/data/data/com.termux/files/home/hsma/build/generated -Os -DNDEBUG -std=c++20 -MD -MT CMakeFiles/test_step34.dir/conformance/test_step34.cpp.o -MF CMakeFiles/test_step34.dir/conformance/test_step34.cpp.o.d -o CMakeFiles/test_step34.dir/conformance/test_step34.cpp.o -c /data/data/com.termux/files/home/hsma/conformance/test_step34.cpp
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:42:50: error: no member named 'EP_PREV' in namespace 'hsma::golden'
+   42 |     mfold::Relaxed H  = mfold::fresh(wit(golden::EP_PREV, golden::EP_DHEAD, golden::EP_PT, 0, false, 0, 1), fcirc::NROWS);
+      |                                                  ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:42:67: error: no member named 'EP_DHEAD' in namespace 'hsma::golden'
+   42 |     mfold::Relaxed H  = mfold::fresh(wit(golden::EP_PREV, golden::EP_DHEAD, golden::EP_PT, 0, false, 0, 1), fcirc::NROWS);
+      |                                                                   ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:42:85: error: no member named 'EP_PT' in namespace 'hsma::golden'
+   42 |     mfold::Relaxed H  = mfold::fresh(wit(golden::EP_PREV, golden::EP_DHEAD, golden::EP_PT, 0, false, 0, 1), fcirc::NROWS);
+      |                                                                                     ^~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:43:50: error: no member named 'EP_DHEAD' in namespace 'hsma::golden'
+   43 |     mfold::Relaxed X  = mfold::fresh(wit(golden::EP_DHEAD, golden::EP_DEXEC, golden::EP_PT, 1, false, 7, 8), fcirc::NROWS);
+      |                                                  ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:43:68: error: no member named 'EP_DEXEC' in namespace 'hsma::golden'
+   43 |     mfold::Relaxed X  = mfold::fresh(wit(golden::EP_DHEAD, golden::EP_DEXEC, golden::EP_PT, 1, false, 7, 8), fcirc::NROWS);
+      |                                                                    ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:43:86: error: no member named 'EP_PT' in namespace 'hsma::golden'
+   43 |     mfold::Relaxed X  = mfold::fresh(wit(golden::EP_DHEAD, golden::EP_DEXEC, golden::EP_PT, 1, false, 7, 8), fcirc::NROWS);
+      |                                                                                      ^~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:49:39: error: no member named 'EP_SEED1' in namespace 'hsma::golden'
+   49 |     CHECK(eq4(can(M1.seed).l, golden::EP_SEED1), "FS seed1 parity");
+      |                                       ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:50:39: error: no member named 'EP_R1' in namespace 'hsma::golden'
+   50 |     CHECK(eq4(can(M1.r[0]).l, golden::EP_R1[0]), "r1 parity");
+      |                                       ^~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:55:54: error: no member named 'EP_DEXEC' in namespace 'hsma::golden'
+   55 |         mfold::Relaxed Cl = mfold::fresh(wit(golden::EP_DEXEC, golden::EP_DEXEC, zero, 2, true, 7, 8), fcirc::NROWS);
+      |                                                      ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:55:72: error: no member named 'EP_DEXEC' in namespace 'hsma::golden'
+   55 |         mfold::Relaxed Cl = mfold::fresh(wit(golden::EP_DEXEC, golden::EP_DEXEC, zero, 2, true, 7, 8), fcirc::NROWS);
+      |                                                                        ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:58:43: error: no member named 'EP_SEED2' in namespace 'hsma::golden'
+   58 |         CHECK(eq4(can(M2.seed).l, golden::EP_SEED2), "FS seed2 parity");
+      |                                           ^~~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:61:45: error: no member named 'EP_F2_Z' in namespace 'hsma::golden'
+   61 |         CHECK(M2.folded.z.size() == golden::EP_F2_Z.size(), "F2 z count");
+      |                                             ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:62:42: error: no member named 'EP_F2_Z' in namespace 'hsma::golden'
+   62 |         for (unsigned i = 0; i < golden::EP_F2_Z.size(); ++i)
+      |                                          ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:63:54: error: no member named 'EP_F2_Z' in namespace 'hsma::golden'
+   63 |             CHECK(eq4(can(M2.folded.z[i]).l, golden::EP_F2_Z[i]), "F2 z parity");
+      |                                                      ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:64:47: error: no member named 'EP_F2_U' in namespace 'hsma::golden'
+   64 |         CHECK(eq4(can(M2.folded.u).l, golden::EP_F2_U), "F2 u parity");
+      |                                               ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:65:42: error: no member named 'EP_F2_E' in namespace 'hsma::golden'
+   65 |         for (unsigned i = 0; i < golden::EP_F2_E.size(); ++i)
+      |                                          ^~~~~~~
+/data/data/com.termux/files/home/hsma/conformance/test_step34.cpp:66:54: error: no member named 'EP_F2_E' in namespace 'hsma::golden'
+   66 |             CHECK(eq4(can(M2.folded.E[i]).l, golden::EP_F2_E[i]), "F2 E parity");
+      |                                                      ^~~~~~~
+17 errors generated.
+ninja: build stopped: subcommand failed.

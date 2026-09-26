@@ -1,0 +1,17 @@
+[validate] pallas: prime ✓  bits=255  2-adicity=32  log2(p)=254.000000000000
+[emit] build/generated/pallas_params_gen.hpp
+[flags] -DHSMA_PALLAS_N0=0x8c46eb20ffffffff -DHSMA_PALLAS_P_HI=0x4000000000000000
+[validate] vesta: prime ✓  bits=255  2-adicity=32  log2(p)=254.000000000000
+[emit] build/generated/vesta_params_gen.hpp
+[flags] -DHSMA_VESTA_N0=0x992d30ecffffffff -DHSMA_VESTA_P_HI=0x4000000000000000
+[emit] build/generated/field_golden.hpp (2472 cases)
+[emit] build/generated/rnte_golden.hpp (32 cases)
+[poseidon] MDS proven (all minors nonsingular); 80 RCs derived
+[emit] build/generated/poseidon_params_gen.hpp
+[emit] build/generated/domain_registry_gen.hpp
+[emit] build/generated/poseidon_golden.hpp
+[emit] build/generated/smt_golden.hpp  (roots A/AB/A1/TX anchored, proof fold verified)
+[emit] build/generated/consensus_golden.hpp  (C1 fin@150, C2 sus@50, winner=H, delay=22)
+[done] all constants derived, validated, emitted.
+[step7][prov] kernel parameter x = 0x8508c00000000001 (identity x^4 - x^2 + 1 == r)
+[step7] FATAL: ambiguous generated dirs: ['./build/generated', './build/generated_ref']

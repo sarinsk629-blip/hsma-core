@@ -1,0 +1,67 @@
+[1/1] Cleaning all built files...
+Cleaning... 27 files.
+[1/22] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/22] [gen] deriving Montgom   all 13 generated headers present
+── [3/4] diagnostics ────────────────────────────
+SEED: fault=0 allocs=66
+LOOKUP: OK  bal=1000 nonce=0
+TLEAF tag=2 (want 2)
+REC   tag=3 (want 3)  
+STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
+VERDICT: canonical-at-rest (DEC-123 held)
+DIAG6:SAMPLE-DETERMINISTIC OK
+DIAG6:CONTEXT-BINDING LIVE
+DIAG6:QUORUM-PATH LIVE (kind=2)
+DIAG6:BREAKER-DETERMINISTIC OK delay=35
+DIAG6:VERDICT ALL-OK
+   authentic + healthy
+── [4/4] conformance suite ──────────────────────
+Test project /data/data/com.termux/files/home/hsma/build
+    Start 1: contract_identity
+1/8 Test #1: contract_identity ................   Passed    0.03 sec
+    Start 2: step2_conformance
+2/8 Test #2: step2_conformance ................   Passed    0.04 sec
+    Start 3: step3_conformance
+3/8 Test #3: step3_conformance ................   Passed    0.06 sec
+    Start 4: step4_conformance
+4/8 Test #4: step4_conformance ................   Passed    0.15 sec
+    Start 5: step5_conformance
+5/8 Test #5: step5_conformance ................   Passed    0.13 sec
+    Start 6: step6_conformance
+6/8 Test #6: step6_conformance ................   Passed    0.17 sec
+    Start 7: step7_conformance
+7/8 Test #7: step7_conformance ................   Passed    0.04 sec
+    Start 8: step8_conformance
+8/8 Test #8: step8_conformance ................   Passed    0.09 sec
+
+100% tests passed out of 8
+
+Total Test time (real) =   0.73 sec
+═══════════ GATE GREEN ═══════════
+ ks drawn (r-limit draws healthy)
+[t8] bls_q_params_gen.hpp written
+[t8] bls_curve_golden.hpp written
+[validate] bls-q: MR-52 prime, 377 bits, ancestry OK, 2adic(q-1)=46
+[step8][emit] bls_q_params_gen.hpp (q, mont consts, GEN)
+[step8][emit] bls_curve_golden.hpp (48 fq pairs, 4+4+4 triples, 8 tonelli)
+[3/22] Building CXX object CMakeFiles/params_probe.dir/src/params_probe.cpp.o
+[4/22] Linking CXX executable params_probe
+[5/22] Building CXX object CMakeFiles/test_step8.dir/conformance/test_step8.cpp.o
+[6/22] Linking CXX executable test_step8
+[7/22] Building CXX object CMakeFiles/test_step7.dir/conformance/test_step7.cpp.o
+[8/22] Linking CXX executable test_step7
+[9/22] Building CXX object CMakeFiles/test_step2.dir/conformance/test_step2.cpp.o
+[10/22] Building CXX object CMakeFiles/test_step3.dir/conformance/test_step3.cpp.o
+[11/22] Linking CXX executable test_step2
+[12/22] Linking CXX executable test_step3
+[13/22] Building CXX object CMakeFiles/diag_step6.dir/conformance/diag_step6.cpp.o
+[14/22] Building CXX object CMakeFiles/test_step6.dir/conformance/test_step6.cpp.o
+[15/22] Linking CXX executable diag_step6
+[16/22] Linking CXX executable test_step6
+[17/22] Building CXX object CMakeFiles/diag_step5.dir/conformance/diag_step5.cpp.o
+[18/22] Linking CXX executable diag_step5
+[19/22] Building CXX object CMakeFiles/test_step5.dir/conformance/test_step5.cpp.o
+[20/22] Building CXX object CMakeFiles/test_step4.dir/conformance/test_step4.cpp.o
+[21/22] Linking CXX executable test_step5
+[22/22] Linking CXX executable test_step4

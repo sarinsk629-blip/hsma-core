@@ -1,0 +1,8 @@
+[P3-forge] summed batch commits (naive 16-elem), z != z': EQUAL -> YES (kernel shift DEMONSTRATED)
+[P3-fix]   commit_vec (per-position bases): commits DIFFER -> YES (BINDING)
+[P3-ok]    honest external submission n=4 (verifier never multiplied): ACCEPT
+[P3-fakeA] shifted-model submission (proof self-consistent): REJECT | caught by Pedersen: YES
+[P3-fakeC] tampered output: REJECT (must REJECT)
+[P3-time]  n=64: prover 580 ms (incl. the 64^3 multiply, 262144 MACs) | verifier 17042 ms (NO multiply: O(n^2) fold + O(n) Pedersen) | ACCEPT
+
+[P1-19] GREEN - the external-submission mode is PROVEN

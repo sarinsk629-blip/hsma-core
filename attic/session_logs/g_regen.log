@@ -1,0 +1,17 @@
+[1/5] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/5] Linking CXX executable test_step30
+[3/5] Linking CXX executable test_step32
+[4/5] Building CXX object CMakeFiles/test_step17.dir/conformance/test_step17.cpp.o
+FAILED: [code=1] CMakeFiles/test_step17.dir/conformance/test_step17.cpp.o 
+/data/data/com.termux/files/usr/bin/c++  -I/data/data/com.termux/files/home/hsma/include -I/data/data/com.termux/files/home/hsma/build/generated -Os -DNDEBUG -std=c++20 -MD -MT CMakeFiles/test_step17.dir/conformance/test_step17.cpp.o -MF CMakeFiles/test_step17.dir/conformance/test_step17.cpp.o.d -o CMakeFiles/test_step17.dir/conformance/test_step17.cpp.o -c /data/data/com.termux/files/home/hsma/conformance/test_step17.cpp
+/data/data/com.termux/files/home/hsma/conformance/test_step17.cpp:5:10: fatal error: 'epoch17_golden.hpp' file not found
+    5 | #include "epoch17_golden.hpp"
+      |          ^~~~~~~~~~~~~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.
+fatal error: 'epoch17_golden.hpp' file not found
+    5 | #include "epoch17_golden.hpp"
+      |          ^~~~~~~~~~~~~~~~~~~~
+1 error generated.
+ninja: build stopped: subcommand failed.

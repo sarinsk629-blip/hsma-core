@@ -1,0 +1,12 @@
+[1/58] DEC-090: enforcing float-free numeric core
+FAILED: [code=1] CMakeFiles/lint_dec090 /data/data/com.termux/files/home/hsma/build/CMakeFiles/lint_dec090 
+cd /data/data/com.termux/files/home/hsma && /data/data/com.termux/files/usr/bin/bash /data/data/com.termux/files/home/hsma/scripts/check_no_fp.sh
+DEC-090 VIOLATION — floating point in numeric core:
+include/hsma/g2v.hpp:123:// Scalar multiplication: MSB-first double-and-add
+[2/58] Building CXX object CMakeFiles/test_step8.dir/conformance/test_step8.cpp.o
+[3/58] Building CXX object CMakeFiles/test_step10.dir/conformance/test_step10.cpp.o
+[4/58] Building CXX object CMakeFiles/test_step7.dir/conformance/test_step7.cpp.o
+[5/58] Building CXX object CMakeFiles/test_step10b.dir/conformance/test_step10b.cpp.o
+[6/58] Building CXX object CMakeFiles/test_step9.dir/conformance/test_step9.cpp.o
+[7/58] Building CXX object CMakeFiles/test_step12.dir/conformance/test_step12.cpp.o
+[8/58] Building CXX object CMakeFiles/test_step13.dir/conformance/test_step13.cpp.o

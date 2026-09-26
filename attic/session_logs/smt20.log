@@ -1,0 +1,7 @@
+[G+] depth-1 dir=1: SAT YES | R.n_rows=0 actual=80 (DEF-194 stale=YES)
+[G-sem] mirror == gadget output: YES
+[G-dir] dir=0: SAT YES | root IDENTICAL to dir=1: YES (DEF-192 channel dead=CONFIRMED)
+[G-any] leaf=101: SAT YES | root differs from leaf=100: YES (DEF-193 any-leaf=CONFIRMED)
+[G-coll] depth-2: SAT YES | rows=160 | output == mirror-with-IV-OVERRIDDEN-by-sib1: YES (DEF-195 collision=CONFIRMED)
+
+[P1-20] GREEN - artifact verified; 4 defects demonstrated

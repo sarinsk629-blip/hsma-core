@@ -1,0 +1,11 @@
+[G2-d1] depth-1 dir=0: SAT YES | mirror YES | rows=86 (85*1+1=86: YES)
+[G2-d2] depth-2 MIXED (1,0): SAT YES | mirror YES | rows=171 (171: YES) <- v1-impossible
+[G2-d3] depth-3 (0,1,1): SAT YES | mirror YES | rows=256 (256: YES)
+[G-dir-neg] dir=1 circuit, expected=dir-0 root: UNSAT (must UNSAT - mux LIVE)
+[G-root-neg] expected=root+1: UNSAT (must UNSAT - binding LIVE)
+
+-- scaling --
+  per level: 85 rows (80 gadget + 5 mux) + 1 binding
+  depth-64 opening: ~5441 rows | k=476, 2 accounts: ~5179832
+
+[P1-21] GREEN - the real SMT opening is PROVEN

@@ -1,0 +1,76 @@
+[1/1] Cleaning all built files...
+Cleaning... 29 files.
+[1/24] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/24] Building CXX object CM   all 14 generated headers present
+── [3/4] diagnostics ────────────────────────────
+SEED: fault=0 allocs=66
+LOOKUP: OK  bal=1000 nonce=0
+TLEAF tag=2 (want 2)
+REC   tag=3 (want 3)  
+STORED  = 0x1c3cfad21077198c52c65724b158b408503a1e628d072c010f106554f4f23f9b
+VERDICT: canonical-at-rest (DEC-123 held)
+DIAG6:SAMPLE-DETERMINISTIC OK
+DIAG6:CONTEXT-BINDING LIVE
+DIAG6:QUORUM-PATH LIVE (kind=2)
+DIAG6:BREAKER-DETERMINISTIC OK delay=35
+DIAG6:VERDICT ALL-OK
+   authentic + healthy
+── [4/4] conformance suite ──────────────────────
+Test project /data/data/com.termux/files/home/hsma/build
+    Start 1: contract_identity
+1/9 Test #1: contract_identity ................   Passed    0.01 sec
+    Start 2: step2_conformance
+2/9 Test #2: step2_conformance ................   Passed    0.01 sec
+    Start 3: step3_conformance
+3/9 Test #3: step3_conformance ................   Passed    0.02 sec
+    Start 4: step4_conformance
+4/9 Test #4: step4_conformance ................   Passed    0.07 sec
+    Start 5: step5_conformance
+5/9 Test #5: step5_conformance ................   Passed    0.07 sec
+    Start 6: step6_conformance
+6/9 Test #6: step6_conformance ................   Passed    0.11 sec
+    Start 7: step7_conformance
+7/9 Test #7: step7_conformance ................   Passed    0.01 sec
+    Start 8: step8_conformance
+8/9 Test #8: step8_conformance ................   Passed    0.04 sec
+    Start 9: step9_conformance
+9/9 Test #9: step9_conformance ................   Passed    0.15 sec
+
+100% tests passed out of 9
+
+Total Test time (real) =   0.52 sec
+═══════════ GATE GREEN ═══════════
+sus@50, winner=H, delay=22)
+[done] all constants derived, validated, emitted.
+[step7][prov] kernel parameter x = 0x8508c00000000001 (identity x^4 - x^2 + 1 == r)
+[validate] bls-r: matches documented r, MR-52 prime, bits=253, 2-adicity(r-1)=47, inv0=OK
+[step7][emit] bls_params_gen.hpp
+[step7][emit] threshold_golden.hpp (64 pairs, DKG n=5/t=3, tamper divergence asserted)
+[t8] params OK
+[t8] ks drawn (r-limit draws healthy)
+[t8] bls_q_params_gen.hpp written
+[t8] bls_curve_golden.hpp written
+[validate] bls-q: MR-52 prime, 377 bits, ancestry OK, 2adic(q-1)=46
+[step8][emit] bls_q_params_gen.hpp (q, mont consts, GEN)
+[step8][emit] bls_curve_golden.hpp (48 fq pairs, 4+4+4 triples, 8 tonelli)
+[t9] params OK
+[t9] h2g1 x4 OK (on-curve, [r]H=inf oracle-checked)
+[t9] DKG n=5/t=3 OK (commitments, 25/25 share equations, PK)
+[t9] threshold sigs x3 OK (law sigma == [S]H oracle-checked)
+[t9] beacon chain x4 OK (threshold-signed, SHA-256 digested)
+[step9][emit] threshold_sig_golden.hpp (h2g1 x4, DKG n=5/t=3 + PK, sigs x3, beacon x4)
+[11/24] Building CXX object CMakeFiles/test_step2.dir/conformance/test_step2.cpp.o
+[12/24] Building CXX object CMakeFiles/test_step3.dir/conformance/test_step3.cpp.o
+[13/24] Linking CXX executable test_step2
+[14/24] Linking CXX executable test_step3
+[15/24] Building CXX object CMakeFiles/diag_step6.dir/conformance/diag_step6.cpp.o
+[16/24] Building CXX object CMakeFiles/test_step6.dir/conformance/test_step6.cpp.o
+[17/24] Linking CXX executable diag_step6
+[18/24] Linking CXX executable test_step6
+[19/24] Building CXX object CMakeFiles/diag_step5.dir/conformance/diag_step5.cpp.o
+[20/24] Linking CXX executable diag_step5
+[21/24] Building CXX object CMakeFiles/test_step4.dir/conformance/test_step4.cpp.o
+[22/24] Linking CXX executable test_step4
+[23/24] Building CXX object CMakeFiles/test_step5.dir/conformance/test_step5.cpp.o
+[24/24] Linking CXX executable test_step5

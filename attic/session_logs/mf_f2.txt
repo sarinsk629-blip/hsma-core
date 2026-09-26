@@ -1,0 +1,13 @@
+[faucet] 127.0.0.1:31234 | 5 decrees | seed 0xde
+[faucet] connected
+[faucet] decree 1/5 sent
+[faucet] decree 2/5 sent
+[faucet] decree 3/5 sent
+[faucet] decree 4/5 sent
+[faucet] decree 5/5 sent
+[faucet] waiting for epoch header(s) on this socket...
+[faucet] EPOCH HEADER #1: epoch=1 inner=64 weight=262144 hash=5db8a81ea7f626a3
+[faucet] RECEIPT: 5 decrees -> epoch 1 completed, weight 262144 verified MACs, state hash 5db8a81ea7f626a3
+[faucet] EPOCH HEADER #2: epoch=1 inner=64 weight=262144 hash=5db8a81ea7f626a3
+[faucet] RECEIPT: 5 decrees -> epoch 1 completed, weight 262144 verified MACs, state hash 5db8a81ea7f626a3
+[faucet] socket ended (TimeoutError) after 2 header(s)

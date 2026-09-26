@@ -1,0 +1,16 @@
+[1/73] DEC-090: enforcing float-free numeric core
+FAILED: [code=2] CMakeFiles/lint_dec090 /data/data/com.termux/files/home/hsma/build/CMakeFiles/lint_dec090 
+cd /data/data/com.termux/files/home/hsma && /data/data/com.termux/files/usr/bin/bash /data/data/com.termux/files/home/hsma/scripts/check_no_fp.sh
+/data/data/com.termux/files/home/hsma/scripts/check_no_fp.sh: line 15: syntax error near unexpected token `)'
+/data/data/com.termux/files/home/h✗ FAILED TARGET in build (CA-R191: any FAILED target fails the gate)
+numcore 2>/dev/null || true)'
+[2/73] Building CXX object CMakeFiles/test_step8.dir/conformance/test_step8.cpp.o
+[3/73] Building CXX object CMakeFiles/test_step10.dir/conformance/test_step10.cpp.o
+[4/73] Building CXX object CMakeFiles/test_step7.dir/conformance/test_step7.cpp.o
+[5/73] Building CXX object CMakeFiles/test_step10b.dir/conformance/test_step10b.cpp.o
+[6/73] Building CXX object CMakeFiles/test_step9.dir/conformance/test_step9.cpp.o
+[7/73] Building CXX object CMakeFiles/test_step12.dir/conformance/test_step12.cpp.o
+[8/73] Building CXX object CMakeFiles/test_step13.dir/conformance/test_step13.cpp.o
+[9/73] Building CXX object CMakeFiles/test_step15.dir/conformance/test_step15.cpp.o
+[10/73] Building CXX object CMakeFiles/test_step14.dir/conformance/test_step14.cpp.o
+ninja: build stopped: subcommand failed.

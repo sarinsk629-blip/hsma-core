@@ -1,0 +1,10 @@
+[tool] seed-derived OK · 2adic(q-1)=46 · ancestry PROVEN
+[selftest] rt=400 assoc=250 dist=250 fermat=60 euler=60 ts=60 oracle=60
+[selftest] ALL PASS — curve work authorized
+[tool] ...candidate 16
+[tool] ...candidate 48
+[tool] ...candidate 144
+[tool] ...candidate 160
+[tool] ...candidate 176
+[tool] ...candidate 240
+FATAL: no b in [1,256] — derived params deviate from canonical BLS12-377

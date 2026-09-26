@@ -1,0 +1,45 @@
+═══════════════════════════════════════
+  HSMA EPOCH NODE — P2-02
+  port: 31233 | k_entries: 10 | epoch: 0
+═══════════════════════════════════════
+[node] listening on port 31233
+[node] generating 10 local decree entries...
+[pi_E] epoch 0 complete (10 entries) — producing π_E...
+[pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1128 ms
+[gossip] epoch header sent to 0 peers
+
+═══════════════════════════════════════
+  EPOCH 0 COMPLETE — π_E PRODUCED
+  decree entries: 10
+  verify: ACCEPT
+  peers: 0
+  entering gossip loop (listening for new decrees)...
+═══════════════════════════════════════
+[explorer] HTTP server listening on port 32233
+[explorer] open http://localhost:32233 in a browser
+[peer] new connection (fd=6)
+[decree] received decree entry (32 bytes)
+[fold] decree 1/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 2/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 3/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 4/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 5/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 6/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 7/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 8/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 9/10 folded, SAT
+[decree] received decree entry (32 bytes)
+[fold] decree 10/10 folded, SAT
+[pi_E] epoch 1 complete — producing π_E...
+[pi_E] epoch 1: wrap_verify ACCEPT (stage=0)
+[pouw] epoch 1: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1170 ms
+[gossip] epoch 1 header sent to 1 peers

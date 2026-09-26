@@ -1,0 +1,20 @@
+[1/1] Cleaning all built files...
+Cleaning... 39 files.
+[1/34] DEC-090: enforcing float-free numeric core
+[lint] DEC-090 clean: numeric core is float-free.
+[2/34] Building CXX object CMakeFiles/params_probe.dir/src/params_probe.cpp.o
+[3/34] Linking CXX executable params_probe
+[4/34] Building CXX object CMakeFiles/test_step8.dir/conformance/test_step8.cpp.o
+[5/34] Linking CXX executable test_step8
+[6/34] Building CXX object CMakeFiles/test_step7.dir/conformance/test_step7.cpp.o
+[7/34] Building CXX object CMakeFiles/test_step10.dir/conformance/test_step10.cpp.o
+[8/34] Linking CXX executable test_step7
+[9/34] Linking CXX executable test_step10
+[10/34] Building CXX object CMakeFiles/test_step10b.dir/conformance/test_step10b.cpp.o
+[11/34] Linking CXX executable test_step10b
+[12/34] Building CXX object CMakeFiles/test_step9.dir/conformance/test_step9.cpp.o
+[13/34] Linking CXX executable test_step9
+[14/34] Building CXX object CMakeFiles/test_step12.dir/conformance/test_step12.cpp.o
+[15/34] Building CXX object CMakeFiles/test_step13.dir/conformance/test_step13.cpp.o
+[16/34] Linking CXX executable test_step12
+[17/34] Linking CXX executable test_step13

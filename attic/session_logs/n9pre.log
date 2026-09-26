@@ -1,0 +1,29 @@
+═══════════════════════════════════════
+  HSMA EPOCH NODE — P2-02
+  port: 31233 | k_entries: 10 | epoch: 0
+═══════════════════════════════════════
+[node] listening on port 31233
+[node] generating 10 local decree entries...
+[pi_E] epoch 0 complete (10 entries) — producing π_E...
+[pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1128 ms
+[gossip] epoch header sent to 0 peers
+
+═══════════════════════════════════════
+  EPOCH 0 COMPLETE — π_E PRODUCED
+  decree entries: 10
+  verify: ACCEPT
+  peers: 0
+  entering gossip loop (listening for new decrees)...
+═══════════════════════════════════════
+[explorer] HTTP server listening on port 32233
+[explorer] open http://localhost:32233 in a browser
+[peer] new connection (fd=6)
+[epoch] received epoch header from peer
+[pouw] peer weight 262144 == local 262144 -> AGREE
+[peer] new connection (fd=7)
+[epoch] received epoch header from peer
+[pouw] peer weight 999 != local 262144 -> MISMATCH
+[peer] new connection (fd=8)
+[epoch] received epoch header from peer
+[pouw] peer inner 63 != local 64 -> param mismatch
