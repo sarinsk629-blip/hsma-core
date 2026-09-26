@@ -109,4 +109,46 @@ inline DecodedVote decode_vote(const p2p::Message& m) noexcept {
     return d;
 }
 
+
+// ---- P3-3b (DEC-275): the aggregate verify - one pairing per batch ------
+// N threshold-BLS partials verify with ONE pairing against the aggregate
+// public key Y_agg = sum(Y_j). The homomorphism: sig::aggregate for the
+// sigmas, g2::Padd for the public keys. The cost drops from O(N) pairings
+// to O(1) pairing + O(N) point-additions (each ~100x cheaper than a pairing).
+//
+// The lambda coefficients: for a SIMPLIFIED k-of-k (all members participate),
+// each lambda = 1 (the sum is unweighted). For the production k-of-n,
+// lambda_j = Lagrange(j) at x=0 (the step7 poly kernel).
+struct AggregateVerify {
+    threshold::g1::Pt sigma_agg{};       // the accumulated signature
+    threshold::g2::G2Pt Y_agg{};         // the accumulated public key
+    unsigned count = 0;
+    bool initialized = false;
+};
+
+// accumulate a member's partial into the batch (no pairing yet)
+inline void agg_accumulate(AggregateVerify& av, const threshold::g1::Pt& sigma_j,
+                           const threshold::g2::G2Pt& Y_j) noexcept {
+    if (!av.initialized) {
+        av.sigma_agg = sigma_j;
+        av.Y_agg = Y_j;
+        av.initialized = true;
+    } else {
+        av.sigma_agg = threshold::g1::Padd(av.sigma_agg, sigma_j);
+        av.Y_agg = threshold::g2::Padd(av.Y_agg, Y_j);
+    }
+    av.count++;
+}
+
+// the single pairing: e(sigma_agg, G2gen) == e(H(pre), Y_agg)
+inline bool agg_verify(const AggregateVerify& av,
+                       const std::vector<std::uint8_t>& pre) noexcept {
+    if (!av.initialized || av.count == 0) return false;
+    const threshold::g1::Pt H = threshold::hash_to_g1(pre.data(), pre.size());
+    std::uint64_t sx[6], sy[6], hx[6], hy[6];
+    if (!threshold::g1::to_affine(av.sigma_agg, sx, sy)) return false;
+    if (!threshold::g1::to_affine(H, hx, hy)) return false;
+    return threshold::bls_verify_aff(sx, sy, hx, hy, av.Y_agg);
+}
+
 } // namespace hsma::msscvote
