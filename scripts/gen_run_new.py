@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
 args = sys.argv[1:]
-out = args[args.index("--out") + 1] if "--out" in args else "build/generated"
+out = args[args.index("--out") + 1] if "--out" in args else "generated"
 sys.argv = ["gen_constants.py", "--out", out]
 
 ns = {"__name__": "__main__", "os": os, "sys": sys,

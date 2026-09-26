@@ -16,7 +16,7 @@ M64 = (1 << 64) - 1
 def _step30():
     P = lambda *a: print(*a, flush=True)
     # --- p from pallas_params_gen.hpp ---
-    pt = open("build/generated/pallas_params_gen.hpp").read()
+    pt = open("generated/pallas_params_gen.hpp").read()
     hx = lambda w: int(re.search(r'0x([0-9a-fA-F]+)', w).group(1), 16)
     pm = re.search(r'MOD\s*\{\s*\{\s*(.*?)\}\s*\}', pt, re.S)
     assert pm, "pallas MOD not found"
@@ -57,7 +57,7 @@ def _step30():
     exec(compile(region, "sponge_region", "exec"), ns)
     sponge = ns["sponge_ref"]
     # --- MDS/RC/IV from poseidon_params_gen.hpp ---
-    qt = open("build/generated/poseidon_params_gen.hpp").read()
+    qt = open("generated/poseidon_params_gen.hpp").read()
     allrows = [[hx(w) for w in m2.group(1).split(",")] for m2 in
                re.finditer(r'\{\s*(0x[0-9a-fA-F]{16}[uU][lL][lL](?:\s*,\s*0x[0-9a-fA-F]{16}[uU][lL][lL]){3})\s*\}', qt)]
     assert len(allrows) >= 89, "row count short: %d" % len(allrows)
@@ -81,7 +81,7 @@ def _step30():
     IV_SC = derive_iv(TAG)
     # self-check vs the monolith's pinned golden (if the file carries it)
     try:
-        g = open("build/generated/poseidon_golden.hpp").read()
+        g = open("generated/poseidon_golden.hpp").read()
         mm = re.search(r'IvCase\s*\{\s*[^}]*?canon\[4\]\s*=\s*\{\s*([^}]*)\}', g)
         # scan all IvCase rows and match by position-free canonical equality
         rows = [[hx(w) for w in m2.group(1).split(",")] for m2 in

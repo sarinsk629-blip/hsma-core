@@ -16,7 +16,7 @@ M64 = (1 << 64) - 1
 def _step31():
     P = lambda *a: print(*a, flush=True)
     # p from pallas_params_gen.hpp
-    pt = open("build/generated/pallas_params_gen.hpp").read()
+    pt = open("generated/pallas_params_gen.hpp").read()
     hx = lambda w: int(re.search(r'0x([0-9a-fA-F]+)', w).group(1), 16)
     pm = re.search(r'MOD\s*\{\s*\{\s*(.*?)\}\s*\}', pt, re.S)
     assert pm, "pallas MOD not found"
@@ -55,7 +55,7 @@ def _step31():
     exec(compile(region, "sponge_region", "exec"), ns)
     sponge = ns["sponge_ref"]
     # MDS/RC positional + SUMCHECK IV by the iv_of contract
-    qt = open("build/generated/poseidon_params_gen.hpp").read()
+    qt = open("generated/poseidon_params_gen.hpp").read()
     allrows = [[hx(w) for w in m.group(1).split(",")] for m in
                re.finditer(r'\{\s*(0x[0-9a-fA-F]{16}[uU][lL][lL](?:\s*,\s*0x[0-9a-fA-F]{16}[uU][lL][lL]){3})\s*\}', qt)]
     assert len(allrows) >= 89

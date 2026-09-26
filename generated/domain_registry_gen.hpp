@@ -1,0 +1,46 @@
+// GENERATED FILE - domain_registry_gen.hpp
+#pragma once
+#include <array>
+#include <cstdint>
+#include <string_view>
+namespace hsma::dom {
+enum class Dom : std::uint8_t{HSM_MSSC_VOTE_v1,HSM_ORDER_v1,HSM_DEC_SHARE_v2,HSM_TX_AUTH_v1,HSM_BEACON_MSG_v1,HSM_BEACON_OUT_v1,HSM_CERT_v1,HSM_BIND_v1,HSM_SORTITION_v1,HSM_PEERSEED_v1,HSM_FOLD_v1,HSM_CYCLEFOLD_v1,HSM_DIGEST_v1,HSM_PT_v1,HSM_MODEL_v1,HSM_DEM_v1,HSM_TXID_v1,HSM_AEAD_AES,HSM_AEAD_CHACHA,IV_STATE_NODE,IV_STATE_LEAF,IV_ORDER,IV_DECREE,IV_WEIGHT,IV_CONTACT,IV_REVOCATION,IV_TABLE_REG,IV_SEED,IV_IDENT,IV_CONFLICT,IV_TXID,IV_BREAKER,IV_FIDELITY,HSM_SUMCHECK_v1,HSM_POUW_v1,COUNT};
+inline constexpr std::array<std::string_view,35> TAG_NAMES{{
+  "HSM_MSSC_VOTE_v1",
+  "HSM_ORDER_v1",
+  "HSM_DEC_SHARE_v2",
+  "HSM_TX_AUTH_v1",
+  "HSM_BEACON_MSG_v1",
+  "HSM_BEACON_OUT_v1",
+  "HSM_CERT_v1",
+  "HSM_BIND_v1",
+  "HSM_SORTITION_v1",
+  "HSM_PEERSEED_v1",
+  "HSM_FOLD_v1",
+  "HSM_CYCLEFOLD_v1",
+  "HSM_DIGEST_v1",
+  "HSM_PT_v1",
+  "HSM_MODEL_v1",
+  "HSM_DEM_v1",
+  "HSM_TXID_v1",
+  "HSM_AEAD_AES",
+  "HSM_AEAD_CHACHA",
+  "IV_STATE_NODE",
+  "IV_STATE_LEAF",
+  "IV_ORDER",
+  "IV_DECREE",
+  "IV_WEIGHT",
+  "IV_CONTACT",
+  "IV_REVOCATION",
+  "IV_TABLE_REG",
+  "IV_SEED",
+  "IV_IDENT",
+  "IV_CONFLICT",
+  "IV_TXID",
+  "IV_BREAKER",
+  "IV_FIDELITY",
+  "HSM_SUMCHECK_v1",
+  "HSM_POUW_v1",
+}};
+static_assert(TAG_NAMES.size() == static_cast<size_t>(Dom::COUNT));
+} // namespace hsma::dom

@@ -3447,3 +3447,27 @@ faucet.py and two terminals.
 **Build status:** P2-12 CLOSED - the launch blueprint's dress
 rehearsal PASSED. NEXT: P1-22 (homomorphic fold commitments) or
 Phase 3 (MSSC - the agreement layer).
+
+---
+## SECTION 24 - P3-0a: The Golden Extraction (2026-09-24)
+#### DEC-265 - build/generated -> generated/: proof artifacts enter version control
+**Decision:** The 31 generated headers (params + goldens) moved from
+gitignored build/generated to tracked generated/ (beside include/,
+tools/, scripts/); every live reference swept to the new -Igenerated
+convention (gate.sh, CMakeLists.txt, generator callers; docs/ ledger
+receipts are historical records and keep the old paths). build/
+remains the ignored scratch workspace (CMake junk, logs, stale
+probe copies - canonical probes live in tools/; ark/py_ecc/pairing
+provenance already in docs/refs/). Determinism receipt: all 31
+goldens pre-move == post-regeneration byte-identical - the
+generator's determinism is now a git-checkable property, and any
+future constant change is a reviewable diff instead of an invisible
+rewrite.
+**CA-R189:** Generated constants are proof artifacts: they live in
+version control. A regeneration that changes a tracked golden is a
+diff to be reviewed, not a rebuild to be trusted.
+**Build status:** P3-0a CLOSED. NEXT: P3-0b - the MSSC design contract
+(whitepaper section 3 in hand: k=20->40, alpha=0.75, beta=150,
+phi_floor=0.50, DEC-016 canonical vote preimage, beacon-gated
+breaker) against the proven substrate (consensus.hpp automaton,
+g1net.hpp sampler, threshold beacon/sig).

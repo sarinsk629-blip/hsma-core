@@ -402,7 +402,7 @@ static void discover_b(){
 }
 int main(int argc,char** argv){
   setvbuf(stdout, nullptr, _IONBF, 0);  // DEC-168: silence can never masquerade as a hang
-  const char* outdir = argc>1 ? argv[1] : "build/generated";
+  const char* outdir = argc>1 ? argv[1] : "generated";
   mkdir(outdir,0755);
 
   derive_rq();

@@ -13,7 +13,7 @@ import gen_common as GC
 def _step33():
     P = lambda *a: print(*a, flush=True)
     hx = lambda w: int(re.search(r'0x([0-9a-fA-F]+)', w).group(1), 16)
-    pt = open("build/generated/pallas_params_gen.hpp").read()
+    pt = open("generated/pallas_params_gen.hpp").read()
     pm = re.search(r'MOD\s*\{\s*\{\s*(.*?)\}\s*\}', pt, re.S)
     l = [hx(w) for w in pm.group(1).split(",")]
     p_ = l[0] | l[1] << 64 | l[2] << 128 | l[3] << 192
@@ -36,7 +36,7 @@ def _step33():
     ns = {k: consts[k] for k in ("POSEIDON_ALPHA","POSEIDON_RF","POSEIDON_RP","POSEIDON_T")}
     exec(compile(region, "sponge_region", "exec"), ns)
     sponge = ns["sponge_ref"]
-    qt = open("build/generated/poseidon_params_gen.hpp").read()
+    qt = open("generated/poseidon_params_gen.hpp").read()
     allrows = [[hx(w) for w in m.group(1).split(",")] for m in
                re.finditer(r'\{\s*(0x[0-9a-fA-F]{16}[uU][lL][lL](?:\s*,\s*0x[0-9a-fA-F]{16}[uU][lL][lL]){3})\s*\}', qt)]
     cv = lambda r4: r4[0] | r4[1] << 64 | r4[2] << 128 | r4[3] << 192

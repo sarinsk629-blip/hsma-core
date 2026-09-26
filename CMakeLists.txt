@@ -126,27 +126,27 @@ add_test(NAME step6_conformance COMMAND test_step6)
 
 # == Step 7: threshold scalar module F_r (DEC-181..184) ==
 add_executable(test_step7 conformance/test_step7.cpp)
-target_include_directories(test_step7 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step7 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step7_conformance COMMAND test_step7)
 
 # == Step 8: G1 promotion (DEC-185..188) ==
 add_executable(test_step8 conformance/test_step8.cpp)
-target_include_directories(test_step8 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step8 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step8_conformance COMMAND test_step8)
 
 # == Step 9: threshold protocol layer (DEC-189..192) ==
 add_executable(test_step9 conformance/test_step9.cpp)
-target_include_directories(test_step9 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step9 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step9_conformance COMMAND test_step9)
 
 # == Step 10: F_q2 + E twist (DEC-193..196) ==
 add_executable(test_step10 conformance/test_step10.cpp)
-target_include_directories(test_step10 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step10 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step10_conformance COMMAND test_step10)
 
 # == Step 10-B: pairing layer (DEC-197..199) ==
 add_executable(test_step10b conformance/test_step10b.cpp)
-target_include_directories(test_step10b PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step10b PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step10b_conformance COMMAND test_step10b)
 
 # == Step 11: sim_beacon retirement (DEC-200) - values-only swap, no new target. ==
@@ -154,115 +154,115 @@ add_test(NAME step10b_conformance COMMAND test_step10b)
 # == goldens regenerated with HSM_BEACON_V1 (beacon feeds the sampler seed).  ==
 # == Step 12: M2 order-bound shares (DEC-201..203) ==
 add_executable(test_step12 conformance/test_step12.cpp)
-target_include_directories(test_step12 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step12 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step12_conformance COMMAND test_step12)
 
 # == Step 13: M2 production hardening (DEC-204..206) ==
 add_executable(test_step13 conformance/test_step13.cpp)
-target_include_directories(test_step13 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step13 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step13_conformance COMMAND test_step13)
 
 # == Step 14: fold step family (DEC-207) ==
 add_executable(test_step14 conformance/test_step14.cpp)
-target_include_directories(test_step14 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step14 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step14_conformance COMMAND test_step14)
 
 # == Step 15: CCS constraint layer (DEC-208) ==
 add_executable(test_step15 conformance/test_step15.cpp)
-target_include_directories(test_step15 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step15 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step15_conformance COMMAND test_step15)
 
 # == Step 16: NIVC fold accumulator (DEC-209) ==
 add_executable(test_step16 conformance/test_step16.cpp)
-target_include_directories(test_step16 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step16 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step16_conformance COMMAND test_step16)
 
 # == Step 17: epoch pipeline (DEC-210) ==
 add_executable(test_step17 conformance/test_step17.cpp)
-target_include_directories(test_step17 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step17 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step17_conformance COMMAND test_step17)
 
 # == Step 18: G1 transport skeleton (DEC-211) ==
 add_executable(test_step18 conformance/test_step18.cpp)
-target_include_directories(test_step18 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step18 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step18_conformance COMMAND test_step18)
 
 # == Step 19: sum-check engine (DEC-212) ==
 add_executable(test_step19 conformance/test_step19.cpp)
-target_include_directories(test_step19 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step19 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step19_conformance COMMAND test_step19)
 
 # == Step 20: multilinear PCS (DEC-213) ==
 add_executable(test_step20 conformance/test_step20.cpp)
-target_include_directories(test_step20 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step20 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step20_conformance COMMAND test_step20)
 
 # == Step 21: NIFS fold (DEC-214) ==
 add_executable(test_step21 conformance/test_step21.cpp)
-target_include_directories(test_step21 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step21 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step21_conformance COMMAND test_step21)
 
 # == Step 22: light-client epoch-header certificate (DEC-215) ==
 add_executable(test_step22 conformance/test_step22.cpp)
-target_include_directories(test_step22 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step22 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step22_conformance COMMAND test_step22)
 
 # == Step 23: phi0-phi7 end-to-end epoch (DEC-216) ==
 add_executable(test_step23 conformance/test_step23.cpp)
-target_include_directories(test_step23 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step23 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step23_conformance COMMAND test_step23)
 
 # == Step 24: Vesta field twin (DEC-222) ==
 add_executable(test_step24 conformance/test_step24.cpp)
-target_include_directories(test_step24 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step24 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step24_conformance COMMAND test_step24)
 
 # == Step 25: Vesta Poseidon (DEC-223) ==
 add_executable(test_step25 conformance/test_step25.cpp)
-target_include_directories(test_step25 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step25 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step25_conformance COMMAND test_step25)
 
 # == Step 26: Vesta curve ops (DEC-224) ==
 add_executable(test_step26 conformance/test_step26.cpp)
-target_include_directories(test_step26 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step26 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step26_conformance COMMAND test_step26)
 
 # == Step 27: CycleFold absorption (DEC-225) ==
 add_executable(test_step27 conformance/test_step27.cpp)
-target_include_directories(test_step27 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step27 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step27_conformance COMMAND test_step27)
 
 # == Step 28: Pallas curve ops (DEC-226) ==
 add_executable(test_step28 conformance/test_step28.cpp)
-target_include_directories(test_step28 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step28 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step28_conformance COMMAND test_step28)
 
 # == Step 29: Pedersen Layer 1 (DEC-227) ==
 add_executable(test_step29 conformance/test_step29.cpp)
-target_include_directories(test_step29 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step29 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step29_conformance COMMAND test_step29)
 
 # == Step 30: WHIR-class wrap (DEC-228) ==
 add_executable(test_step30 conformance/test_step30.cpp)
-target_include_directories(test_step30 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step30 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step30_conformance COMMAND test_step30)
 
 # == Step 31: HyperNova multifold core (DEC-229) ==
 add_executable(test_step31 conformance/test_step31.cpp)
-target_include_directories(test_step31 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step31 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step31_conformance COMMAND test_step31)
 
 # == Step 32: Commitment folding (DEC-230) ==
 add_executable(test_step32 conformance/test_step32.cpp)
-target_include_directories(test_step32 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step32 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step32_conformance COMMAND test_step32)
 
 # == Step 33: f_exec circuit (DEC-231) ==
 add_executable(test_step33 conformance/test_step33.cpp)
-target_include_directories(test_step33 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step33 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step33_conformance COMMAND test_step33)
 
 # == Step 34: the epoch chain + pi_E (DEC-232) ==
 add_executable(test_step34 conformance/test_step34.cpp)
-target_include_directories(test_step34 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/build/generated")
+target_include_directories(test_step34 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step34_conformance COMMAND test_step34)

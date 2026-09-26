@@ -1,7 +1,7 @@
 # HSMA :: scripts/split_gen.py — the mechanical GAP-02b splitter (P1-01).
 # Dry-run by default: REPORTS every boundary, module-level statement, and
 # __main__ site. --apply performs the split. The proof of any apply is a
-# full generator run with BYTE-IDENTICAL goldens (git diff build/generated).
+# full generator run with BYTE-IDENTICAL goldens (git diff generated).
 import re, sys, os
 
 SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gen_constants.py")

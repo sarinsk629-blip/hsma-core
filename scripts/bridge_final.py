@@ -69,12 +69,12 @@ P("[stage] t3 =", t3)
 w = spow(c, pow(3, -1, m3))
 P("[C2] w^3 == c:", smul(smul(w, w), w) == c)
 P("[C2b] w^6 == rho:", smul(smul(smul(w,w),w), smul(smul(w,w),w)) == rho)
-s_hdr = open("build/generated/bls_q_params_gen.hpp").read()
+s_hdr = open("generated/bls_q_params_gen.hpp").read()
 def hdr6(txt, name):
     mm = re.search(name + r"\[6\]\s*=\s*\{([^}]*)\}", txt)
     ls = [int(x.strip().rstrip("uUlL"), 16) for x in mm.group(1).split(",")]
     return sum(l << (64*i) for i, l in enumerate(ls))
-g2s = open("build/generated/bls_g2_params_gen.hpp").read()
+g2s = open("generated/bls_g2_params_gen.hpp").read()
 def g2hdr6(name):
     mm = re.search(name + r"\[6\]\s*=\s*\{([^}]*)\}", g2s)
     ls = [int(x.strip().rstrip("uUlL"), 16) for x in mm.group(1).split(",")]

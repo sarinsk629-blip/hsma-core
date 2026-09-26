@@ -21,12 +21,12 @@ def _step27():
     R = pow(2, 256, q); Rinv = pow(R, -1, q)
 
     if not os.path.exists("build/p27probe.txt"):
-        cmd = ("clang++ -std=c++20 -Iinclude -Ibuild/generated tools/p27probe.cpp"
+        cmd = ("clang++ -std=c++20 -Iinclude -Igenerated tools/p27probe.cpp"
                " -o build/p27probe && ./build/p27probe > build/p27probe.txt")
         r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         assert os.path.exists("build/p27probe.txt"), "probe rebuild failed: " + r.stderr[-400:]
 
-    txt = open("build/generated/vesta_poseidon_params_gen.hpp").read()
+    txt = open("generated/vesta_poseidon_params_gen.hpp").read()
     def rows(name):
         mm = re.search(r'VP3_%s\b.*?\{\{(.*?)\}\}\s*;' % name, txt, re.S)
         assert mm, "VP3_%s block not found" % name
@@ -155,7 +155,7 @@ def _step27():
                         for g in (px, py, l4(d), l4(Pcf[0]), l4(Pcf[1])))
         parts.append("{ " + row + " },")
     parts += ["}};", "} // namespace hsma::golden"]
-    open("build/generated/vesta_absorb_golden.hpp", "w").write("\n".join(parts) + "\n")
+    open("generated/vesta_absorb_golden.hpp", "w").write("\n".join(parts) + "\n")
     P("[step27][emit] vesta_absorb_golden.hpp (absorb x%d: payload->d->P_cf)" % N)
 
 _step27()

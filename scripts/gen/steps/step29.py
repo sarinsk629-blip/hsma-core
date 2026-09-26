@@ -131,7 +131,7 @@ def _step29():
     parts = [p for p in parts if p != ""]
     # NOTE: the per-section arrays each closed with '}};'; the namespace closes here.
     parts[-1] = "} // namespace hsma::golden"
-    open("build/generated/pedersen_golden.hpp", "w").write("\n".join(parts) + "\n")
+    open("generated/pedersen_golden.hpp", "w").write("\n".join(parts) + "\n")
     P("[step29][emit] pedersen_golden.hpp (both accumulators: bases x8, commits x3, hom, scalar-hom)")
 
 _step29()
