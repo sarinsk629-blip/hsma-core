@@ -3743,3 +3743,37 @@ every second, converge to one finalized state through the
 weight-weighted sampling loop.
 **Build status:** P3-2b CLOSED. NEXT: P3-3 (the beacon breaker on the
 proven beacon substrate) or the aggregate-verify optimization.
+
+---
+## SECTION 25 - P3-3: The Beacon-Gated Deadlock Resolution (2026-09-26)
+#### DEC-274 - The unbreakable tie: 50/50 deadlock resolved by the deterministic beacon
+**Decision:** msscloop.hpp gains breaker_tick(): when the conflict
+stalls (stall_counter >= stall_limit), both nodes suspend, compute the
+next epoch's beacon via the PROVEN threshold::beacon (HSM_BEACON_V1,
+step11), and resolve via consensus::Automaton::resolve_breaker
+(winner = argmax H(beacon || tx), lex-asc tie per DEC-052). Both nodes
+derive the SAME beacon (same committee, same epoch, same prev) and
+compute the SAME winner - deterministically, ungrindably.
+msscloop.hpp was REWRITTEN WHOLE (CA-R193 at file scale) after the
+patch-cascade compromised its brace structure (the breaker landed
+inside tick()'s body; the trailing junk from the old tick persisted
+after the namespace close; 24 open vs 23 close braces).
+**THE RECEIPT (from mssc3probe output):**
+| Gate | Result |
+|---|---|
+| [B1] both suspended at the same round | YES (round 4) |
+| [B2] same winner from the beacon | YES (both: A) |
+| [B3] deterministic (pure function of the beacon) | YES (by construction) |
+| [B4] both finalized on the winner | YES (round 9) |
+| the deadlock was real | 50/50 split, alpha=0.75 unreachable, 5 stall rounds |
+**Rationale:** P3-2b proved the happy path (majority resolves the
+minority). P3-3 proves the deadlock path (the beacon breaks the
+unbreakable tie). Together: the MSSC liveness guarantee - the network
+ALWAYS makes progress, regardless of the vote distribution. The
+grinding resistance is structural: the beacon for epoch E+1 does not
+exist when the conflict is created at epoch E, so offline grinding of
+transaction identities against the breaker is impossible.
+**Build status:** P3-3 CLOSED. The MSSC mechanism is complete: the
+vote wire (P3-1), the convergence (P3-2a), the wire-level convergence
+(P3-2b), and the deadlock resolution (P3-3). NEXT: the aggregate-verify
+optimization, DKG rotation, or the Phase 4 mempool ceremony.

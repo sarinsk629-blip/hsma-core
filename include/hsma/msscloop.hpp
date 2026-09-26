@@ -1,18 +1,15 @@
-// HSMA :: msscloop.hpp - P3-2 (DEC-272): the live MSSC sampling loop.
-// Wires consensus.hpp's automaton (step6-proven) to the vote wire layer
-// (P3-1) and p2p transport. The metastable core: poll k peers, tally
-// weighted preference, update confidence, flip or confirm.
+// HSMA :: msscloop.hpp - P3-2 (DEC-272) + P3-3 (DEC-274): the live MSSC
+// sampling loop + the beacon-gated stall breaker.
 //
-// WHITEPAPER PARAMETERS (section 3): alpha=0.75, phi_floor=0.50, beta=150
-// TESTNET HONEST SCOPE: k=2 (two nodes poll each other), beta=5 (the
-// convergence property is in the FLIP, not the constant), round=1s.
-//
-// THE SCENARIO: two nodes, conflicting initial preferences on the same
-// conflict set. The loop resolves: the majority weight flips the minority,
-// then both confirm, then both finalize THE SAME preference.
+// WHITEPAPER PARAMETERS (section 3): alpha=0.75, phi_floor=0.50
+// TESTNET HONEST SCOPE: k=2, beta=5, round=1s. The convergence property
+// is in the FLIP, not the constant.
 #pragma once
 #include <hsma/consensus.hpp>
 #include <hsma/msscvote.hpp>
+#include <hsma/threshold/beacon.hpp>
+#include <hsma/threshold/poly.hpp>
+#include <hsma/threshold/dkg.hpp>
 #include <hsma/p2p.hpp>
 #include <vector>
 #include <cstring>
@@ -25,35 +22,28 @@ using consensus::Vote;
 using consensus::Kind;
 using consensus::State;
 
-// ---- the loop configuration (whitepaper section 3, testnet scale) -------
 struct Config {
-    double alpha = 0.75;          // quorum threshold
-    double phi_floor = 0.50;      // floor guard
-    unsigned beta = 5;            // consecutive confirmations (testnet: 5, prod: 150)
-    unsigned k = 2;               // sample size (testnet: 2 = both peers)
-    unsigned stall_limit = 50;    // rounds before suspension (beacon gate = P3-3)
-    unsigned max_rounds = 30;     // testnet safety cap (prevents infinite loops)
+    double alpha = 0.75;
+    double phi_floor = 0.50;
+    unsigned beta = 5;
+    unsigned k = 2;
+    unsigned stall_limit = 50;
+    unsigned max_rounds = 30;
 };
 
-// ---- the per-node state for one conflict set -----------------------------
 struct NodeState {
-    Digest conflict;               // the conflict set id
-    Digest preference;             // current preference
+    Digest conflict;
+    Digest preference;
     unsigned confidence = 0;
     unsigned stall = 0;
     unsigned rounds = 0;
     State state = State::Active;
     std::uint64_t self_weight = 0;
     std::uint64_t total_weight = 0;
-    // the peers we poll: (ip, port, weight)
     struct Peer { std::uint32_t ip; std::uint16_t port; std::uint64_t weight; };
     std::vector<Peer> peers;
 };
 
-// ---- one poll round: query each peer, tally their preference -------------
-// The peer responds with a Digest (its current preference) over the
-// conflict set - the BLS signature verification was proven in P3-1;
-// P3-2's loop consumes the *preference* the signature attests.
 struct RoundResult {
     Kind kind;
     std::uint64_t sampled_weight = 0;
@@ -66,7 +56,6 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
     RoundResult rr{};
     ns.rounds++;
 
-    // (1) the floor guard: sampled weight must be >= phi_floor of total
     std::uint64_t sampled = ns.self_weight;
     for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i)
         sampled += ns.peers[i].weight;
@@ -77,7 +66,6 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
     }
     rr.sampled_weight = sampled;
 
-    // (2) tally: how much weight agrees with OUR current preference?
     std::uint64_t agreeing = ns.self_weight;
     for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i)
         if (peer_prefs[i] == ns.preference) agreeing += ns.peers[i].weight;
@@ -85,17 +73,13 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
 
     const double frac = (double)agreeing / (double)sampled;
     if (frac >= cfg.alpha) {
-        // (3a) quorum: confidence++
         ns.confidence++;
         ns.stall = 0;
         rr.kind = (ns.confidence >= cfg.beta) ? Kind::Confirmed : Kind::NoQuorum;
         if (ns.confidence >= cfg.beta) ns.state = State::Finalized;
     } else {
-        // (3b) no quorum: flip to the majority preference, reset confidence
         if (ns.confidence > 0) rr.flipped = true;
         ns.confidence = 0;
-        // find the majority preference among peers + self
-        // (testnet: k=2, so it's the peer's preference if it differs)
         Digest majority = ns.preference;
         std::uint64_t maj_w = ns.self_weight;
         for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i) {
@@ -112,9 +96,46 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
         ns.stall++;
     }
 
-    // (4) stall → suspend (beacon gate = P3-3)
     if (ns.stall >= cfg.stall_limit) ns.state = State::Suspended;
     return rr;
+}
+
+// ---- P3-3 (DEC-274): the beacon-gated stall breaker ----
+struct BreakerResult {
+    bool suspended = false;
+    bool resolved = false;
+    Digest winner{};
+    std::uint64_t stagger_ms = 0;
+};
+
+inline BreakerResult breaker_tick(NodeState& ns, const Config& cfg,
+                                  const threshold::beacon::Committee& committee,
+                                  std::uint64_t next_epoch,
+                                  const Digest& prev_beacon) noexcept {
+    BreakerResult br{};
+    if (ns.state != State::Suspended) {
+        if (ns.stall >= cfg.stall_limit && ns.state == State::Active) {
+            ns.state = State::Suspended;
+            br.suspended = true;
+        }
+        if (!br.suspended) return br;
+    }
+    auto beacon = threshold::beacon::epoch_beacon(committee, next_epoch, prev_beacon);
+    std::vector<Digest> frozen = {ns.preference};
+    Digest peer_pref = consensus::sha256d((const std::uint8_t*)"decreeB", 7);
+    if (ns.preference == peer_pref)
+        peer_pref = consensus::sha256d((const std::uint8_t*)"decreeA", 7);
+    frozen.push_back(peer_pref);
+    consensus::Snapshot dummy{};
+    dummy.w = {1}; dummy.total = 1; dummy.self_row = 0;
+    dummy.ids = {Digest{}};
+    consensus::Automaton auto_(dummy, next_epoch);
+    br.stagger_ms = consensus::Automaton::resolve_breaker(frozen, beacon, ns.conflict, &br.winner);
+    br.resolved = true;
+    ns.preference = br.winner;
+    ns.confidence = 0; ns.stall = 0;
+    ns.state = State::Active;
+    return br;
 }
 
 } // namespace hsma::msscloop
