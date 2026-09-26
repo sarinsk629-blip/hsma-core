@@ -3566,3 +3566,36 @@ pipeline regenerates.
 | README numbers | 195/267/208 synced |
 **Build status:** P3-0a-c CLOSED. The repository is now the complete,
 self-describing record. NEXT: P3-0b - the MSSC design contract.
+
+---
+## SECTION 24 - P3-0a-d: Module Documentation + The Last Strays (2026-09-26)
+#### DEC-269 - The interface modules documented; the extraction's true tail
+**Decision:** (1) The five libhsma_* INTERFACE libraries documented
+(fp/smt/mempool/consensus/fold, each a README.md stating header
+membership, proving gates, dependency chain; hsma_numcore remains its
+own INTERFACE target per CMakeLists:75). The folders are CMake
+interface targets by design - headers live in include/hsma/ per the
+include convention; the READMEs are the navigation layer. (2) The
+CA-R197 sweep (git ls-files --others) ground truth: exactly ONE
+untracked-not-ignored item existed (.github/workflows/.gitkeep).
+Moved: bridge_stage1/2.json (DEC-219..221) -> attic/; the bilingual
+probe transcripts (ep_py/ep_cpp/sprobe/ab/taupy/p27) -> attic/
+bilingual_transcripts/ - methodology evidence preserved. DEF-211
+owned: I drafted a claim that ref_pasta_pasta-curves.rs was 'missed'
+and moved - the file NEVER existed in build/ (it lives in docs/refs/
+since the BLS-era extraction); the assert refused the
+message-vs-diff contradiction. DEF-209 recurrence caught: git add -A
+re-staged the workflows .gitkeep (PAT lacks workflow scope); removed
+from staging AND disk - the dir stays invisible until P3-0c lands a
+real CI workflow after the token gains workflow scope.
+**CA-R197:** Completeness is verified by git ls-files --others
+--exclude-standard, never by recall of a tree listing.
+**THE RECEIPT (staged-set asserted):**
+| Check | Result |
+|---|---|
+| module READMEs | 5/5 |
+| bridge stages + 8 transcripts | attic/ |
+| pasta ref | already tracked in docs/refs/ (DEF-211: claim retracted) |
+| workflow-scope landmine | 0 staged |
+**Build status:** P3-0a-d CLOSED. NEXT: P3-0b - the MSSC design
+contract (whitepaper section 3).
