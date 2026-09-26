@@ -61,7 +61,7 @@ int main() {
         auto T2 = T; T2.evals[1][1] = fe_add(T2.evals[1][1], fp::fe_one());
         CHECK(sc::verify(T2, gfe(golden::G19S_C2)) == 1u, "sc2 eval-tamper REJECTED @1");
         auto T3 = T; T3.fa = fe_add(T3.fa, fp::fe_one());
-        CHECK(sc::verify(T3, gfe(golden::G19S_C2)) == 4u, "sc2 final-tamper REJECTED @final");
+        CHECK(sc::verify(T3, gfe(golden::G19S_C2)) == 5u, "sc2 final-tamper REJECTED @final (nv+1 sentinel, DEF-206)");
     }
     { // sc3: d=2, nv=3
         auto A = garr<8>(golden::G19S_A3);

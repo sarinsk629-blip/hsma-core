@@ -28,7 +28,8 @@ grep -q "CMake Error" "$cfg" && { cat "$cfg"; echo "✗ CONFIG ERRORS"; exit 1; 
 echo "   clean"
 
 echo "── [2/4] build (CLEAN-FIRST — no ghosts survive) ──"
-cmake --build build 2>&1 | tee /dev/stderr | grep -q "ninja: build stopped" && { echo "✗ BUILD FAILED (CA-R151)"; exit 1; }
+cmake --build build 2>&1 | tee /dev/stderr | tee build/.gate_build.log | grep -q "ninja: build stopped" && { echo "✗ BUILD FAILED (CA-R151)"; exit 1; }
+grep -q "FAILED:" build/.gate_build.log && { echo "✗ FAILED TARGET in build (CA-R191: any FAILED target fails the gate)"; exit 1; }
 for t in test_step17 test_step33 test_step34; do
   [ -x "build/$t" ] || { echo "✗ BUILD INCOMPLETE: $t missing (CA-R151)"; exit 1; }
 done

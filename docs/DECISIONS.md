@@ -3471,3 +3471,61 @@ diff to be reviewed, not a rebuild to be trusted.
 phi_floor=0.50, DEC-016 canonical vote preimage, beacon-gated
 breaker) against the proven substrate (consensus.hpp automaton,
 g1net.hpp sampler, threshold beacon/sig).
+
+---
+## SECTION 24 - P3-0a-erratum: The Extraction, Corrected (2026-09-24)
+#### DEC-266 - Five defects in the extraction arc; the golden's identity restored
+**Decision:** DEF-199: the DEC-265 close-out published past a FAILED
+derive (CA-R191: one-block close-outs, git only in success paths).
+DEF-200: [DET3] printed PROVEN over failed gates - instruments gate on
+preconditions. DEF-201: gen_common composed BUILD_GEN via os.path.join
+- invisible to the literal sweep (CA-R190: migrations sweep
+compositions). DEF-202: a walrus-misplaced assert killed the first
+DEC-266 attempt (parse-time; safe direction). DEF-203+205: the lint
+matched the WORD 'float' inside comments (failing silently since
+P2-01, until the CA-R191 tripwire's first catch); the escaping-layer
+patch collision killed a first fix (CA-R193: small files are written
+whole). Gate integrity: FAILED-target tripwire added; smt split-home
+refs conformed (CA-R189: one home). DEF-208: commit 875597c swept up
+a STALE epoch_golden - the DEC-210/step17-format golden (G17F_*, 999B)
+under the name of the DEC-232/P1-13b golden (EP_*: fold witnesses,
+OOD points, wrap commitments, 5337B). [D3]: the only drifter among
+41. Correction: the twice-regenerated, gate-validated EP_* file is
+committed; the shipped G17F copy is ruled a botched-run fossil (its
+proper sibling epoch17_golden.hpp carries the G17F constants).
+**CA-R190:** A path migration sweeps compositions, not just literals.
+**CA-R191:** A close-out is one block; a FAILED target fails the gate.
+**CA-R192:** Detectors separate tokens from claims.
+**CA-R193:** Small files are written whole, never patched through
+substitution layers.
+**CA-R194:** A 'supersedes' claim triggers a consumer audit of the
+superseded convention.
+**CA-R195:** A golden's identity is judged against its generator and
+consumers, not against a prior snapshot - staleness hides as
+familiarity; compare content eras, not sizes.
+**THE RECEIPT (two green gates, precondition-gated):**
+| Check | Result |
+|---|---|
+| gate | GATE GREEN, zero FAILED, twice |
+| two-run regeneration | 41 goldens byte-identical |
+| epoch_golden | DEC-232 EP_* format, gate-validated, diff reviewed (CA-R189) |
+
+---
+## SECTION 24 - P3-0a-b: The Stale Assertion (2026-09-24)
+#### DEC-267 - step19 enshrined DEF-163's collision; the stale binary slept through six gates
+**Decision:** DEF-206: test_step19's final-tamper assertion expected
+== nv (the ACCEPT code) on a tampered-final transcript - it ENCODED
+DEF-163's collision as correct behavior. The DEC-246 fix (nv+1
+sentinel) made the assertion fail on first contact with a fresh
+binary; conformed to the sentinel. DEF-207: the contradiction slept
+through all intermediate 34/34 gates - only consistent with a stale
+test_step19 binary; the migration's forced rebuild exposed it
+(rebuild-tracking mechanism under-determined, recorded as such).
+Receipt correction: intermediate gates did not exercise the fixed
+engine at step19 level; pouwprobe [G4] was the only live proof.
+**THE RECEIPT:** step19 ALL GREEN on the fixed engine; full gate 34/34
+twice.
+**Build status:** P3-0a CLOSED with verified receipts. 208 defects
+owned. NEXT: P3-0b - the MSSC design contract (whitepaper section 3:
+k=20->40, alpha=0.75, beta=150, phi_floor=0.50, DEC-016 vote preimage,
+beacon-gated breaker) against consensus.hpp / g1net.hpp / threshold.

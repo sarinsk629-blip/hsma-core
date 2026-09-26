@@ -34,7 +34,7 @@ enable_testing()
 add_test(NAME contract_identity COMMAND params_probe)
 
 # ══ Step 2: generated constants + field/numeric kernels (DEC-102) ══
-set(GEN_DIR ${CMAKE_BINARY_DIR}/generated)
+set(GEN_DIR ${CMAKE_SOURCE_DIR}/generated)  # P3-0a: the tracked home (CA-R189: one home)
 file(MAKE_DIRECTORY ${GEN_DIR})
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
@@ -87,10 +87,10 @@ add_dependencies(test_step3 hsma_generated)
 add_test(NAME step3_conformance COMMAND test_step3)
 
 # ══ Step 4: state vault (DEC-111..113) ══
-set(GEN_OUTPUTS ${GEN_OUTPUTS} ${CMAKE_BINARY_DIR}/generated/smt_golden.hpp)
+set(GEN_OUTPUTS ${GEN_OUTPUTS} ${CMAKE_SOURCE_DIR}/generated/smt_golden.hpp)
 
 add_library(hsma_smt INTERFACE)
-target_include_directories(hsma_smt INTERFACE ${CMAKE_BINARY_DIR}/generated
+target_include_directories(hsma_smt INTERFACE ${CMAKE_SOURCE_DIR}/generated
     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(hsma_smt INTERFACE hsma_fp hsma_params)
 
