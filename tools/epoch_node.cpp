@@ -12,6 +12,9 @@
 #include <hsma/whir.hpp>
 #include <hsma/explorer.hpp>
 #include <hsma/pouw.hpp>
+#include <hsma/msscvote.hpp>
+#include <hsma/threshold/dkg.hpp>
+#include <hsma/threshold/g2.hpp>
 #include "fexec_golden.hpp"
 #include "pallas_params_gen.hpp"
 #include <cstdio>
@@ -31,6 +34,10 @@ static constexpr unsigned K_ENTRIES = 10;
 static mfold::SparseMat A, B, C;
 static mfold::Relaxed accumulator;
 static std::vector<std::array<std::uint64_t,4>> digest_chain;
+// P3-1b (DEC-271): the test committee. HONEST SCOPE: the poly is a PUBLIC
+// test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
+static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
+static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
 static const char* pouw_verify = "PENDING";
@@ -232,6 +239,19 @@ int main(int argc, char* argv[]) {
     std::array<std::uint64_t,4> d0{};
     d0[0] = 1000; d0[1] = 2000;
     digest_chain.push_back(d0);
+
+    // P3-1b: derive the test committee publics
+    {   threshold::Fr c1{}, c2{}, c3{};
+        if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
+            || !threshold::fr_from_u64(c3, 0x33)) { std::fprintf(stderr, "FATAL: fr init\n"); return 1; }
+        g_test_poly.c = {c1, c2, c3};
+        for (std::uint64_t j = 1; j <= 3; ++j) {
+            threshold::Fr sj = threshold::dkg::share_for(g_test_poly, j);
+            threshold::mont::fe6 k{}; threshold::fr_to_fe6(sj, k);
+            g_members.push_back({j, threshold::g2::Pmul(threshold::g2::gen(), k)});
+        }
+        std::printf("[vote] test committee registered: 3 members\n");
+    }
     
     // the initial accumulator: fresh with d0->d1
     auto d1 = next_digest(d0, 0);
@@ -420,7 +440,38 @@ int main(int argc, char* argv[]) {
             if (FD_ISSET(peer_fds[i], &read_set)) {
                 p2p::Message msg;
                 if (p2p::recv_message(peer_fds[i], msg)) {
-                    if (msg.type == p2p::EPOCH_HEADER) {
+                        std::printf("[recv] type=%u size=%zu\n", msg.type, msg.payload.size());
+                    if (msg.type == 0x06) {
+                        // P3-1b (DEC-271): the MSSC vote wire path
+                        auto dv = msscvote::decode_vote(msg);
+                        std::printf("[voted] ok=%d epoch=%u round=%llu\n",
+                            (int)dv.ok, dv.epoch, (unsigned long long)dv.round);
+                        bool accepted = false; std::uint64_t member = 0;
+                        if (dv.ok) {
+                            auto pre = msscvote::vote_preimage(dv.epoch, dv.weight_root,
+                                                               dv.conflict, dv.round, dv.preference);
+                            std::printf("[voted] members=%zu\n", g_members.size());
+                            for (const auto& [jid, Y] : g_members) {
+                                // DEF-219: bls_verify_aff crashes on edge-case Y (z=0 etc) -
+                                // pre-validate: the G2 point must not be infinity
+                                if (threshold::g2::is_inf(Y)) {
+                                    std::printf("[voted] member %llu: Y is INF - skip\n",
+                                        (unsigned long long)jid);
+                                    continue;
+                                }
+                                const bool v = msscvote::verify_vote(dv.sigma, pre, Y);
+                                std::printf("[voted] member %llu verify=%d\n",
+                                    (unsigned long long)jid, (int)v);
+                                if (v) { accepted = true; member = jid; break; }
+                            }
+                        } else {
+                            std::printf("[voted] DECODE FAILED\n");
+                        }
+                        if (accepted)
+                            std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
+                        else
+                            std::printf("[vote] REJECT (bad signature or unknown member)\n");
+                    } else if (msg.type == p2p::EPOCH_HEADER) {
                         std::printf("[epoch] received epoch header from peer\n");
 
                         // P2-07 (DEC-253): weight consensus by deterministic recomputation.

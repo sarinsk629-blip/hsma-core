@@ -3631,3 +3631,51 @@ each documented in .gitignore.
 | build/ residue | binaries + cmake only |
 **Build status:** P3-0a-e CLOSED. NEXT: P3-0b - the MSSC design
 contract (whitepaper section 3).
+
+---
+## SECTION 25 - P3-1: The MSSC Vote Wire Layer (2026-09-26)
+#### DEC-271 - Phase 3 opens: the canonical vote crosses the wire, signed and verified
+**Decision:** include/hsma/msscvote.hpp - the DEC-016 canonical vote
+preimage (epoch u32 BE || weight_root 32 || conflict 32 || preference
+32 || round u64 BE = 108 bytes; NO prover-discretionary bytes),
+threshold-BLS signing (hash_to_g1 + sig::partial), per-member pairing
+verification (bls_verify_aff, the m2::verify_attest pattern), and a
+type-0x06 wire format (204 bytes) with encode/decode sharing ONE named
+layout (OFF_* constants). tools/votecast.cpp casts (member-1 share of
+the PUBLIC test poly {0x11,0x22,0x33}); epoch_node registers the
+committee and verifies on dispatch.
+**Defects owned (212-218, seven):** DEF-212 phantom 109th byte (size
+asserted before [E17] measured: 108); DEF-213 encode/decode offset
+drift (two hand-maintained layout tables; fixed by the named-constants
+law); DEF-215 wrong Poly home (threshold::Poly, poly.hpp:10); DEF-216
+substring collision (threshold::threshold::mont); DEF-217 votecast
+never created (CA-R193 write-whole); DEF-218 the REJECT printf carried
+a literal backslash-n from the escaping layer - the line printed with
+garbage and grep missed it; DEF-219(harness) the settle windows (2s/3s)
+expired before member-3's pairing finished - three pairings at ~2s
+each on phone hardware; [E24]'s z-coordinate check REFUTED the hang
+hypothesis (all three Y_j valid, standalone member-3 pairing completes
+exit 0) before any code shipped.
+**Laws:** **CA-R198:** a wire format has exactly one layout definition;
+encode and decode consume it. **CA-R199:** every dispatched message
+class prints its fate; printf-density is the instrument when a branch
+produces no output. **CA-R200:** timing windows are measured from the
+receipts, not estimated - [E24] measured the pairing cost; the settle
+windows must exceed it.
+**THE RECEIPT (derived from v_final2.log):**
+| Gate | Result |
+|---|---|
+| [V1] preimage deterministic 108B | YES |
+| [V2] preference discipline | YES |
+| [V3] sign/verify roundtrip | YES |
+| [V4] tampered preimage REJECTED | YES |
+| [V5] wire roundtrip | YES |
+| [G8+] honest vote | VERIFIED from member 1 (epoch 7, round 3) |
+| [G8-] tampered vote | REJECT |
+**Honest boundary:** fixed PUBLIC test committee; single conflict set;
+per-member pairing (O(N) - the aggregate-verify optimization is P3-2's
+first prework, sig::aggregate is the proven substrate); aggregation +
+tally = P3-2; WAN resolution + beacon sealing = P3-3/P3-4.
+**Build status:** P3-1 CLOSED - the agreement layer has its first
+wire-real organ. 219 defects owned. NEXT: P3-2 - the sampling loop
+(k queries, alpha tallies, beta confidence).
