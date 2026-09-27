@@ -3845,3 +3845,36 @@ CA-R167's first-clone-experience law now has a second data point: the
 fresh clone is not just a UX test, it is a CORRECTNESS test.
 **Build status:** DEF-222 CLOSED. The MSSC loop is float-free.
 NEXT: the fresh clone confirms GATE GREEN on GitHub HEAD.
+
+---
+## SECTION 26 - P4-1: The Encrypted Mempool Envelope (2026-09-27)
+#### DEC-277 - The Commit-then-Simulate envelope roundtrip: encrypt, wire, committee-decrypt
+**Decision:** include/hsma/m2envelope.hpp - the encrypted mempool
+envelope: the sender picks r, computes R=[r]G2gen and ss=[r]X_E, derives
+the DEM key via kdf(ss, ser_g2(X_E), hdr), encrypts via dem_encrypt
+(6-arg: ct, tag, k, hdr, payload, len), and gossips the envelope
+{R(192B LE), ct_len(4BE), ct, tag(32), cth(32)} as p2p type 0x07.
+The committee decrypts: D_j = dec_share(s_j_canon, R) per member,
+aggregate (1-of-1: Ds[0]; k-of-n: Lagrange-weighted, P4-2), kdf, dem_decrypt.
+**Defects owned:** DEF-223 (the endianness seam): ser_g2 writes
+LITTLE-ENDIAN per limb (b=0 is the LSB, m2.hpp:31 out[i*48+k*8+b] =
+c[i][k] >> (8*b)) but decode_envelope read BIG-ENDIAN - the deserialized
+R was valid-looking but mathematically wrong. Found by the R-roundtrip
+check ([E2R]: DIFFERS before, SAME after). **CA-R202:** a serialization
+format's byte order is part of its contract; the serializer and
+deserializer must agree per limb, not just per structure.
+**THE RECEIPT (from m2probe):**
+| Gate | Result |
+|---|---|
+| [E1] the ciphertext is NOT the payload | YES |
+| [E2] wire roundtrip (encode → decode) | YES |
+| [E2R] R roundtrip (after the LE fix) | SAME |
+| [E3] committee decrypt: tag_ok + payload_match | YES |
+| [E4] tampered ct REJECTED (the DEM tag) | YES |
+| [E5] non-member CANNOT decrypt | YES |
+**Honest scope:** 1-of-1 committee (degree-0 poly — all shares equal
+the secret; the k-of-n threshold with lagrange_zero is P4-2's scope).
+The encrypt() function's env.R is computed after ct_hash consumes it —
+the probe's inline path bypasses it; the API reorder is P4-2 prework.
+**Build status:** P4-1 CLOSED. NEXT: P4-2 (the ordering lock + the
+threshold k-of-n decrypt) or the epoch_node integration.
