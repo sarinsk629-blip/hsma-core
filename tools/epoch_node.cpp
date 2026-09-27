@@ -14,6 +14,8 @@
 #include <hsma/pouw.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
+#include <hsma/threshold/beacon.hpp>
+#include <hsma/threshold/dkg.hpp>
 #include <map>
 #include <chrono>
 #include <hsma/threshold/dkg.hpp>
