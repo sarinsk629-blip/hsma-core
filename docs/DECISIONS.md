@@ -3878,3 +3878,37 @@ The encrypt() function's env.R is computed after ct_hash consumes it —
 the probe's inline path bypasses it; the API reorder is P4-2 prework.
 **Build status:** P4-1 CLOSED. NEXT: P4-2 (the ordering lock + the
 threshold k-of-n decrypt) or the epoch_node integration.
+
+---
+## SECTION 26 - P4-2: The Ordering Lock + The Threshold Decrypt (2026-09-27)
+#### DEC-278 - The zero-MEV guarantee: ordering-before-knowledge + threshold confidentiality
+**Decision:** tools/p42probe.cpp proves two properties. (1) THE ORDERING
+LOCK: 3 encrypted envelopes sorted by sort_key(beacon, ct_hash), the
+order_root committed via order_root(sorted_cths) — deterministic
+([O2]), beacon-bound ([T4]: a different beacon produces a different
+order). The order is irreversible BEFORE any decryption share exists.
+(2) THE THRESHOLD k-of-n: a degree-1 poly {0x11, 0x22} gives each
+member a DIFFERENT share (s₁=0x33, s₂=0x55, s₃=0x77). Any 2 shares
+reconstruct via lagrange_zero + aggregate_shares ([T1]: {1,2}, [T2]:
+{2,3}); 1 share CANNOT ([T3]).
+**The degree poly lesson:** a degree-0 poly (P4-1's scope) makes all
+shares equal — 1 member CAN decrypt. A degree-2 poly needs all 3
+shares (2 points on a quadratic give a wrong line). **The degree-1
+poly is the 2-of-3 threshold:** any 2 points determine the line,
+poly(0) is the secret. The degree must match the threshold: t = degree.
+**THE RECEIPT:**
+| Gate | Result |
+|---|---|
+| [O1] order_root committed | YES |
+| [O2] deterministic | YES |
+| [T1] 2-of-3 {1,2} decrypts | YES |
+| [T2] 2-of-3 {2,3} decrypts | YES |
+| [T3] 1-of-3 cannot | YES (the threshold property) |
+| [T4] beacon-bound ordering | YES |
+**Rationale:** The zero-MEV guarantee is now cryptographically complete:
+ordering-before-knowledge (INV-M2-1) + threshold confidentiality
+(no single member or colluding minority below k can read the payload).
+Together with P4-1's envelope encryption, the Commit-then-Simulate
+ceremony's core properties are proven at the crypto layer.
+**Build status:** P4-2 CLOSED. NEXT: P4-3 (the epoch_node integration:
+envelopes in the gossip loop) or the P4-4 capstone.
