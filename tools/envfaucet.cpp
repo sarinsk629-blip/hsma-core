@@ -9,12 +9,26 @@
 #include <cstring>
 using namespace hsma;
 
+static threshold::Poly g_test_poly_local() {
+    threshold::Fr c1{}, c2{}, c3{};
+    threshold::fr_from_u64(c1, 0x11); threshold::fr_from_u64(c2, 0x22); threshold::fr_from_u64(c3, 0x33);
+    threshold::Poly p; p.c = {c1, c2, c3};
+    return p;
+}
+
 int main(int argc, char** argv) {
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
     int port = argc > 2 ? atoi(argv[2]) : 31233;
-    // X_E = [0x11]G2gen (the degree-0 secret from P4-1/P4-2)
-    threshold::Fr s{}; threshold::fr_from_u64(s, 0x11);
-    threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s, sk);
+    // X_E = [0x11]G2gen — MUST match the node's g_test_poly.c[0]
+    // (the node's g_test_poly = {0x11, 0x22, 0x33} degree-2)
+    // the SECRET is c[0] = 0x11; X_E = [0x11]G2gen
+    // the node's dec_share uses g_own_share = share_for(g_test_poly, member)
+    // for a degree-2 poly, share_for(1) = 0x11 + 0x22 + 0x33 = 0x66 ≠ 0x11
+    // THE MISMATCH: the node's share ≠ the secret
+    // FIX: the envfaucet encrypts under X_E = [share_for(poly, 1)]·G2gen
+    // (= the node's actual share as member 1), so the node's dec_share matches
+    threshold::Fr s1 = threshold::dkg::share_for(g_test_poly_local(), 1);
+    threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s1, sk);
     auto X_E = threshold::g2::Pmul(threshold::g2::gen(), sk);
 
     int fd = p2p::connect_peer(0x7F000001, (std::uint16_t)port);
@@ -35,6 +49,22 @@ int main(int argc, char** argv) {
         { std::uint8_t snd[32] = {}; threshold::m2::ser_hdr(hdr, 7, snd, i, 100); }
         std::uint8_t k[32];
         threshold::m2::kdf(k, ss_b.data(), xe_b.data(), hdr);
+        std::printf("[dbg-sender] xe: ");
+        for (int i = 0; i < 8; ++i) std::printf("%02x", xe_b[i]);
+        std::printf("\n");
+        std::printf("[dbg-sender] ss_full: ");
+        for (int i = 0; i < 192; ++i) std::printf("%02x", ss_b[i]);
+        std::printf("\n");
+        std::printf("[dbg-sender] hdr_full: ");
+        for (int i = 0; i < 56; ++i) std::printf("%02x", hdr[i]);
+        std::printf("\n");
+        std::printf("[dbg-sender] ss: ");
+        for (int i = 0; i < 8; ++i) std::printf("%02x", ss_b[i]);
+        std::printf(" | hdr: ");
+        for (int i = 0; i < 8; ++i) std::printf("%02x", hdr[i]);
+        std::printf(" | k: ");
+        for (int i = 0; i < 4; ++i) std::printf("%02x", k[i]);
+        std::printf("\n");
         m2env::Envelope env;
         env.R = R_pt;
         env.ct = pl;

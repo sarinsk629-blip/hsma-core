@@ -60,6 +60,7 @@ struct MempoolEntry {
 static std::vector<MempoolEntry> g_mempool;
 static std::vector<std::vector<std::uint8_t>> g_dec_shares;  // our shares per envelope
 static std::uint8_t g_order_root[32] = {};
+static threshold::g2::G2Pt g_xe;   // the committee's aggregate public key
 static bool g_order_committed = false;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
@@ -287,6 +288,14 @@ int main(int argc, char* argv[]) {
         else
             g_mssc.peers.push_back({0x7F000001, 31233, 60});
         g_last_tick = std::chrono::steady_clock::now();
+        // P4-3b: X_E = [secret]G2gen (the degree-0 poly's constant term)
+        {
+            // P4-3b fix: g_xe = [our_share]G2gen — matches the envfaucet's X_E
+            // (the envfaucet encrypts under share_for(poly, 1), and the node IS member 1)
+            threshold::Fr own_s = threshold::dkg::share_for(g_test_poly, g_self_member);
+            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(own_s, sk_fe6);
+            g_xe = threshold::g2::Pmul(threshold::g2::gen(), sk_fe6);
+        }
         std::printf("[mssc] member %u: weight %llu, initial pref %s\n",
             g_self_member, (unsigned long long)g_mssc.self_weight, pref_str);
     }
@@ -580,6 +589,71 @@ int main(int argc, char* argv[]) {
                                 std::printf("[mempool] ORDER COMMITTED: root=");
                                 for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
                                 std::printf("\n");
+                                // P4-3b: the threshold decrypt — our share IS the secret (1-of-1)
+                                for (std::size_t ei = 0; ei < g_mempool.size(); ++ei) {
+                                    auto& me = g_mempool[ei];
+                                    if (me.decrypted) continue;
+                                    // deserialize our stored dec_share
+                                    auto& dsb = g_dec_shares[ei];
+                                    std::uint64_t da[6], db[6], ya[6], yb[6];
+                                    for (int i = 0; i < 6; ++i) { da[i]=0; db[i]=0; ya[i]=0; yb[i]=0;
+                                        for (int b = 0; b < 8; ++b) {
+                                            da[i] |= (std::uint64_t)dsb[i*8+b] << (8*b);
+                                            db[i] |= (std::uint64_t)dsb[48+i*8+b] << (8*b);
+                                            ya[i] |= (std::uint64_t)dsb[96+i*8+b] << (8*b);
+                                            yb[i] |= (std::uint64_t)dsb[144+i*8+b] << (8*b);
+                                        } }
+                                    auto D_agg = threshold::g2::from_affine(da, db, ya, yb);
+                                    // the DEM key
+                                    auto ss_b = m2env::pt_to_bytes(D_agg);
+                                    auto xe_b = m2env::pt_to_bytes(g_xe);
+                                    std::uint8_t hdr[56] = {};
+                                    // P4-3b fix: the hdr must match the envfaucet's LOCAL hdr
+                                    // (nonce=ei since the envfaucet uses nonce=i for envelope i,
+                                    //  fee=100 since the envfaucet uses fee=100)
+                                    { std::uint8_t snd[32] = {}; threshold::m2::ser_hdr(hdr, 7, snd, (std::uint64_t)ei, 100); }
+                                    std::uint8_t k[32];
+                                    threshold::m2::kdf(k, ss_b.data(), xe_b.data(), hdr);
+                                    // DEF-224 debug: the byte-level trace
+                                    std::printf("[dbg-node] xe: ");
+                                    for (int i = 0; i < 8; ++i) std::printf("%02x", xe_b[i]);
+                                    std::printf("\n");
+                                    std::printf("[dbg-node] ss_full: ");
+                                    for (int i = 0; i < 192; ++i) std::printf("%02x", ss_b[i]);
+                                    std::printf("\n");
+                                    std::printf("[dbg-node] hdr_full: ");
+                                    for (int i = 0; i < 56; ++i) std::printf("%02x", hdr[i]);
+                                    std::printf("\n");
+                                    std::printf("[dbg] D_agg: "); 
+                                    for (int i = 0; i < 8; ++i) std::printf("%02x", ss_b[i]);
+                                    std::printf(" | hdr: ");
+                                    for (int i = 0; i < 8; ++i) std::printf("%02x", hdr[i]);
+                                    std::printf(" | k: ");
+                                    for (int i = 0; i < 4; ++i) std::printf("%02x", k[i]);
+                                    std::printf("\n");
+                                    // the decryption
+                                    std::vector<std::uint8_t> pl;
+                                    bool ok = threshold::m2::dem_decrypt(pl, k, hdr,
+                                        me.env.ct.data(), me.env.ct.size(), me.env.tag);
+                                    if (ok) {
+                                        me.decrypted = true;
+                                        me.payload = pl;
+                                        pl.push_back('\n');
+                                        std::printf("[decrypt] envelope %zu: \"%s\" (tag OK)\n",
+                                            ei, std::string(pl.begin(), pl.end()-1).c_str());
+                                        // feed the fold pipeline
+                                        std::vector<std::uint8_t> decree_payload(pl.begin(), pl.end()-1);
+                                        if (decree_payload.size() >= 32) {
+                                            handle_decree(decree_payload);
+                                        } else {
+                                            // pad to 32 bytes for the digest
+                                            while (decree_payload.size() < 32) decree_payload.push_back(0);
+                                            handle_decree(decree_payload);
+                                        }
+                                    } else {
+                                        std::printf("[decrypt] envelope %zu: TAG FAILED\n", ei);
+                                    }
+                                }
                             }
                         }
                     } else if (msg.type == p2p::EPOCH_HEADER) {

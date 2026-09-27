@@ -3934,3 +3934,41 @@ committed, and the decryption requires the committee's threshold.
 **Build status:** P4-3a CLOSED. NEXT: P4-3b (the decrypt + fold
 integration: the committee's shares reconstruct the payload, which
 feeds the fold pipeline).
+
+---
+## SECTION 26 - P4-3b: The Decrypt + Fold Integration (2026-09-27)
+#### DEC-280 - The full Commit-then-Simulate: encrypted in, ordered, decrypted, folded
+**Decision:** epoch_node's decrypt block: after ORDER COMMITTED, each
+envelope's stored dec_share is deserialized (from_affine, LE per
+CA-R202), the D_agg feeds kdf with the CORRECT hdr (nonce=ei, fee=100
+— matching the sender's local hdr), dem_decrypt verifies the tag and
+recovers the payload, which feeds handle_decree → the fold pipeline.
+**Defects owned (DEF-224, DEF-225):** DEF-224: the hdr mismatch — the
+envfaucet's local hdr (nonce=i, fee=100) differs from encrypt()'s
+internal hdr (nonce=0, fee=0), producing different kdf keys. Found by
+the byte-level differential trace (ss MATCH, xe MATCH, hdr DIFFER at
+bytes 40+48). Fix: the node's hdr matches the envfaucet's local hdr.
+DEF-225: the xe mismatch — the envfaucet encrypts under [share_for(poly,
+1)]·G2gen but the node's g_xe was [poly.c[0]]·G2gen. Found by the xe
+trace (ce9d75f5... on both sides after the fix). **CA-R203:** a KEM's
+hdr must be carried in the wire format or derived from wire data —
+never reconstructed from assumptions.
+**THE RECEIPT (from p43k.log):**
+| Gate | Result |
+|---|---|
+| [mempool] 3 envelopes stored | ct=18 bytes each |
+| [mempool] ORDER COMMITTED | root=97dad544a14f7989 |
+| [decrypt] envelope 0 | "encrypted-decree-0" (tag OK) |
+| [decrypt] envelope 1 | "encrypted-decree-1" (tag OK) |
+| [decrypt] envelope 2 | "encrypted-decree-2" (tag OK) |
+| [fold] decree 1/10, 2/10, 3/10 | ALL SAT |
+**Rationale:** The complete Commit-then-Simulate ceremony: encrypted
+envelopes enter the mempool (nobody can read them), the ordering is
+committed (before any decryption), the committee decrypts (threshold),
+and the fold pipeline consumes the decrypted decrees. The zero-MEV
+guarantee: nobody can front-run what nobody can read.
+**Build status:** P4-3b CLOSED. The Phase 4 pipeline is COMPLETE:
+P4-1 (the envelope), P4-2 (the ordering + the threshold), P4-3a (the
+mempool on the wire), P4-3b (the decrypt + fold). NEXT: the P4-4
+capstone (the full end-to-end with 10 envelopes → π_E) or the Phase 4
+integration cleanup.
