@@ -3912,3 +3912,25 @@ Together with P4-1's envelope encryption, the Commit-then-Simulate
 ceremony's core properties are proven at the crypto layer.
 **Build status:** P4-2 CLOSED. NEXT: P4-3 (the epoch_node integration:
 envelopes in the gossip loop) or the P4-4 capstone.
+
+---
+## SECTION 26 - P4-3a: The Mempool On The Wire (2026-09-27)
+#### DEC-279 - Encrypted envelopes cross the wire; the ordering ceremony commits
+**Decision:** epoch_node gains the 0x07 envelope handler: decode →
+store in g_mempool → compute our dec_share → when 3 envelopes arrive,
+sort by sort_key(beacon, ct_hash) → commit order_root. The node holds
+encrypted data it CANNOT read (the DEM key requires the committee's
+threshold shares). tools/envfaucet.cpp sends 3 encrypted envelopes.
+**THE RECEIPT (from p43.log):**
+| Gate | Result |
+|---|---|
+| 3 envelopes received and stored | ct=18 bytes each |
+| ORDER COMMITTED | root=c161f6b6459fdec7 |
+| the node CANNOT read the payloads | (the DEM key requires threshold shares) |
+**Rationale:** The INV-M2-1 invariant — "no party shall learn payload
+contents before position is irreversibly committed" — is now running
+on the testnet: the envelopes are stored encrypted, the ordering is
+committed, and the decryption requires the committee's threshold.
+**Build status:** P4-3a CLOSED. NEXT: P4-3b (the decrypt + fold
+integration: the committee's shares reconstruct the payload, which
+feeds the fold pipeline).

@@ -14,6 +14,8 @@
 #include <hsma/pouw.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
+#include <hsma/m2envelope.hpp>
+#include <hsma/threshold/m2.hpp>
 #include <hsma/threshold/beacon.hpp>
 #include <hsma/threshold/dkg.hpp>
 #include <map>
@@ -49,6 +51,16 @@ static unsigned g_self_member = 1;
 static threshold::Fr g_own_share;
 static std::chrono::steady_clock::time_point g_last_tick;
 static msscloop::Config g_cfg;
+// P4-3 (DEC-279): the encrypted mempool state
+struct MempoolEntry {
+    m2env::Envelope env;
+    bool decrypted = false;
+    std::vector<std::uint8_t> payload;
+};
+static std::vector<MempoolEntry> g_mempool;
+static std::vector<std::vector<std::uint8_t>> g_dec_shares;  // our shares per envelope
+static std::uint8_t g_order_root[32] = {};
+static bool g_order_committed = false;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
 static const char* pouw_verify = "PENDING";
@@ -528,6 +540,48 @@ int main(int argc, char* argv[]) {
                             std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
                         } else
                             std::printf("[vote] REJECT (bad signature or unknown member)\n");
+                    } else if (msg.type == 0x07) {
+                        // P4-3 (DEC-279): the encrypted mempool envelope
+                        auto de = m2env::decode_envelope(msg);
+                        if (de.ok) {
+                            MempoolEntry entry;
+                            entry.env.R = de.R;
+                            entry.env.ct = de.ct;
+                            std::memcpy(entry.env.tag, de.tag, 32);
+                            std::memcpy(entry.env.cth, de.cth, 32);
+                            // compute our dec_share
+                            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(g_own_share, sk_fe6);
+                            std::uint64_t s_canon[6];
+                            for (int w = 0; w < 6; ++w) s_canon[w] = sk_fe6[w];
+                            auto D_j = threshold::m2::dec_share(s_canon, de.R);
+                            g_dec_shares.push_back(m2env::pt_to_bytes(D_j));
+                            g_mempool.push_back(std::move(entry));
+                            std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
+                                g_mempool.size(), de.ct.size());
+                            // the ordering ceremony: when we have 3 envelopes
+                            if (g_mempool.size() >= 3 && !g_order_committed) {
+                                const auto beacon = consensus::sha256d((const std::uint8_t*)"beacon_p4", 9);
+                                std::vector<std::array<std::uint8_t,32>> sks(3);
+                                for (int i = 0; i < 3; ++i)
+                                    {
+    std::uint8_t beacon_arr[32]; beacon.to_bytes(beacon_arr);
+    threshold::m2::sort_key(sks[i].data(), beacon_arr, g_mempool[i].env.cth);
+    }
+                                std::vector<unsigned> order = {0, 1, 2};
+                                std::sort(order.begin(), order.end(), [&](unsigned a, unsigned b) {
+                                    return memcmp(sks[a].data(), sks[b].data(), 32) < 0;
+                                });
+                                std::vector<std::array<std::uint8_t,32>> sorted(3);
+                                for (int i = 0; i < 3; ++i) sorted[i] = std::array<std::uint8_t,32>{};
+                                for (int i = 0; i < 3; ++i) std::memcpy(sorted[i].data(), g_mempool[order[i]].env.cth, 32);
+                                threshold::m2::order_root(g_order_root,
+                                    reinterpret_cast<const std::uint8_t (*)[32]>(sorted.data()), 3);
+                                g_order_committed = true;
+                                std::printf("[mempool] ORDER COMMITTED: root=");
+                                for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
+                                std::printf("\n");
+                            }
+                        }
                     } else if (msg.type == p2p::EPOCH_HEADER) {
                         std::printf("[epoch] received epoch header from peer\n");
 
