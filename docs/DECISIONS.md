@@ -3972,3 +3972,32 @@ P4-1 (the envelope), P4-2 (the ordering + the threshold), P4-3a (the
 mempool on the wire), P4-3b (the decrypt + fold). NEXT: the P4-4
 capstone (the full end-to-end with 10 envelopes → π_E) or the Phase 4
 integration cleanup.
+
+---
+## SECTION 26 - P4-4: The Capstone — The Full Commit-then-Simulate (2026-09-27)
+#### DEC-281 - 10 encrypted envelopes → ordered → decrypted → folded → π_E → PoUW
+**Decision:** The epoch threshold raised from 3 to K_ENTRIES=10;
+envfaucet sends 10 encrypted envelopes; the ordering ceremony scales
+to 10 (dynamic vectors, not fixed arrays); the decrypt loop covers
+all 10; the fold pipeline consumes the decrypted payloads; π_E epoch 1
+is produced from the DECRYPTED entries; the PoUW derives epoch-1
+weight from the verified computation.
+**THE RECEIPT (from p44.log):**
+| Stage | Result |
+|---|---|
+| 10 encrypted envelopes received | ct=18 bytes each |
+| ORDER COMMITTED | root=7ec2cd4cbe7a8cd5 |
+| 10 threshold decrypts | ALL tag OK ("encrypted-decree-0" through "-9") |
+| 10 folds | ALL SAT (decree 1/10 through 10/10) |
+| π_E epoch 1 | wrap_verify ACCEPT (stage=0) |
+| PoUW epoch 1 | 64³ GEMM ACCEPT, weight 262144 MACs, 1185 ms |
+**Rationale:** The complete Commit-then-Simulate pipeline, end to end:
+encrypted in (nobody can read them) → ordered (before any decryption,
+beacon-shuffled, ungrindable) → decrypted (threshold: the committee's
+shares unlock it) → folded (the π_E compresses the epoch) → PoUW
+(the consensus weight derives from the verified computation). All four
+pillars — PoUW, MSSC, Zero-MEV, HyperNova folding — connected in one
+running system.
+**Build status:** P4-4 CLOSED. THE PHASE 4 CAPSTONE IS DONE.
+The four pillars are integrated. NEXT: the Phase 4 integration cleanup,
+or the next phase.

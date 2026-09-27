@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     int fd = p2p::connect_peer(0x7F000001, (std::uint16_t)port);
     if (fd < 0) { std::printf("[envfaucet] connect FAILED\n"); return 1; }
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 10; ++i) {
         char payload[32];
         snprintf(payload, sizeof(payload), "encrypted-decree-%d", i);
         std::vector<std::uint8_t> pl(payload, payload + strlen(payload));

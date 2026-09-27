@@ -568,23 +568,24 @@ int main(int argc, char* argv[]) {
                             std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
                                 g_mempool.size(), de.ct.size());
                             // the ordering ceremony: when we have 3 envelopes
-                            if (g_mempool.size() >= 3 && !g_order_committed) {
+                            if (g_mempool.size() >= (std::size_t)K_ENTRIES && !g_order_committed) {
                                 const auto beacon = consensus::sha256d((const std::uint8_t*)"beacon_p4", 9);
-                                std::vector<std::array<std::uint8_t,32>> sks(3);
+                                std::vector<std::array<std::uint8_t,32>> sks(g_mempool.size());
                                 for (int i = 0; i < 3; ++i)
                                     {
     std::uint8_t beacon_arr[32]; beacon.to_bytes(beacon_arr);
     threshold::m2::sort_key(sks[i].data(), beacon_arr, g_mempool[i].env.cth);
     }
-                                std::vector<unsigned> order = {0, 1, 2};
+                                std::vector<unsigned> order(g_mempool.size());
+                                for (unsigned oi = 0; oi < g_mempool.size(); ++oi) order[oi] = oi;
                                 std::sort(order.begin(), order.end(), [&](unsigned a, unsigned b) {
                                     return memcmp(sks[a].data(), sks[b].data(), 32) < 0;
                                 });
-                                std::vector<std::array<std::uint8_t,32>> sorted(3);
+                                std::vector<std::array<std::uint8_t,32>> sorted(g_mempool.size());
                                 for (int i = 0; i < 3; ++i) sorted[i] = std::array<std::uint8_t,32>{};
-                                for (int i = 0; i < 3; ++i) std::memcpy(sorted[i].data(), g_mempool[order[i]].env.cth, 32);
+                                for (std::size_t i = 0; i < g_mempool.size(); ++i) std::memcpy(sorted[i].data(), g_mempool[order[i]].env.cth, 32);
                                 threshold::m2::order_root(g_order_root,
-                                    reinterpret_cast<const std::uint8_t (*)[32]>(sorted.data()), 3);
+                                    reinterpret_cast<const std::uint8_t (*)[32]>(sorted.data()), sorted.size());
                                 g_order_committed = true;
                                 std::printf("[mempool] ORDER COMMITTED: root=");
                                 for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
