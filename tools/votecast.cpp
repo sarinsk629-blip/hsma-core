@@ -25,10 +25,10 @@ int main(int argc, char** argv) {
     auto wr = consensus::sha256d((const std::uint8_t*)"wr", 2);
     auto cf = consensus::sha256d((const std::uint8_t*)"cf", 2);
     auto pr = consensus::sha256d((const std::uint8_t*)"prefA", 5);
-    auto pre = msscvote::vote_preimage(7, wr, cf, 3, pr);
+    auto pre = msscvote::vote_preimage(0, wr, cf, 0, pr);  // epoch=0 (match the node)
     if (tamper) pre[4] ^= 0xFF;
     auto sig = msscvote::sign_vote(S1, pre);
-    auto msg = msscvote::encode_vote(7, wr, cf, 3, pr, sig);
+    auto msg = msscvote::encode_vote(0, wr, cf, 0, pr, sig);
     if (msg.payload.size() != msscvote::VOTE_PAYLOAD) { std::printf("[votecast] encode FAILED\n"); return 2; }
 
     // DEF-183's law: host-order ip, htonl inside connect_peer
