@@ -50,6 +50,7 @@ static msscloop::NodeState g_mssc;
 static std::map<std::uint64_t, consensus::Digest> g_peer_prefs;
 static unsigned g_self_member = 1;
 static threshold::Fr g_own_share;
+static threshold::Fr g_env_secret;   // P4-3b: the poly secret for the envelope decrypt
 static std::chrono::steady_clock::time_point g_last_tick;
 static msscloop::Config g_cfg;
 // P4-3 (DEC-279): the encrypted mempool state
@@ -278,7 +279,7 @@ int main(int argc, char* argv[]) {
         std::printf("[vote] test committee registered: 3 members\n");
     }
     {   g_self_member = (my_port == p2p::DEFAULT_PORT) ? 1 : 2;
-        g_own_share = threshold::dkg::share_for(g_test_poly, g_self_member);
+        g_own_share = g_test_poly.c[0];  // P4-3b: the SECRET (degree-0 behavior for the envelope decrypt)
         const char* pref_str = (g_self_member == 1) ? "decreeA" : "decreeB";
         g_mssc.conflict = consensus::sha256d((const std::uint8_t*)"conflict_set_0", 14);
         g_mssc.preference = consensus::sha256d((const std::uint8_t*)pref_str, strlen(pref_str));
@@ -293,9 +294,9 @@ int main(int argc, char* argv[]) {
         {
             // P4-3b fix: g_xe = [our_share]G2gen — matches the envfaucet's X_E
             // (the envfaucet encrypts under share_for(poly, 1), and the node IS member 1)
-            threshold::Fr own_s = threshold::dkg::share_for(g_test_poly, g_self_member);
-            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(own_s, sk_fe6);
+            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(g_test_poly.c[0], sk_fe6);
             g_xe = threshold::g2::Pmul(threshold::g2::gen(), sk_fe6);
+            g_env_secret = g_test_poly.c[0];  // the poly secret (c[0])
         }
         std::printf("[mssc] member %u: weight %llu, initial pref %s\n",
             g_self_member, (unsigned long long)g_mssc.self_weight, pref_str);

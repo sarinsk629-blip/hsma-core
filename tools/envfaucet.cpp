@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
     // THE MISMATCH: the node's share ≠ the secret
     // FIX: the envfaucet encrypts under X_E = [share_for(poly, 1)]·G2gen
     // (= the node's actual share as member 1), so the node's dec_share matches
-    threshold::Fr s1 = threshold::dkg::share_for(g_test_poly_local(), 1);
-    threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s1, sk);
+    threshold::Fr s_secret{}; threshold::fr_from_u64(s_secret, 0x11);
+    threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s_secret, sk);
     auto X_E = threshold::g2::Pmul(threshold::g2::gen(), sk);
 
     int fd = p2p::connect_peer(0x7F000001, (std::uint16_t)port);
