@@ -1,19 +1,11 @@
 \documentclass[11pt, a4paper]{article}
-% ════════════════════════════════════════════════════════════════
-% HSMA Protocol Whitepaper v3.0 — THE COMPLETE EDITION
-% Every proof. Every law. Every receipt. Every defect.
-% 281 decisions · 223 defects · 203 laws · 34 gates · 41 goldens
-% All four pillars connected in one verified system.
-% ════════════════════════════════════════════════════════════════
-
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath, amssymb, amsthm, mathtools}
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.9in]{geometry}
 \usepackage{hyperref}
-\hypersetup{colorlinks=true, linkcolor=blue!60!black,
-    urlcolor=blue!60!black,
-    pdftitle={HSMA: Holographic Spin-Manifold Architecture v3.0 — The Complete Specification},
+\hypersetup{colorlinks=true, linkcolor=blue!70!black, urlcolor=teal,
+    pdftitle={HSMA: Holographic Spin-Manifold Architecture v3.0},
     pdfauthor={Sk Sarin Arfin}}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -24,69 +16,86 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, decorations.pathreplacing, calc, shadows}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{tcolorbox}
 
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-\definecolor{hsmaBlue}{RGB}{0,80,160}
+\tcbuselibrary{skins, breakable}
+
+\definecolor{hsmaBlue}{RGB}{0,70,150}
+\definecolor{hsmaTeal}{RGB}{0,130,130}
 \definecolor{hsmaGreen}{RGB}{0,140,60}
 \definecolor{hsmaRed}{RGB}{180,30,30}
 \definecolor{hsmaGold}{RGB}{184,134,11}
+\definecolor{hsmaPurple}{RGB}{100,40,160}
+\definecolor{hsmaDark}{RGB}{20,30,50}
+\definecolor{codebg}{RGB}{245,248,252}
+\definecolor{theorembg}{RGB}{240,248,255}
+\definecolor{defnbg}{RGB}{255,248,240}
+\definecolor{receiptbg}{RGB}{240,255,240}
 
 \lstset{
-    backgroundcolor=\color{backcolour},
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
+    backgroundcolor=\color{codebg},
+    commentstyle=\color{hsmaGreen},
+    keywordstyle=\color{hsmaPurple}\bfseries,
     numberstyle=\tiny\color{codegray},
-    stringstyle=\color{codepurple},
+    stringstyle=\color{hsmaRed},
     basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false, breaklines=true,
-    captionpos=b, keepspaces=true,
-    numbers=left, numbersep=5pt,
-    showspaces=false, showstringspaces=false,
-    tabsize=2, frame=single
+    breaklines=true, captionpos=b, keepspaces=true,
+    numbers=left, numbersep=5pt, tabsize=2, frame=none
 }
 
-\titleformat{\section}{\Large\bfseries\color{hsmaBlue}}{\thesection}{1em}{}[{\titlerule[1pt]}]
-\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
-\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
-\titlespacing{\section}{0pt}{2em}{1em}
+\titleformat{\section}{\LARGE\bfseries\color{hsmaBlue}}{\thesection}{1em}{}[{\vspace{-0.5em}\titlerule[1.5pt]\vspace{-0.3em}}]
+\titleformat{\subsection}{\Large\bfseries\color{hsmaTeal}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\large\bfseries\color{hsmaDark}}{\thesubsubsection}{1em}{}
+\titlespacing{\section}{0pt}{2.5em}{1.2em}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{definition}[theorem]{Definition}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{invariant}{Invariant}
-\newtheorem{conjecture}{Conjecture}
+\newtheorem{definition}{Definition}
 \newtheorem{remark}{Remark}
+\newtheorem{conjecture}{Conjecture}
+
+\newtcolorbox{keybox}[1]{colback=theorembg, colframe=hsmaBlue, fonttitle=\bfseries, title=#1, breakable, boxrule=1pt, arc=3mm}
+\newtcolorbox{defnbox}[1]{colback=defnbg, colframe=hsmaGold, fonttitle=\bfseries, title=#1, breakable, boxrule=1pt, arc=3mm}
+\newtcolorbox{receiptbox}[1]{colback=receiptbg, colframe=hsmaGreen, fonttitle=\bfseries, title=#1, breakable, boxrule=1pt, arc=3mm}
+\newtcolorbox{warnbox}[1]{colback=hsmaRed!5, colframe=hsmaRed, fonttitle=\bfseries, title=#1, breakable, boxrule=1pt, arc=3mm}
 
 \newcommand{\hsma}{\textsc{hsma}}
 \newcommand{\pie}{\pi_E}
 \newcommand{\GATE}{\textsc{Gate Green}}
-\newcommand{\defref}[1]{DEC-#1}
-\newcommand{\lawref}[1]{CA-R#1}
-
-\title{\textbf{HSMA: Holographic Spin-Manifold Architecture}\\[0.5em]
-\Large Not a Blockchain. Not a DAG.\\[0.3em]
-\large A New Category: Verified Computation as the Foundation of\\
-Consensus, Privacy, and State\\[0.8em]
-\normalsize Technical Whitepaper v3.0 — The Complete Specification\\[0.3em]
-\textcolor{hsmaGreen}{\textbf{281 Decisions \textbullet\ 223 Defects Owned \textbullet\ 203 Laws\\
-\textbullet\ 34 Gates Green \textbullet\ 41 Goldens \textbullet\ A6 Theory Debt: All 6 Closed}}}
-\author{Sk Sarin Arfin\\
-\small Independent Research\\
-\small \texttt{github.com/sarinsk629-blip/hsma-core}}
-\date{September 2026}
 
 \begin{document}
-\maketitle
 
-% ════════════════════════════════════════════════════════════════
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+{\color{hsmaBlue}\rule{\textwidth}{2pt}}\\[0.8cm]
+{\Huge\bfseries\color{hsmaDark} HSMA}\\[0.3cm]
+{\LARGE\bfseries\color{hsmaBlue} Holographic Spin-Manifold Architecture}\\[0.8cm]
+{\Large\itshape Not a Blockchain. Not a DAG.\\[0.2em] A New Category of Protocol.}\\[1cm]
+{\color{hsmaBlue}\rule{\textwidth}{1pt}}\\[1cm]
+{\large\bfseries Technical Whitepaper v3.0}\\[0.3em]
+{\large The Complete Specification}\\[0.8cm]
+\begin{tcolorbox}[colback=hsmaBlue!5, colframe=hsmaBlue, arc=3mm, width=14cm, center]
+\centering
+\textbf{34 Conformance Gates \textbullet\ 41 Golden Headers \textbullet\ 203 Laws\\
+All Six A6 Theory Obligations Closed \textbullet\ Four Pillars Connected\\
+Structural $\epsilon{=}0$ Impossibilities \textbullet\ 1{,}600-Byte Epoch Proof}
+\end{tcolorbox}
+\vfill
+{\large Sk Sarin Arfin}\\[0.2em]
+{\small Independent Research}\\[0.2em]
+{\small \texttt{github.com/sarinsk629-blip/hsma-core}}\\[0.5em]
+{\small September 2026}
+\vspace*{0.5cm}
+{\color{hsmaBlue}\rule{\textwidth}{2pt}}
+\end{titlepage}
+
 \begin{abstract}
 We present \hsma{}, a Layer-1 protocol that does not fit the taxonomy
 of existing decentralized systems. It is not a blockchain (there are no
@@ -95,612 +104,393 @@ blocks). It is not a DAG (there is no partial ordering). It is a
 \textit{verified AI inference}, whose mempool is \textit{cryptographically
 unreadable before ordering}, and whose entire epoch history compresses
 into a \textit{1{,}600-byte recursive proof} verifiable without the
-witness.
+witness in 118\,ms on phone-class hardware.
 
 \hsma{} integrates four pillars into a single verified system:
-\begin{enumerate}
-\item \textbf{Verifiable AI Inference as Proof of Useful Work (PoUW)}:
-consensus weight derives from GEMM matrix multiplications proven correct
-via the sum-check protocol over the Pasta curve cycle. A $128^3$ matrix
-multiplication (2{,}097{,}152 multiply-accumulate operations) verifies
-in 1{,}422 bytes with $O(\log N)$ verifier work. The aggregate-verify
-homomorphism achieves a 3.0$\times$ speedup at $N{=}3$ committee size,
-scaling to $\sim$224$\times$ at production.
-\item \textbf{Metastable Sub-Sampled Consensus (MSSC)}: an
-Avalanche-family protocol with weight-proportional sampling,
-beacon-gated stall breaking, and a structural quorum impossibility
-guarantee ($\epsilon_{\text{quorum}} = 0$ under $f < 0.20$). The
-convergence property is demonstrated at testnet scale: two nodes with
-conflicting preferences resolve to one finalized state through the
-weight-weighted sampling loop in 6 rounds.
-\item \textbf{Zero-MEV Encrypted Mempool}: a Commit-then-Simulate
-ceremony where transaction payloads are threshold-encrypted (224-member
-committee, $t{=}112$), the ordering is beacon-shuffled and committed
-\textit{before} any decryption share exists, and the decrypted payloads
-feed the fold pipeline. The full Commit-then-Simulate ceremony is
-demonstrated end-to-end: 10 encrypted envelopes $\to$ ordered $\to$ threshold-decrypted $\to$ folded $\to$ $\pi_E$ $\to$ PoUW.
-\item \textbf{Holographic State Folding}: HyperNova NIVC over the
-Pallas/Vesta 2-cycle folds heterogeneous state transitions into a
-41-byte accumulator, producing a recursive epoch proof $\pi_E$ (1{,}600 bytes, 2.2\% of the 73\,KB budget) verifiable without the
-witness in 118\,ms on phone-class hardware.
-\end{enumerate}
+\textbf{Verifiable AI Inference as PoUW} (a $128^3$ GEMM with 2{,}097{,}152
+multiply-accumulates verifies in 1{,}422 bytes with $O(\log N)$ verifier
+work; the aggregate-verify homomorphism achieves 3.0$\times$ speedup),
+\textbf{Metastable Sub-Sampled Consensus} (an Avalanche-family protocol
+with a structural quorum impossibility guarantee: $\epsilon_{\text{quorum}}
+= 0$ under $f < 0.20$; the convergence property is demonstrated: two
+nodes with conflicting preferences resolve in 6 rounds),
+\textbf{Zero-MEV Encrypted Mempool} (threshold-encrypted, $t{=}112$ of
+ $n{=}224$; the ordering is committed before any decryption share exists;
+the full ceremony is demonstrated: 10 encrypted envelopes $\to$ ordered
+ $\to$ decrypted $\to$ folded $\to$ $\pi_E$), and \textbf{Holographic State
+Folding} (HyperNova NIVC into a 41-byte accumulator, producing a
+1{,}600-byte proof verifiable without the witness).
 
-All four pillars are connected: encrypted envelopes enter the mempool,
-the ordering ceremony commits the sequence, the threshold decrypt
-unlocks the payloads, the fold pipeline compresses them into $\pi_E$,
-and the PoUW derives consensus weight from the verified computation.
 The system's safety rests on three \textbf{engineered structural zeros}
-(quorum forgery: $\epsilon = 0$; committee takeover: $\epsilon = 0$;
-eclipse divergence: $\epsilon = 0$) and a total soundness budget of
- $\epsilon_{\text{sys}} \approx 2^{-110}$ per epoch
-($\approx 2^{-94.3}$ per year), dominated by the threshold-BLS
-unforgeability assumption.
-
-The system is implemented in C++20 (41 headers, zero external
-cryptographic libraries) and verified by a bilingual
-Python$\leftrightarrow$C++ golden-oracle methodology that caught
-\textbf{223 defects} across the development lifecycle, each owned in an
-append-only decision ledger (281 decisions, 203 laws). The reference
-implementation passes 34/34 conformance tests (\GATE{}), is reproducible
-from a public GitHub repository, and the complete testnet demonstrably
-processes encrypted transactions end to end.
+and a soundness budget of $\epsilon_{\text{sys}} \approx 2^{-110}$ per
+epoch. The implementation is C++20 with zero external cryptographic
+libraries, verified by a bilingual golden-oracle methodology, passing
+34/34 conformance tests, reproducible from a public repository.
 \end{abstract}
 
 \tableofcontents
 \newpage
 
 % ════════════════════════════════════════════════════════════════
-\part{Introduction and Motivation}
-% ════════════════════════════════════════════════════════════════
-
-\section{Beyond the Blockchain Taxonomy}
+\section{Introduction: A New Category of Protocol}
 \label{sec:intro}
 
 \subsection{Why the Existing Taxonomy Is Insufficient}
 
-Every decentralized system built since 2009 falls into one of two
-structural categories:
-
-\begin{enumerate}
-\item \textbf{Blockchains} (Bitcoin, Ethereum): transactions are grouped
-into blocks; blocks are cryptographically chained; the state is the
-result of replaying all blocks. State verification requires $O(n)$ work
-where $n$ is the total transaction count.
-\item \textbf{DAGs} (IOTA, Nano, Avalanche's DAG mode): transactions
-form a directed acyclic graph; the state is the result of resolving the
-partial order. Verification still requires $O(n)$ historical data.
-\end{enumerate}
-
-Both architectures share a fundamental limitation: \textbf{the state
-grows without bound}. Every transaction ever processed contributes to
-the verification burden. Light clients trust minimally but verify
-nothing beyond the longest chain or the heaviest DAG path.
+\begin{keybox}{The Fundamental Limitation}
+Every decentralized system built since 2009 shares one constraint:
+\textbf{state verification grows linearly with history}. Whether
+blockchain (Bitcoin, Ethereum) or DAG (IOTA, Nano), the light client's
+burden is proportional to total transaction count.
+\end{keybox}
 
 \begin{definition}[Holographic State Machine]
 \label{def:holographic}
-A \emph{holographic state machine} is a system where the entire state
-transition history is compressed into a \emph{constant-size recursive
-proof}. Verification of full-ledger integrity requires only:
+A system where the entire state transition history is compressed into
+a \emph{constant-size recursive proof}. Verification requires only:
 (i) the epoch header certificate chain, and (ii) one succinct epoch
 proof $\pi_E$ of size independent of transaction count.
 \end{definition}
 
-\hsma{} implements Definition~\ref{def:holographic} using HyperNova NIVC
-(Non-Uniform Interactive Verifiable Computation) over the Pasta curve
-cycle. The 41-byte NIVC accumulator is $O(1)$ in transaction count:
-whether the epoch contains 10 decrees or 476, the accumulator is the
-same size.
-
-\subsection{Why ``Not a Blockchain'' Is Not Just Rhetoric}
-
 \begin{table}[h]
 \centering
-\caption{Structural comparison across system categories}
+\rowcolors{2}{hsmaBlue!5}{white}
 \begin{tabular}{lccc}
 \toprule
-\textbf{Property} & \textbf{Blockchain} & \textbf{DAG} & \textbf{\hsma{}} \\
+\rowcolor{hsmaBlue!20} \textbf{Property} & \textbf{Blockchain} & \textbf{DAG} & \color{hsmaBlue}\textbf{\hsma{}} \\
 \midrule
-State verification & $O(n)$ replay & $O(n)$ traversal & $O(1)$ proof \\
+State verification & $O(n)$ replay & $O(n)$ traversal & $\mathbf{O(1)}$ proof \\
 Proof size & $\approx n$ & $\approx n$ & $\mathbf{1{,}600}$ bytes \\
 Consensus weight & Capital or energy & Capital or TPS & \textbf{Verified AI compute} \\
 MEV resistance & None & None & \textbf{Structural} ($\epsilon{=}0$) \\
-Verification & Code review & Code review & \textbf{Bilingual cross-exam} \\
-Defect tracking & Ad hoc & Ad hoc & \textbf{223 in append-only ledger} \\
+Verification method & Code review & Code review & \textbf{Bilingual cross-exam} \\
+Defect tracking & Ad hoc & Ad hoc & \textbf{Append-only ledger} \\
 \bottomrule
 \end{tabular}
+\caption{Structural comparison: the difference is categorical}
 \end{table}
-
-The difference is not incremental --- it is categorical. A blockchain's
-state is the \emph{result} of computation; \hsma{}'s state is the
-\emph{proof} of computation. The $\pi_E$ does not record what happened;
-it \emph{proves} what happened, in 1{,}600 bytes, verifiable without
-the witness.
 
 \subsection{The Four Pillars}
 
 \begin{figure}[h]
 \centering
 \begin{tikzpicture}[
-    pillar/.style={rectangle, draw=hsmaBlue, thick, fill=hsmaBlue!8,
-        text width=6cm, minimum height=2.8cm, align=center, rounded corners},
-    arrow/.style={-{Stealth}, thick, hsmaGreen},
-    label/.style={font=\small\itshape, hsmaGreen}
+    pillar/.style={rectangle, draw=hsmaBlue, line width=1.5pt, fill=hsmaBlue!8,
+        text width=5.8cm, minimum height=3cm, align=center, rounded corners=4mm,
+        drop shadow},
+    arr/.style={-{Stealth}, line width=1.5pt, hsmaGreen},
+    lbl/.style={font=\small\itshape\color{hsmaTeal}, align=center}
 ]
-\node[pillar] (pouw) at (0, 3.5)
-    {\textbf{Pillar 1: PoUW}\\[2pt]
+\node[pillar, fill=hsmaBlue!12] (pouw) at (0, 3.8)
+    {{\large\bfseries\color{hsmaBlue} Pillar 1: PoUW}\\[4pt]
      GKR/Sum-Check GEMM\\
      Weight = verified MACs\\
      $O(\log N)$ verifier\\
-     3.0$\times$ aggregate speedup};
-\node[pillar] (mssc) at (8, 3.5)
-    {\textbf{Pillar 2: MSSC}\\[2pt]
+     Aggregate: 3.0$\times$ speedup};
+\node[pillar, fill=hsmaTeal!8] (mssc) at (8.5, 3.8)
+    {{\large\bfseries\color{hsmaTeal} Pillar 2: MSSC}\\[4pt]
      Avalanche-family sampling\\
      $\epsilon_{\text{quorum}} = 0$\\
      Beacon-gated breaker\\
-     Aggregate verify: 3.0$\times$};
-\node[pillar] (mev) at (0, 0)
-    {\textbf{Pillar 3: Zero-MEV}\\[2pt]
+     6-round convergence};
+\node[pillar, fill=hsmaGold!8] (mev) at (0, 0)
+    {{\large\bfseries\color{hsmaGold} Pillar 3: Zero-MEV}\\[4pt]
      Threshold-encrypted ($t{=}112$)\\
      Commit-then-Simulate\\
-     Ordering before knowledge\\
+     Order before knowledge\\
      Demonstrated: 10 envelopes};
-\node[pillar] (fold) at (8, 0)
-    {\textbf{Pillar 4: Folding}\\[2pt]
+\node[pillar, fill=hsmaPurple!8] (fold) at (8.5, 0)
+    {{\large\bfseries\color{hsmaPurple} Pillar 4: Folding}\\[4pt]
      HyperNova NIVC\\
      41-byte accumulator\\
      $\pi_E$: 1{,}600 bytes\\
      Verified without witness};
-\draw[arrow] (pouw) -- (mssc)
-    node[midway, above, label] {weight feeds sampling};
-\draw[arrow] (mev) -- (fold)
-    node[midway, left, label] {decrypted decrees};
-\draw[arrow] (mssc) -- (fold)
-    node[midway, above right, label] {ordered set feeds};
-\draw[arrow] (fold) -- (pouw)
-    node[midway, left, xshift=-0.3cm, label] {$\pi_E$ proves\\ the computation};
+\draw[arr] (pouw) -- (mssc) node[midway, above, lbl] {weight feeds\\sampling};
+\draw[arr] (mev) -- (fold) node[midway, left, lbl] {decrypted\\decrees feed};
+\draw[arr] (mssc) -- (fold) node[midway, above right, lbl] {ordered set\\feeds};
+\draw[arr] (fold.west) -- ++(-1,0) |- ++(0,2) -| (pouw.south)
+    node[pos=0.25, left, lbl] {$\pi_E$ proves the computation};
 \end{tikzpicture}
 \caption{The four pillars and their structural interdependencies}
 \end{figure}
 
-The pillars are not independent modules bolted together --- they are
-\textbf{structurally interdependent}. The PoUW weight feeds MSSC
-sampling. The MSSC ordering determines which encrypted envelopes are
-decrypted. The decrypted payloads feed the fold. The fold produces
- $\pi_E$, which proves the computation that generated the PoUW weight.
-Removing any one pillar breaks the others.
+\subsection{The Structural Zeros: Impossible Beats Punishable}
 
-\subsection{The Engineering Culture: 223 Defects, 203 Laws}
+\begin{keybox}{The Design Heuristic}
+Wherever a draft specification proposed \emph{deterring} misconduct
+(slashing a cheater), review demanded its promotion to
+\emph{unconstructibility} (cheating has no valid witness).
+\textbf{Impossible beats punishable.}
+\end{keybox}
 
-\hsma{} is built with a verification discipline that treats every
-defect as a first-class citizen. The bilingual golden-oracle methodology
-(a Python oracle computing mathematical truth in arbitrary-precision
-integers, cross-examined against a C++ Montgomery-arithmetic
-implementation) caught 223 defects across the development lifecycle.
-
-\begin{definition}[The Append-Only Ledger]
-\label{def:ledger}
-Every defect discovered during development is recorded as a numbered
-erratum in an append-only decision ledger. Each entry contains: the
-defect description, the evidence that convicted it, the fix, and a
-generalizable law preventing recurrence. Corrections travel as errata,
-never as rewrites (\defref{046}/\defref{109}).
+\begin{definition}[Structural Zero]
+A security property is a \emph{structural zero} if violation is not
+merely improbable but \emph{combinatorially impossible}: no valid
+witness exists for the violating action under the system's parameters.
 \end{definition}
 
-The ledger currently contains 281 decisions and 203 laws. Four defect
-classes were \emph{structurally invisible} to the implementation's own
-test suite: out-of-bounds memory access producing deterministic-but-wrong
-values, wrong-power invariant checkers masked by degenerate test inputs,
-bit-order convention mismatches, and double-canonicalization errors.
+\hsma{} engineers three structural zeros:
+\begin{enumerate}
+\item \textbf{L1 — Quorum Forgery}: $\epsilon = 0$ by authentication + frozen snapshots + $\varphi_{\text{floor}} > f/\alpha$ \item \textbf{L2 — Committee Takeover}: $\epsilon = 0$ by identity cap: $m_{\text{adv}} \le 100 < t = 112$ \item \textbf{L4 — Eclipse Divergence}: $\epsilon = 0$ by INV-G3 containment
+\end{enumerate}
 
 % ════════════════════════════════════════════════════════════════
-\part{Cryptographic Foundation}
-% ════════════════════════════════════════════════════════════════
+\section{Cryptographic Foundation}
+\label{sec:foundation}
 
-\section{The Pasta Curve Cycle and Field Arithmetic}
-\label{sec:fields}
+\subsection{The Pasta Curve Cycle}
 
-\subsection{The Pasta 2-Cycle}
-
-\hsma{} operates on the Pallas/Vesta 2-cycle over 255-bit primes:
-\begin{equation}
-\textsf{Pallas}: y^2 = x^3 + 5 \text{ over } \mathbb{F}_p, \quad
-\#\textsf{Pallas}(\mathbb{F}_p) = q
-\end{equation}
-\begin{equation}
-\textsf{Vesta}: y^2 = x^3 + 5 \text{ over } \mathbb{F}_q, \quad
+\begin{defnbox}{The Pasta 2-Cycle}
+Two elliptic curves whose base and scalar fields are swapped:
+\begin{align}
+\textsf{Pallas}&: y^2 = x^3 + 5 \text{ over } \mathbb{F}_p, \quad
+\#\textsf{Pallas}(\mathbb{F}_p) = q\\
+\textsf{Vesta}&: y^2 = x^3 + 5 \text{ over } \mathbb{F}_q, \quad
 \#\textsf{Vesta}(\mathbb{F}_q) = p
-\end{equation}
-where $p = \texttt{0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001}$ and $\log_2 p \approx 254.00$.
-
-The cycle natively supports recursive proof composition without
-foreign-field overhead: arithmetic in one curve's scalar field is
-native arithmetic in the other curve's base field.
-
-\subsection{The Exactness Lemma}
+\end{align}
+where $\log_2 p \approx 254.00$. The cycle natively supports recursive
+proof composition: arithmetic in one curve's scalar field is native
+arithmetic in the other's base field.
+\end{defnbox}
 
 \begin{lemma}[Exactness]
 \label{lem:exactness}
-Let $G$ be a group of prime order $p$. For any $a \in \mathbb{Z}$ and any $k \in \mathbb{Z}$: $[a + k \cdot p] \cdot G = [a] \cdot G$.
+Let $G$ be a group of prime order $p$. For any $a, k \in \mathbb{Z}$:
+ $[a + k \cdot p] \cdot G = [a] \cdot G$.
 \end{lemma}
 \begin{proof}
- $[kp] \cdot G = \mathcal{O}$ (the group identity) since
- $\operatorname{ord}(G) = p$. Therefore:
- $[a + kp] \cdot G = [a] \cdot G + [kp] \cdot G = [a] \cdot G + \mathcal{O} = [a] \cdot G$.
+ $[kp] \cdot G = \mathcal{O}$ since $\operatorname{ord}(G) = p$.
+Therefore $[a + kp] \cdot G = [a] \cdot G + [kp] \cdot G = [a] \cdot G$.
 \end{proof}
-
-This lemma (CA-R138 in the ledger) is the foundation for all cross-curve
-scalar operations: BLS12-377 scalars embed losslessly into Pallas limbs
-($r_{\text{BLS}} < p_{\text{Pasta}}$, with $\approx 1.78$ bits headroom),
-Pasta-cycle folding absorbs cross-curve commitments, and the CycleFold
-absorption is exact.
 
 \subsection{The Float-Free Numeric Core}
 
-\begin{invariant}[DEC-090]
-\label{inv:floatfree}
-The numeric core contains zero floating-point operations. All arithmetic
-is integer-based with explicit modular reduction. This guarantees
-bit-exact deterministic consensus across heterogeneous hardware
-(ARM64, x86\_64, GPUs). Enforced by the \texttt{check\_no\_fp.sh} lint
-on every gate run (CA-R192: the lint matches float tokens, not claims
-about floats).
+\begin{invariant}[DEC-090 — Enforced by CI]
+The numeric core contains zero floating-point operations. Enforced by
+\texttt{check\_no\_fp.sh} on every gate run.
 \end{invariant}
 
-\subsection{The Wraparound Soundness Lemmas}
-
-Every signed circuit value is the pair $(m, s)$: magnitude
- $m \in [0, 2^{126})$ with sign flag $s \in \{0,1\}$,
-value $= (1-2s) \cdot m$.
-
-\begin{lemma}[Uniqueness of Canonical Form]
-Under the constraints (1) range check $m < 2^{126}$, (2) booleaness
- $s \in \{0,1\}$, and (3) zero-canonicity $s \cdot m = 0$, the map
-signed-value $\mapsto (m,s)$ is injective.
-\end{lemma}
-\begin{proof}
-Magnitude and sign are recoverable uniquely from the value except at
- $0$, where $(0,0)$ and $(0,1)$ both represent zero; constraint 3
-eliminates $(0,1)$.
-\end{proof}
-
 \begin{lemma}[Additive Closure]
-Let $X = \pm m_1$, $Y = \pm m_2$ with $m_1, m_2 \in [0, 2^{126})$.
-Then $D = X \pm Y$ satisfies $|D| < 2^{127} < p/2$. The balanced
-representative of $D \bmod p$ equals the integer $D$: no wraparound
-is reachable.
+Let $X = \pm m_1$, $Y = \pm m_2$ with $m_i \in [0, 2^{126})$. Then
+ $|D| < 2^{127} < p/2$. No wraparound is reachable.
 \end{lemma}
 
 \begin{lemma}[Product Containment]
-For canonical $m_1, m_2 < 2^{126}$: $m_1 m_2 < 2^{252} < p$, and the
-field product equals the integer product.
+For canonical $m_1, m_2 < 2^{126}$: $m_1 m_2 < 2^{252} < p$. At most
+ $n_{\max} = 4$ full-width products may be summed before reduction.
 \end{lemma}
-
-\begin{remark}
- $p / 2^{252} \approx 4.53$, so at most $n_{\max} = 4$ full-width
-products may be summed before modular reduction is mandatory. All
-dot-products declare sub-widths: for operand widths $w_1 = 64$ (weights)
-and $w_2 = 32$ (activations), products $< 2^{96}$, allowing accumulation
-up to $2^{126}/2^{96} = 2^{30}$ terms.
-\end{remark}
-
-\subsection{Poseidon-3 Hash}
-
-All SNARK-friendly hashing uses Poseidon-3 over $\mathbb{F}_p$ with
- $t = 3$ (rate 2, capacity 1), $\alpha = 5$, $R_F = 8$, $R_P \ge 56$.
-The MDS matrix is a Cauchy construction with machine-checked
-non-singularity of all minors. Round constants are derived via SHA-256
-counter DRBG with rejection sampling (\defref{107}).
-
-The domain separation registry (\defref{099}) centralizes 33+
-initialization vectors with a compile-time $O(n^2)$ uniqueness proof.
-The full registry is mechanically generated and tracked in
-\texttt{domain\_registry\_gen.hpp}; hand-transcription is prohibited
-(\defref{046}).
 
 \subsection{The Sparse Merkle State Vault}
 
-Account state is maintained in a 64-depth SMT. The leaf schema packs
-balance (126 bits), sign flag (1 bit), nonce (64 bits), and flags
-(1 bit) into 192 bits $< 2^{254}$, hashed under \texttt{IV\_STATE\_LEAF}
-(\defref{126}, superseding the whitepaper's original 199-bit schema per
-Errata E-11).
-
 \begin{lemma}[Leaf Binding Security]
-\label{lem:leafbind}
-The leaf binding $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$ prevents index-collision malleability: two accounts with keys $K_1 \neq K_2$ cannot swap payloads without changing the leaf hash.
+The leaf binding $L(K, v) = \textsf{Poseidon}(\texttt{IV\_STATE\_LEAF}, K, v)$ prevents index-collision malleability.
 \end{lemma}
 \begin{proof}
-The binding incorporates $K$ into the hash input. For
- $L(K_1, v_1) = L(K_2, v_2)$ with $K_1 \neq K_2$, the adversary must find
-a collision in Poseidon-3, which requires $\approx 2^{126}$ work
-(birthday bound on the 254-bit output).
+Two accounts with $K_1 \neq K_2$ cannot satisfy
+ $L(K_1, v_1) = L(K_2, v_2)$ without a Poseidon-3 collision
+($\approx 2^{126}$ work by the birthday bound).
 \end{proof}
-
-\begin{lemma}[Two-Tier Elision Complexity]
-\label{lem:elision}
-The two-tier elision (empty-wedge propagation + unchanged-subtree
-short-circuit) reduces the SMT update cost from $O(D_S)$ hash
-computations to $O(\text{affected nodes})$, where affected nodes
- $\le D_S$ but is typically $\ll D_S$ for sparse trees.
-\end{lemma}
 
 \subsection{BLS12-377 Threshold Signatures}
 
-Threshold signatures, the randomness beacon, and epoch certificates
-operate on BLS12-377 ($q_{\text{BLS}} \approx 2^{377}$,
- $r \approx 2^{252}$). The BLS verification law
- $e(\sigma, G_{2,\mathrm{gen}}) = e(H(m), Y)$ is \textbf{secret-free}
-(the DEC-191 harness-secret law is retired): anyone with the public
-key can verify a threshold signature without knowing any share.
-
-\begin{theorem}[BLS12-377 Group Law Verification]
+\begin{theorem}[Group Law Verification]
 The BLS12-377 curve group law is verified on 3 independent points:
- $\#E = h_1 \cdot r$, requiring $\sim 380$ consecutive correct point
-doublings per scalar multiplication. The canonical parameter $b = 1$ is pinned. Tonelli-Shanks is verified 8/8 against a big-integer
-reference. The derivation tool exits with code 0.
+ $\#E = h_1 \cdot r$, requiring $\sim 380$ consecutive correct
+doublings per scalar multiplication.
 \end{theorem}
+
+\subsection{The Domain Separation Registry}
+
+\begin{table}[h]
+\centering
+\rowcolors{2}{hsmaBlue!5}{white}
+\begin{tabular}{l|l}
+\rowcolor{hsmaBlue!20} \textbf{Role} & \textbf{Tag / IV} \\
+\hline
+State tree nodes & \texttt{IV\_STATE\_NODE} \\
+State tree leaves & \texttt{IV\_STATE\_LEAF} \\
+Vote preimage & \texttt{HSM\_MSSC\_VOTE\_v1} \\
+Ordering lock & \texttt{HSM\_ORDER\_v1} \\
+Decryption share & \texttt{HSM\_DEC\_SHARE\_v2} \\
+Epoch beacon & \texttt{HSM\_BEACON\_V1} \\
+Hash-to-G1 & \texttt{HSM\_H2G1\_V1} \\
+M2 key derivation & \texttt{HSM\_KDF\_V1} \\
+Sum-check transcript & \texttt{HSM\_SUMCHECK\_v1} \\
+PoUW transcript & \texttt{HSM\_POUW\_v1} \\
+CycleFold hash & \texttt{HSM\_CYCLEFOLD\_v1} \\
+ $+14$ more & \texttt{domain\_registry\_gen.hpp} \\
+\bottomrule
+\end{tabular}
+\caption{The domain separation registry (33+ entries, compile-time uniqueness proven)}
+\end{table}
 
 % ════════════════════════════════════════════════════════════════
 \section{The A6 Theory Debt: All Six Obligations Closed}
 \label{sec:a6}
 
-The A6 composition theorem requires six mathematical obligations to be
-formally discharged. All six are now closed, each backed by a decision
-in the ledger and a mathematical argument.
+\begin{keybox}{The Composition Theorem}
+Under hypotheses H1--H5, the total system soundness is:
+\begin{equation}
+\epsilon_{\text{sys}} =
+\underbrace{0}_{\text{L1: Quorum}} +
+\underbrace{0}_{\text{L2: Committee}} +
+\underbrace{0}_{\text{L4: Eclipse}} +
+\underbrace{2^{-128}}_{\text{L5: PCS}} +
+\underbrace{2^{-127}}_{\text{L6: NIFS}} +
+\underbrace{2^{-171}}_{\text{Hash}} +
+\underbrace{2^{-110}}_{H1}
+\approx 2^{-110} \text{ per epoch}
+\end{equation}
+Annualized: $\epsilon_{\text{year}} \approx 2^{-94.3}$.
+The $2^{-80}$ target is cleared with 14 bits of margin.
+\end{keybox}
 
-\subsection{Obligation 1: Horvitz-Thompson Weighted Sampling}
+\subsection{Obligation 1: CPS Sampler Concentration}
 
-\begin{theorem}[CPS Sampler Concentration]
+\begin{theorem}[CPS Concentration]
 \label{thm:cps}
-Under Conditional Poisson Sampling (CPS, \defref{048}) with
-weight-proportional inclusion probabilities $\pi_i = n \cdot W_i /
-W_{\text{total}}$, the sampled weight concentrates around its
-expectation with Wasserstein bounds tighter than the naive
-Bernoulli-sampling approximation.
+Under Conditional Poisson Sampling (\defref{048}) with inclusion
+probabilities $\pi_i = n \cdot W_i / W_{\text{total}}$, the Horvitz-Thompson
+estimator has variance strictly tighter than the Poisson bound.
 \end{theorem}
-\begin{proof}
-The CPS sampler (Algorithms 3.1--3.2 in \defref{048}) conditions on
-the exact sample size $k$, eliminating the size-variance term that
-dominates the error bound in independent Bernoulli sampling. The
-Horvitz-Thompson estimator $\hat{T} = \sum_{i \in S} W_i / \pi_i$ has variance $\operatorname{Var}(\hat{T}) \le \frac{k}{k-1}
-\sum_i (1 - \pi_i) W_i^2 / \pi_i^2$, which is strictly tighter than
-the Poisson bound when the inclusion probabilities are bounded away
-from 0 and 1 (guaranteed by the dust-pruning and the cap).
-\end{proof}
 
-\subsection{Obligation 2: Hypergeometric Committee Election Tails}
+\subsection{Obligation 2: Committee Adversary Seats}
 
-\begin{theorem}[Committee Adversary Seats]
+\begin{theorem}[Combinatorial Impossibility]
 \label{thm:committee}
-Under $n = 224$ committee seats with adversary weight fraction
- $f = 0.20$ and the dust floor $w_{\text{floor}} = 0.002$, the number
-of adversary seats is bounded by $m_{\text{adv}} \le f / w_{\text{floor}}
-= 100 < t = 112$ (DEC-039). The hypergeometric tail for adversary
-seats $\ge t$ is exactly zero (combinatorial impossibility, not a
-probabilistic bound).
+ $m_{\text{adv}} \le f / w_{\text{floor}} = 100 < t = 112$.
+The hypergeometric tail for adversary seats $\ge t$ is \textbf{exactly zero}.
 \end{theorem}
 
-\subsection{Obligation 3: Equivocation Detection Probability}
+\subsection{Obligation 3: Equivocation Escape}
 
 \begin{theorem}[Equivocation Escape Bound]
-\label{thm:equivocation}
 The probability that an equivocating validator escapes detection for
- $\lambda$ consecutive rounds is bounded by $e^{-\lambda \cdot
-\rho_{\text{detect}}}$, where $\rho_{\text{detect}}$ is the per-round
-detection probability determined by the sampling rate and the
-overlap between sampled peer sets.
+ $\lambda$ rounds is bounded by $e^{-\lambda \cdot \rho_{\text{detect}}}$.
 \end{theorem}
 
-\subsection{Obligation 4: Eclipse Probability Bounds}
+\subsection{Obligation 4: Eclipse Containment}
 
 \begin{theorem}[Eclipse Containment]
 \label{thm:eclipse}
-Under the formal $(\text{ASN}, /24)$ disjointness across
- $R_{\text{rel}} + 1$ relay routes (DEC-080), an adversary who fully
-eclipses a node $u$ can only deliver data whose weight the adversary
-already controls. Eclipse $\Rightarrow$ stall/suspend, never divergent
-finalization (INV-G3).
+Under formal $(\text{ASN}, /24)$ disjointness across relay routes:
+eclipse $\Rightarrow$ stall/suspend, \textbf{never divergent finalization}.
 \end{theorem}
 
-\subsection{Obligation 5: Sortition Hypergeometric Composition}
+\subsection{Obligation 5: Sortition Composition}
 
-\begin{theorem}[Sortition Composition]
-\label{thm:sortition}
-The sortition function (determining which committee members participate
-in each epoch's ceremony) is a hypergeometric composition of the
-committee election and the beacon-driven activation. The composition
-is proven: the consumption registry (DEC-059) shows that early beacon
-knowledge is inert for each consumer (shuffle, sortition, breaker).
+\begin{theorem}[Sortition Inertness]
+Early beacon knowledge is inert for each consumer (shuffle, sortition,
+breaker). The consumption registry (\defref{059}) proves inertness per
+consumer.
 \end{theorem}
 
-\subsection{Obligation 6: End-to-End $\epsilon$-Budget Composition}
+\subsection{Obligation 6: The $\epsilon$-Budget Composition}
 
-\begin{theorem}[$\epsilon$-Budget Composition]
-\label{thm:eps}
-Under hypotheses H1--H5 (primitive security, honest preference
-consistency, closure window, snapshot freshness, circuit-spec
-equivalence), the total system soundness is:
-\begin{equation}
-\epsilon_{\text{sys}} = \underbrace{0}_{L1} + \underbrace{0}_{L2} +
-\underbrace{0}_{L4} + \underbrace{2^{-128}}_{L5} +
-\underbrace{2^{-127}}_{L6} + \underbrace{2^{-171}}_{\text{hash}} +
-\underbrace{2^{-110}}_{H1} \approx 2^{-110} \text{ per epoch}
-\end{equation}
-Annualized (52{,}596 epochs/year at 600\,s epochs):
- $\epsilon_{\text{year}} \le 52{,}596 \cdot 2^{-110} \approx 2^{-94.3}$.
-\end{theorem}
-
-\begin{remark}
-The $2^{-80}$ design target is cleared annually with 14 bits of margin.
-The zeros (L1, L2, L4) are \textbf{engineered, not inherent}:
-\begin{itemize}
-\item L1: by authentication + frozen snapshots + $\varphi_{\text{floor}} > f/\alpha$ (\defref{038})
-\item L2: by $w_{\text{floor}}$ identity cap: $m_{\text{adv}} \le 100 < t = 112$ (\defref{039})
-\item L4: by INV-G3 containment
-\end{itemize}
-Remove the structural floor and the sortition term degrades to
- $\approx 2^{-73}$ --- below target. The zeros are a parameter mandate.
-\end{remark}
+See the keybox above. All six obligations are formally discharged.
 
 % ════════════════════════════════════════════════════════════════
-\part{The Four Pillars}
-% ════════════════════════════════════════════════════════════════
-
 \section{Pillar 1: Verifiable AI Inference as PoUW}
 \label{sec:pouw}
 
 \subsection{The Paradigm Shift}
 
-Every existing consensus mechanism either wastes energy (PoW:
-meaningless SHA-256 hashing) or centralizes (PoS: capital-weighted
-oligopolies). \hsma{} introduces a third paradigm: \textbf{consensus
-weight derives from verified matrix multiplications} --- the core
-operation of every neural network.
-
-\begin{definition}[Verifiable AI Inference as PoUW]
-A validator's consensus weight $W_i$ is proportional to the number of
-\emph{verified} multiply-accumulate operations the validator has
-correctly performed and proven via the sum-check protocol. The
-verification is cryptographic, not reputational.
-\end{definition}
+\begin{defnbox}{PoUW: The Third Paradigm}
+\begin{itemize}
+\item \textbf{PoW}: wastes energy on meaningless hashes
+\item \textbf{PoS}: centralizes into capital-weighted oligopolies
+\item \textbf{PoUW (\hsma{})}: consensus weight from \textbf{verified AI inference}
+\end{itemize}
+The energy produces \textbf{useful compute}. The verification is
+\textbf{cryptographic}, not reputational.
+\end{defnbox}
 
 \subsection{The GEMM Circuit}
 
-The core computation is $C = A \times B$ where
- $A \in \mathbb{F}_p^{m \times k}$, $B \in \mathbb{F}_p^{k \times n}$.
-
 \begin{table}[h]
 \centering
-\caption{GEMM circuit scaling (measured)}
+\rowcolors{2}{hsmaBlue!5}{white}
 \begin{tabular}{lrr}
-\toprule
-\textbf{Size} & \textbf{R1CS rows} & \textbf{MACs} \\
+\rowcolor{hsmaBlue!20} \textbf{Size} & \textbf{R1CS rows} & \textbf{MACs} \\
 \midrule
  $3 \times 3 \times 3$ & 36 & 27 \\
  $128 \times 128 \times 128$ & 2{,}113{,}536 & 2{,}097{,}152 \\
  $256 \times 256 \times 256$ & 16{,}842{,}752 & 16{,}777{,}216 \\
 \bottomrule
 \end{tabular}
+\caption{GEMM circuit scaling (measured)}
 \end{table}
 
 \subsection{The Whole-GEMM Sum-Check Reduction}
 
 \begin{theorem}[Whole-GEMM Verification]
-\label{thm:whole-gemm}
-Let $A, B \in \mathbb{F}_p^{N \times N}$ and $C = A \times B$. For
-challenges $\gamma, \delta \in \mathbb{F}_p$:
+\label{thm:gemm}
+Let $A, B \in \mathbb{F}_p^{N \times N}$, $C = A \times B$. For
+challenges $\gamma, \delta$:
 \begin{align}
 a(k) &= \textstyle\sum_i \gamma^i A(i,k), \quad
-b(k) = \sum_j \delta^j B(k,j) \\
+b(k) = \sum_j \delta^j B(k,j)\\
 \text{claim} &= \textstyle\sum_{i,j} \gamma^i \delta^j C(i,j)
 \end{align}
 The identity $\sum_k a(k) \cdot b(k) = \text{claim}$ holds iff
- $C = A \times B$. Verification requires $O(\log N)$ sum-check rounds.
+ $C = A \times B$. Verification: $O(\log N)$ rounds.
 \end{theorem}
 \begin{proof}
  $\sum_k a(k) b(k) = \sum_{i,j,k} \gamma^i \delta^j A(i,k) B(k,j)$.
-If $C = A \times B$, this equals $\sum_{i,j} \gamma^i \delta^j C(i,j)
-= \text{claim}$. The converse: if $C \neq A \times B$, the deviation
-polynomial is nonzero of degree $\le 2(N-1)$, and for random
- $\gamma, \delta$, the match probability is $\le 2(N-1)/p$.
+If $C = A \times B$: equals $\sum_{i,j} \gamma^i \delta^j C(i,j) =
+\text{claim}$. Converse: if $C \neq A \times B$, the deviation
+polynomial has degree $\le 2(N-1)$; match probability $\le 2(N-1)/p$.
 \end{proof}
 
 \subsection{The FS-Bound Security}
 
-\begin{theorem}[FS-Bound Grinding Resistance]
-\label{thm:fs}
-With Fiat--Shamir challenges derived from the commitments
- $\gamma = \textsf{Poseidon}_3(\texttt{HSM\_POUW\_v1}, \text{com}_A, \text{com}_B)$ and $\delta = \textsf{Poseidon}_3(\texttt{HSM\_POUW\_v1}, \gamma, \text{com}_C)$,
-the grinding cost for an adversary to find commitments that produce
-favorable challenges is $\ge 2^{253}$ (the Poseidon-3 preimage
-resistance on 254-bit outputs).
+\begin{theorem}[Grinding Resistance]
+With FS challenges from Poseidon-3 over the commitments, the grinding
+cost is $\ge 2^{253}$ (the Poseidon preimage resistance).
 \end{theorem}
 
-\subsection{The Aggregate Verify}
+\subsection{The Aggregate Verify: 3.0$\times$ Speedup}
 
-\begin{theorem}[Aggregate Verify Homomorphism]
-\label{thm:agg}
-For threshold-BLS partial signatures
- $\sigma_j = [S_j]H(m)$ and public keys $Y_j = [S_j]G_{2,\mathrm{gen}}$:
-\begin{equation}
-e\!\left(\textstyle\sum_j \sigma_j,\, G_{2,\mathrm{gen}}\right) =
-e\!\left(H(m),\, \textstyle\sum_j Y_j\right)
-\end{equation}
- $N$ partial signatures verify with \textbf{one pairing}.
+\begin{theorem}[BLS Aggregate Homomorphism]
+\label{thm:bls-agg}
+ $e\!\left(\sum_j \sigma_j, G_{2,\mathrm{gen}}\right) =
+e\!\left(H(m), \sum_j Y_j\right)$. $N$ partial signatures verify
+with \textbf{one pairing}.
 \end{theorem}
 \begin{proof}
-By bilinearity of $e$:
- $e(\sum_j \sigma_j, G_{2,\mathrm{gen}})
-= \prod_j e(\sigma_j, G_{2,\mathrm{gen}})
-= \prod_j e(H(m), Y_j)
-= e(H(m), \sum_j Y_j)$.
+By bilinearity: $e(\sum_j \sigma_j, G_2) = \prod_j e(\sigma_j, G_2)
+= \prod_j e(H(m), Y_j) = e(H(m), \sum_j Y_j)$.
 \end{proof}
 
-\begin{table}[h]
+\begin{receiptbox}{Measured Receipt: The Aggregate Verify}
 \centering
-\caption{Aggregate verify timing (measured, $N = 3$)}
 \begin{tabular}{lrr}
 \toprule
 \textbf{Method} & \textbf{Verdict} & \textbf{Time} \\
 \midrule
 Per-member (3 pairings) & ACCEPT & 4{,}286 ms \\
-Aggregate (1 pairing) & ACCEPT & 1{,}422 ms \\
+\textbf{Aggregate (1 pairing)} & \textbf{ACCEPT} & \textbf{1{,}422 ms} \\
 \midrule
-\textbf{Speedup} & & \textbf{3.0$\times$ (= $N$)} \\
+\textcolor{hsmaGreen}{\textbf{Speedup}} & & \textcolor{hsmaGreen}{\textbf{3.0$\times$ (= $N$)}} \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{receiptbox}
 
-\subsection{The External Submission Mode}
+\subsection{The Externally-Submittable Mode}
 
 \begin{theorem}[External Submission Soundness]
-\label{thm:ext}
-Under the discrete logarithm assumption in the G2 group, an adversary
-who submits a proof $\Pi'$ over a model $M' \neq M$ (where $M$ is
-registered via per-position Pedersen commitments with distinct bases)
-cannot produce a valid verification outcome without solving the
-discrete logarithm.
+\label{thm:ext-sub}
+An adversary who submits a proof $\Pi'$ over a model $M' \neq M$ cannot produce a valid outcome without solving DLP: the per-position
+Pedersen commitment binding (CA-R187) prevents the kernel-shift forgery.
 \end{theorem}
 
-The registration binding uses per-position distinct bases (CA-R187):
-the 8-base batch commit repeats bases every 8 positions, enabling
-kernel-shift forgery for vectors longer than 8. The fix: distinct
-bases per position via \texttt{commit\_vec}, making forgery require a
-multi-base representation break (DLP-hard).
+\subsection{The Capped Cluster Hybrid Weight}
 
-\subsection{The Capstone Receipt}
-
-\begin{table}[h]
-\centering
-\caption{The complete end-to-end pipeline (P4-4 capstone)}
-\begin{tabular}{ll}
-\toprule
-\textbf{Stage} & \textbf{Result} \\
-\midrule
-10 encrypted envelopes received & ct=18 bytes each \\
-ORDER COMMITTED & root=7ec2cd4cbe7a8cd5 \\
-10 threshold decrypts & ALL tag OK \\
-10 folds & ALL SAT \\
- $\pi_E$ epoch 1 & wrap\_verify ACCEPT \\
-PoUW epoch 1 & 64\textsuperscript{3} GEMM, 262{,}144 MACs, 1{,}185 ms \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{The Capped Cluster Hybrid Weight Function}
-
-The verified multiply-accumulate count feeds:
 \begin{equation}
 \tilde{W}_c = \left\lfloor (\Phi_c^6 \cdot S_c^4)^{1/10} \right\rceil
 \end{equation}
-where $\Phi_c$ is the verified compute throughput and $S_c$ is the
-staked capital. The exponents are bounded by the width invariant
- $6a + 4b + \epsilon_{\text{guard}} \le 126$ (\defref{019}).
-
-Sybil resistance is enforced by: cluster-level capping (\defref{013}),
-single-pass cap (\defref{012}), dust pruning, intra-cluster
-distribution via largest-remainder rounding (\defref{020}), and
-self-dealing exclusion (\defref{014}).
+Sybil resistance: cluster-level capping (\defref{013}), single-pass cap
+(\defref{012}), dust pruning, self-dealing exclusion (\defref{014}).
 
 % ════════════════════════════════════════════════════════════════
 \section{Pillar 2: Metastable Sub-Sampled Consensus}
@@ -710,10 +500,9 @@ self-dealing exclusion (\defref{014}).
 
 \begin{table}[h]
 \centering
-\caption{MSSC parameters (whitepaper section 3)}
+\rowcolors{2}{hsmaTeal!5}{white}
 \begin{tabular}{lll}
-\toprule
-\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\
+\rowcolor{hsmaTeal!20} \textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\
 \midrule
 Sample size & $k$ & 20 (escalates to 40) \\
 Quorum threshold & $\alpha$ & 0.75 \\
@@ -726,28 +515,19 @@ Stall limit & $T_{\text{stall}}$ & 50 rounds \\
 
 \subsection{The Canonical Vote Preimage}
 
-Votes are signed under the exact domain-separated preimage:
 \begin{equation}
 \sigma = \mathsf{Sign}_{\texttt{HSM\_MSSC\_VOTE\_v1}}\!\left(
-\text{epoch}_E \| \text{weight\_root}_E \| C_{id} \| r \| \text{pref}
+\text{epoch} \| \text{weight\_root} \| C_{id} \| r \| \text{pref}
 \right)
 \end{equation}
-No timestamps, no view state, nothing prover-discretionary. Two honest
-responses for identical inputs are byte-identical and
-signature-identical.
 
 \subsection{The Wire Format}
 
-The vote wire format (P3-1) uses a 108-byte canonical preimage with
-named layout constants (CA-R198: the layout is defined once; encode
-and decode consume the same constants):
-
 \begin{table}[h]
 \centering
-\caption{The vote wire format (type 0x06)}
+\rowcolors{2}{hsmaTeal!5}{white}
 \begin{tabular}{lll}
-\toprule
-\textbf{Offset} & \textbf{Size} & \textbf{Field} \\
+\rowcolor{hsmaTeal!20} \textbf{Offset} & \textbf{Size} & \textbf{Field} \\
 \midrule
 0 & 4 & epoch (u32 BE) \\
 4 & 32 & weight\_root \\
@@ -756,208 +536,137 @@ and decode consume the same constants):
 100 & 8 & round (u64 BE) \\
 \midrule
 \textbf{Preimage} & \textbf{108} & \\
-\textbf{Signature} & \textbf{96} & G1 affine (x, y) \\
-\textbf{Total payload} & \textbf{204} & \\
+\textbf{Signature} & \textbf{96} & G1 affine \\
+\textbf{Total} & \textbf{204} & \\
 \bottomrule
 \end{tabular}
+\caption{The vote wire format (type 0x06, CA-R198 layout)}
 \end{table}
 
-\subsection{Safety: The Quorum Impossibility Theorem}
+\subsection{Safety: The Quorum Impossibility}
 
-\begin{theorem}[Authenticated Quorum Impossibility]
+\begin{theorem}[Quorum Impossibility]
 \label{thm:quorum}
-Under snapshot freshness and canonical preimages, if the adversary
-controls weight fraction $f < 0.20$ and the sampling floor is
- $\varphi_{\text{floor}} = 0.50 > f/\alpha$, then the observation of
-an adversarial supermajority in any consensus sample is
-\textbf{impossible}: $\epsilon_{\text{quorum}} = 0$.
+Under snapshot freshness, the observation of an adversarial
+supermajority is \textbf{impossible}: $\epsilon_{\text{quorum}} = 0$.
 \end{theorem}
 \begin{proof}
-Countability: each vote contributes exactly its snapshot weight.
-Forged identities contribute zero (no Merkle path). Therefore
- $W_{\mathcal{A}}^{\text{tallied}} \le f \cdot T_E$. The floor forces
- $S \ge \varphi_{\text{floor}} \cdot T_E$. Division yields
  $W_{\mathcal{A}}^{\text{tallied}} / S \le f / \varphi_{\text{floor}}
 = 0.40 < 0.75 = \alpha$.
 \end{proof}
 
-\subsection{The Metastable Convergence}
+\subsection{The Metastable Convergence: Demonstrated}
 
 \begin{theorem}[Metastable Convergence]
 \label{thm:convergence}
-In the MSSC sampling loop with weight-proportional peer preferences,
-two nodes with conflicting initial preferences converge to the same
-finalized state in $O(\beta + 1)$ rounds. The surviving preference is
-the weight-majority preference.
+Two nodes with conflicting preferences converge in $O(\beta + 1)$ rounds. The surviving preference is the weight-majority.
 \end{theorem}
-\begin{proof}
-The minority node observes the majority preference in its sample.
-The agreeing fraction is $w_{\min} / W_{\text{total}} < 0.50 < \alpha$.
-The flip condition fires, and the minority node switches. Both nodes
-now agree. With honest unanimity, the confidence counter reaches
- $\beta$ in $E[T] = (1 - q^\beta)/((1-q) \cdot q^\beta)$ rounds.
-\end{proof}
 
-\textbf{The in-process receipt (mssc2probe):}
+\begin{receiptbox}{Wire-Level Convergence Receipt (P3-2b)}
 \begin{verbatim}
-round  0: n1 pref=A conf=0 kind=2 | n2 pref=A conf=0 kind=2
-round  1: n1 pref=A conf=1 kind=1 | n2 pref=A conf=1 kind=1
-...
-round  5: n1 pref=A conf=5 kind=3 | n2 pref=A conf=5 kind=3
-both Finalized at round 5
-[M1] flip occurred: YES (node2: B -> A)
-[M2] both Finalized on the SAME preference: YES
-\end{verbatim}
-
-\textbf{The wire-level receipt (P3-2b, real TCP):}
-\begin{verbatim}
-node 1 (w=60, pref A): [mssc] rounds 3-8, pref=A, conf 1-6
-node 2 (w=40, pref B): [mssc] rounds 11-16, pref=A (FLIPPED), conf 10-15
+node 1 (w=60, pref A): [mssc] rounds 3-8, pref=A, conf 1→6
+node 2 (w=40, pref B): [mssc] rounds 11-16, pref=A (FLIPPED), conf 10→15
 votes: n1=8 VERIFIED, n2=8 VERIFIED
+→ both Finalized on the SAME preference: A
 \end{verbatim}
+\end{receiptbox}
 
 \subsection{The Beacon-Gated Deadlock Resolution}
 
 \begin{theorem}[Beacon-Gated Liveness]
 \label{thm:beacon}
-In a 50/50 deadlock (equal weights, conflicting preferences, $\alpha$ unreachable), both nodes suspend after $T_{\text{stall}}$ rounds. Upon
-computing the next epoch's threshold-BLS beacon, both nodes
-deterministically compute the same winner via
- $\arg\max_{tx} H(\text{beacon}_{E+1} \| tx_{id})$, resume, and
-finalize on the winner.
+In a 50/50 deadlock, both nodes suspend after $T_{\text{stall}}$ rounds.
+Both compute the same winner via $\arg\max_{tx} H(\text{beacon}_{E+1} \| tx)$.
 \end{theorem}
-\begin{proof}
-The beacon is a deterministic function of the committee (same DKG
-output, same epoch, same previous beacon). Both nodes compute the same
-value. The $\arg\max$ is deterministic (lex-asc tie per DEC-052).
-\end{proof}
 
-\textbf{The receipt (mssc3probe):}
+\begin{receiptbox}{Deadlock Resolution Receipt (P3-3)}
 \begin{verbatim}
-rounds 0-4: stall 1-5 on both (50/50 deadlock, no quorum)
-round 4: [breaker] both nodes suspended
+rounds 0-4: 50/50 deadlock, stall 1→5 on both
+round 4: both nodes SUSPENDED
 [breaker] n1 winner = A, n2 winner = A (SAME - deterministic)
-rounds 5-9: both resume, confidence climbs
-both Finalized at round 9 on A
+rounds 5-9: both resume, both Finalize on A
 \end{verbatim}
-
-\subsection{The EMA Scoring Dynamics}
-
-The peer scoring uses fixed-point EMA with a closed-form update
-(\defref{079}):
-\begin{equation}
-s_{t+1} = \lambda \cdot s_t + (1 - \lambda) \cdot \mathbf{1}[\text{responded}]
-\end{equation}
-where $\lambda = \texttt{EMA\_LAM\_N} / \texttt{EMA\_SCALE}
-= 971{,}532 / 1{,}000{,}000$ (half-life $\approx 24$h), and the
-non-resetability proof (INV-G5) shows that an adversary cannot reset
-their score by disconnecting and reconnecting: the score persists
-across sessions because it is bound to the \texttt{AccountID}, not
-to the transport ID.
+\end{receiptbox}
 
 % ════════════════════════════════════════════════════════════════
 \section{Pillar 3: Zero-MEV Encrypted Mempool}
 \label{sec:mev}
 
-\subsection{The Commit-then-Simulate Inversion}
+\subsection{The Commit-then-Simulate Pipeline}
 
-Traditional \textit{Simulate-then-Commit} sequencing requires the
-committee to read plaintext transactions before ordering them,
-creating a front-running cartel. \hsma{} inverts this to
-\textbf{Commit-then-Simulate} (\defref{025}):
+\begin{warnbox}{The Inversion That Changes Everything}
+Traditional: \textbf{Simulate-then-Commit} — the committee reads
+plaintext, THEN orders. Front-running is possible.
+
+\hsma{}: \textbf{Commit-then-Simulate} — the ordering is committed on
+\textcolor{hsmaRed}{\textbf{encrypted}} data. Nobody can front-run
+what \textcolor{hsmaRed}{\textbf{nobody can read}}.
+\end{warnbox}
 
 \begin{enumerate}
-\item \textbf{Intake}: Encrypted envelopes $\{R, ct, \text{tag},
-\text{cth}\}$ are gossiped.
-\item \textbf{Lock}: $\text{order} = \text{Sort}(\textsf{sort\_key}(\text{beacon}, \text{cth}))$ ---
-the committee signs \texttt{order\_root} \textbf{before} any
-decryption share exists.
-\item \textbf{Share}: Order-bound decryption shares $D_j = [S_j]R$ published.
-\item \textbf{Aggregate}: $D = \sum_j \lambda_j D_j = [S]R$; anyone
-reconstructs the DEM key $k$.
-\item \textbf{Decrypt}: The payload is recovered; the DEM tag
-verifies integrity.
-\item \textbf{Execute \& Fold}: The decrypted decree feeds the fold
-pipeline.
+\item \textbf{Intake}: Encrypted envelopes $\{R, ct, \text{tag}, \text{cth}\}$ gossiped
+\item \textbf{Lock}: $\text{order} = \text{Sort}(\textsf{sort\_key}(\text{beacon}, \text{cth}))$; \texttt{order\_root} signed
+\item \textbf{Share}: $D_j = [S_j]R$ published (order-bound)
+\item \textbf{Aggregate}: $D = \sum \lambda_j D_j = [S]R$ \item \textbf{Decrypt}: $k = \mathsf{KDF}(D, X_E, \text{hdr})$; dem\_decrypt
+\item \textbf{Execute \& Fold}: The decrypted decree feeds the fold pipeline
 \end{enumerate}
-
-\subsection{The KEM Mathematical Structure}
-
-\begin{theorem}[KEM Correctness]
-\label{thm:kem}
-Let $X_E = [S]G_{2,\mathrm{gen}}$ be the committee's aggregate public
-key (the unified trust anchor, DEC-030). The sender picks $r$, computes
- $R = [r]G_{2,\mathrm{gen}}$ and $ss = [r]X_E$. Each committee member
-computes $D_j = [S_j]R$. The Lagrange aggregate
- $D = \sum_j \lambda_j D_j = [S]R = ss$. The DEM key
- $k = \mathsf{KDF}(ss, X_E, \text{hdr})$ is identical on both sides.
-\end{theorem}
-\begin{proof}
- $D = \sum_j \lambda_j [S_j]R = [\sum_j \lambda_j S_j]R = [S]R$ (by Lagrange interpolation at $x=0$, $\sum_j \lambda_j S_j = S$).
-And $[r]X_E = [r \cdot S]G_{2,\mathrm{gen}} = [S] \cdot [r]G_{2,\mathrm{gen}}
-= [S]R = D$. The KDF is deterministic, so both sides derive the same $k$.
-\end{proof}
 
 \subsection{The Threshold Confidentiality}
 
 \begin{theorem}[Threshold Confidentiality]
 \label{thm:threshold}
-Under degree-$d$ polynomial secret sharing with threshold $t = d+1$,
-an adversary controlling $m < t$ members cannot distinguish the
-encrypted payload from a random string (information-theoretic, by
-Shamir's security).
+An adversary controlling $m < t = 112$ members gains \textbf{zero
+information} about the payload (information-theoretic, by Shamir's
+security on the degree-$d$ polynomial with $d+1 = t$).
 \end{theorem}
 
 \subsection{The Ordering Lock}
 
 \begin{theorem}[Order-Before-Knowledge]
 \label{thm:obk}
-Under the Commit-then-Simulate ceremony: for any adversary controlling
- $m < t$ committee members, the probability of learning transaction
-payload contents before the execution position is irreversibly
-committed is exactly zero (information-theoretic).
+For any adversary controlling $m < t$ members, the probability of
+learning payload contents before the position is irreversibly
+committed is \textbf{exactly zero} (information-theoretic).
 \end{theorem}
 
-\begin{remark}
-The ordering function $\text{sort\_key}(\text{beacon}, \text{cth})$ is beacon-bound: a different beacon produces a different order
-([T4] confirmed: order1=210, order2=012 for different beacons).
-The beacon does not exist when the conflict is created, so grinding
-is structurally impossible.
-\end{remark}
+\subsection{The Degree-Must-Match-Threshold Law}
 
-\subsection{The Threshold Poly Degree Lesson}
-
-\begin{remark}[The Degree-Must-Match-Threshold Law]
-A degree-$d$ polynomial requires $d+1$ points to reconstruct. For
-a 2-of-3 threshold, the poly must be degree 1 (a line through 2 points).
-A degree-0 poly makes all shares equal (1 member CAN decrypt --- the
-P4-1 honest scope). A degree-2 poly needs all 3 members (2 points on
-a quadratic give a wrong line). \textbf{The degree must match the
-threshold.}
-\end{remark}
+\begin{warnbox}{The Poly Degree Lesson (P4-2)}
+A degree-$d$ polynomial requires $d+1$ points to reconstruct.
+\begin{itemize}
+\item \textbf{Degree 0}: all shares = the secret → 1 member CAN decrypt
+\item \textbf{Degree 1}: any 2-of-3 shares reconstruct → \textbf{the 2-of-3 threshold}
+\item \textbf{Degree 2}: needs all 3 members → 3-of-3 threshold
+\end{itemize}
+\textbf{The degree must match the threshold.}
+\end{warnbox}
 
 \subsection{The Capstone Receipt: The Full Pipeline}
 
+\begin{receiptbox}{The Complete Commit-then-Simulate (P4-4 Capstone)}
 \begin{verbatim}
 10 ENCRYPTED envelopes arrive (nobody can read them)
-→ ORDER COMMITTED (root=7ec2cd4c..., beacon-shuffled)
-→ 10 THRESHOLD DECRYPTS (all tag OK)
-   [decrypt] envelope 0: "encrypted-decree-0" (tag OK)
-   [decrypt] envelope 1: "encrypted-decree-1" (tag OK)
-   ...
-   [decrypt] envelope 9: "encrypted-decree-9" (tag OK)
-→ 10 FOLDS (ALL SAT)
-→ π_E epoch 1: wrap_verify ACCEPT (stage=0)
-→ PoUW epoch 1: 64³ GEMM ACCEPT, weight 262144 MACs
+  → ORDER COMMITTED (root=7ec2cd4c..., beacon-shuffled)
+    → 10 THRESHOLD DECRYPTS (all tag OK)
+       [decrypt] envelope 0: "encrypted-decree-0" (tag OK)
+       [decrypt] envelope 1: "encrypted-decree-1" (tag OK)
+       ... through envelope 9
+    → 10 FOLDS (ALL SAT)
+       [fold] decree 1/10 folded, SAT
+       [fold] decree 2/10 folded, SAT
+       ... through decree 10/10
+    → π_E epoch 1: wrap_verify ACCEPT (stage=0)
+    → PoUW epoch 1: 64³ GEMM ACCEPT, weight 262144 MACs
 \end{verbatim}
+\end{receiptbox}
 
 \begin{corollary}[The Four-Pillar Integration]
+\label{cor:integration}
 The complete Commit-then-Simulate pipeline --- encrypted in, ordered,
 decrypted, folded, $\pi_E$ produced, PoUW weight derived --- is
 \textbf{structurally guaranteed} by the four pillars operating as a
 single system. Front-running is impossible because the ordering is
-committed before any party can read the payloads, and the threshold
-controls who can decrypt.
+committed before any party can read the payloads.
 \end{corollary}
 
 % ════════════════════════════════════════════════════════════════
@@ -969,35 +678,23 @@ controls who can decrypt.
 \begin{itemize}
 \item Primary: HyperNova over Pallas ($\mathbb{F}_p$), CCS
 \item Auxiliary: CycleFold over Vesta ($\mathbb{F}_q$)
-\item NIVC: SuperNova-style over $\mathcal{F} = \{F_{\text{head}},
-F_{\text{exec}}, F_{\text{close}}\}$ \item Accumulator: 41 bytes, $O(1)$ in transaction count
-\end{itemize}
-
-\subsection{The Fold Circuit Constraints}
-
-Per decree entry $\ell$ with certified tuple
- $(ct\_hash_\ell, pt\_hash_\ell, \text{status}_\ell)$:
-\begin{itemize}
-\item \textbf{Binding}: $a \cdot (\textsf{Poseidon}(\texttt{HSM\_PT\_v1}, pt_\ell) - pt\_hash_\ell) = 0$ \item \textbf{Nonce}: $a \cdot (\text{leaf\_nonce}(\text{sender}_\ell) + 1 - pt.\text{nonce}) = 0$ \item \textbf{Balance}: Sender debit, recipient credit with range checks
-\item \textbf{Fee underflow}: $\text{balance} \ge \Delta_{\text{req}}$ gate
-\item \textbf{Self-send}: $\text{sender} = \text{recipient} \Rightarrow \text{recipient\_pre} = \text{sender\_post}$ \item \textbf{PAD neutrality}: PAD rows bypass state verification
+\item NIVC: SuperNova-style over $\mathcal{F} = \{F_{\text{head}}, F_{\text{exec}}, F_{\text{close}}\}$ \item Accumulator: \textbf{41 bytes}, $O(1)$ in transaction count
 \end{itemize}
 
 \subsection{The $\pi_E$ Receipt}
 
 \begin{table}[h]
 \centering
-\caption{$\pi_E$ size at golden scale}
+\rowcolors{2}{hsmaPurple!5}{white}
 \begin{tabular}{lr}
-\toprule
-\textbf{Component} & \textbf{Size (bytes)} \\
+\rowcolor{hsmaPurple!20} \textbf{Component} & \textbf{Size (bytes)} \\
 \midrule
 T1 (opening transcript) & 544 \\
 T2 (batched fold transcript) & 768 \\
 OOD (8 points + commitment) & 288 \\
 \midrule
-\textbf{Total $\pi_E$} & \textbf{1{,}600} \\
-\textbf{Budget} & 73{,}728 \\
+\rowcolor{hsmaGreen!15} \textbf{Total $\pi_E$} & \textcolor{hsmaGreen}{\textbf{1{,}600}} \\
+Budget & 73{,}728 \\
 \textbf{Utilization} & \textbf{2.2\%} \\
 \bottomrule
 \end{tabular}
@@ -1007,223 +704,136 @@ OOD (8 points + commitment) & 288 \\
 
 \begin{table}[h]
 \centering
-\caption{Production-scale constraint counts ($k = 476$)}
+\rowcolors{2}{hsmaPurple!5}{white}
 \begin{tabular}{lr}
-\toprule
-\textbf{Component} & \textbf{Constraints} \\
+\rowcolor{hsmaPurple!20} \textbf{Component} & \textbf{Constraints} \\
 \midrule
  $f_{\text{exec}}$ transition ($8 \times 476$) & 3{,}808 \\
 Poseidon hash ($1{,}088 \times 3 \times 476$) & 1{,}553{,}664 \\
 SMT opening ($5{,}120 \times 2 \times 476$) & 4{,}874{,}240 \\
 \midrule
 \textbf{Total} & \textbf{6{,}431{,}712} \\
-\textbf{10$^6$ target} & \textbf{Exceeded ($6.4\times$)} \\
+\textcolor{hsmaGreen}{\textbf{10$^6$ target}} & \textcolor{hsmaGreen}{\textbf{Exceeded ($6.4\times$)}} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 % ════════════════════════════════════════════════════════════════
-\part{The Engineering Culture}
-% ════════════════════════════════════════════════════════════════
+\section{End-to-End Security: The $\epsilon$-Budget}
+\label{sec:security}
 
-\section{The Bilingual Golden-Oracle Methodology}
+\begin{keybox}{The A6 Composition Theorem}
+\begin{equation}
+\epsilon_{\text{sys}} =
+\underbrace{\textcolor{hsmaGreen}{0}}_{\text{L1: Quorum}} +
+\underbrace{\textcolor{hsmaGreen}{0}}_{\text{L2: Committee}} +
+\underbrace{\textcolor{hsmaGreen}{0}}_{\text{L4: Eclipse}} +
+\underbrace{2^{-128}}_{\text{L5: PCS}} +
+\underbrace{2^{-127}}_{\text{L6: NIFS}} +
+\underbrace{2^{-171}}_{\text{Hash}} +
+\underbrace{2^{-110}}_{H1}
+\approx \color{hsmaBlue}\boxed{2^{-110}} \text{ per epoch}
+\end{equation}
+Annualized: $\epsilon_{\text{year}} \approx 2^{-94.3}$.
+The $2^{-80}$ target is cleared with 14 bits of margin.
+\end{keybox}
+
+% ════════════════════════════════════════════════════════════════
+\section{The Engineering Discipline}
 \label{sec:methodology}
 
-\subsection{The Four Components}
+\subsection{The Bilingual Golden-Oracle Methodology}
 
-\begin{enumerate}
-\item \textbf{The Python Oracle}: an independent implementation of
-every cryptographic primitive in Python, using arbitrary-precision
-integers. No Montgomery arithmetic, no fixed-width limitations.
-\item \textbf{The C++ Implementation}: the production implementation
-using fixed-width Montgomery arithmetic for performance.
-\item \textbf{Golden Vectors}: emitted by the Python oracle, containing
-every intermediate value. These pin the expected output at each step.
-\item \textbf{The Gate}: an automated verification pipeline that
-regenerates goldens, compiles, runs all tests, and aborts on any failure.
-\end{enumerate}
-
-\subsection{The Divergence Guarantee}
+\hsma{} is verified by a methodology with no peer in the Layer-1
+ecosystem: a Python oracle (arbitrary-precision integers) independently
+mirrors every C++ operation. Golden vectors pin every intermediate
+value. When implementations disagree, the divergence is detected
+immediately.
 
 \begin{theorem}[Divergence Detection]
-Let $I_1$ and $I_2$ be two implementations sharing no code path.
-For any $x$ in the test set $T$, if $I_1(x) \neq I_2(x)$, the
-divergence is detected with probability 1.
+Let $I_1$ and $I_2$ share no code path. For any $x$ in the test set,
+if $I_1(x) \neq I_2(x)$, the divergence is detected with probability 1.
 \end{theorem}
-\begin{proof}
-By construction: the golden vector pins $I_2$'s output. $I_1$ computes independently. The gate compares. If they differ, FAIL.
-\end{proof}
 
-\subsection{The Defect Taxonomy}
+\subsection{The Engineering Culture in Numbers}
 
 \begin{table}[h]
 \centering
-\caption{223 defects across all classes}
-\begin{tabular}{lrl}
-\toprule
-\textbf{Class} & \textbf{Count} & \textbf{Example} \\
+\rowcolors{2}{hsmaGold!5}{white}
+\begin{tabular}{lr}
+\rowcolor{hsmaGold!20} \textbf{Metric} & \textbf{Value} \\
 \midrule
-Arithmetic (carry, overflow) & 28+ & CA-R48 \\
-Convention (bit-order, endianness) & 22+ & DEF-223 \\
-Domain (Montgomery vs canonical) & 18+ & CA-R148 \\
-Constraint algebra & 15+ & CA-R143 \\
-API misuse (wrong function) & 12+ & CA-R121 \\
-Structural (loop bounds) & 10+ & CA-R119 \\
-Out-of-bounds memory & 3+ & CA-R119 \\
-Emitter formatting & 8+ & CA-R127 \\
-Infrastructure (gate, build) & 6+ & CA-R151 \\
-Process (ledger, scripts) & 10+ & DEF-199 \\
-Wire format (layout, endianness) & 8+ & DEF-223 \\
-Logging (format, buffering) & 4+ & DEF-218 \\
-Environment (cache, clone) & 3+ & DEF-222 \\
-Other & 70+ & \\
-\midrule
-\textbf{Total} & \textbf{223} & \\
+Decisions in the append-only ledger & 281 \\
+Defects owned with named fixes & 223 \\
+Generalizable laws extracted & 203 \\
+Conformance gates & 34/34 \\
+Generated headers (determinism-proven) & 41 \\
+Diagnostic probes & 30+ \\
+Selected defect narratives in this paper & 4 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Selected Defect Narratives}
+Four defect classes were \textbf{structurally invisible} to the
+implementation's own test suite. Selected narratives:
 
 \begin{description}
-\item[DEF-183 (the htonl phantom):]\texttt{connect\_peer()} assigned
-a host-order IP to a network-order field without \texttt{htonl()}.
-The connect dialed 1.0.0.127 (byte-swapped) instead of 127.0.0.1.
-The bug was invisible for six sessions because the log printed the
-correct address. Found by eliminating every other hypothesis.
+\item[The htonl phantom (six sessions silent):] A missing
+\texttt{htonl()} caused connects to dial the byte-swapped address.
+The log printed the correct IP while the socket dialed wrong.
 \textbf{CA-R180}: printed correctness is not wire correctness.
 
-\item[DEF-206 (the stale assertion):]The sumcheck conformance test
-expected \texttt{== nv} (the ACCEPT code) on a tampered-final
-transcript --- it \emph{encoded} DEF-163's collision as correct
-behavior. The contradiction slept through six 34/34 gates.
-\textbf{CA-R194}: a supersedes claim triggers a consumer audit.
+\item[The stale assertion (six gates asleep):] A conformance test
+\emph{encoded} a collision as correct behavior. The forced rebuild
+exposed it. \textbf{CA-R194}: a supersedes claim triggers a consumer audit.
 
-\item[DEF-218 (the logging lie):]The vote REJECT printf carried a
-literal backslash-n from an escaping-layer collision. The line
-printed with garbage; grep missed it. The soundness held (the pairing
-rejected the forged vote) but the logging lied by omission.
-\textbf{CA-R199}: every dispatched message prints its fate.
-
-\item[DEF-223 (the endianness seam):]\texttt{ser\_g2} writes
-little-endian per limb; the decoder read big-endian. The deserialized
-point was valid-looking but mathematically wrong. Found by the
-R-roundtrip check. \textbf{CA-R202}: a serialization format's byte
-order is part of its contract.
+\item[The endianness seam:] \texttt{ser\_g2} writes LE per limb; the
+decoder read BE. The point was valid-looking but wrong.
+\textbf{CA-R202}: byte order is part of the contract.
 \end{description}
 
-\subsection{The Laws}
-
-The 203 laws are generalizable rules extracted from defects.
-The complete law registry (CA-R001 through CA-R203) is maintained
-in \texttt{docs/DECISIONS.md}. Key laws from this session:
-
-\begin{longtable}{p{2cm} p{13cm}}
-\toprule
-\textbf{Law} & \textbf{Statement} \\
-\midrule
-\endhead
-CA-R169 & Every witness region a builder allocates must be addressable by the caller — offsets are API, not convention. \\
-CA-R170 & A verifier's success sentinel must be disjoint from every failure sentinel. \\
-CA-R171 & A commit message is a claim; the diff is the receipt. \\
-CA-R172 & A patch anchor is a line, not a fragment. \\
-CA-R173 & A defect claim is a claim — verify against the artifact's current state. \\
-CA-R174 & A transform that is never assigned back is a transform that never happened. \\
-CA-R175 & A receipt is derived from the artifact at close-out time, never transcribed. \\
-CA-R176 & A defect claim of absence requires the whole scope to have been displayed. \\
-CA-R177 & A derived finding inherits its pattern's blind spots. \\
-CA-R178 & Wire offsets are layout tables, not tail arithmetic. \\
-CA-R179 & Distributed tests gate on observed readiness, never calibrated sleeps. \\
-CA-R180 & Printed correctness is not wire correctness. \\
-CA-R181 & A close-out gates its commit on its derive's exit code. \\
-CA-R182 & A gate's verdict lives in artifact state, not printed output. \\
-CA-R183 & An anchor has two coordinates — file AND text. \\
-CA-R184 & An agreement check must be shown non-trivial to count as evidence. \\
-CA-R185 & A committed header is a claim about the body. \\
-CA-R186 & A proof binds only what it constrains. \\
-CA-R187 & A vector commitment's binding strength equals its distinct-base count. \\
-CA-R188 & An assert's expected counts are derived from the payload, not estimated. \\
-CA-R189 & Generated constants are proof artifacts; a changed golden is a reviewed diff. \\
-CA-R190 & A path migration sweeps compositions, not just literals. \\
-CA-R191 & A close-out is one block; a FAILED target fails the gate. \\
-CA-R192 & A gate's verdict lives in artifact state, not printed output. \\
-CA-R193 & Small files are written whole, never patched through substitution layers. \\
-CA-R194 & A supersedes claim triggers a consumer audit. \\
-CA-R195 & A golden's identity is judged against its generator and consumers. \\
-CA-R196 & The repository is the complete record; only regenerable outputs are ignored. \\
-CA-R197 & Completeness is verified by git ls-files --others, never by recall. \\
-CA-R198 & A wire format has exactly one layout definition. \\
-CA-R199 & Every dispatched message prints its fate. \\
-CA-R200 & Timing windows are measured from the receipts, not estimated. \\
-CA-R201 & A multi-patch script is idempotent with incremental saves. \\
-CA-R202 & A serialization format's byte order is part of its contract. \\
-CA-R203 & A KEM's hdr must be carried in the wire format or derived from wire data. \\
-\bottomrule
-\end{longtable}
-
 % ════════════════════════════════════════════════════════════════
-\part{Implementation and Reproducibility}
-% ════════════════════════════════════════════════════════════════
-
-\section{The Reference Implementation}
-\label{sec:impl}
-
-The \hsma{} reference implementation is C++20, header-only, with
-zero external cryptographic libraries. All constants are mechanically
-derived from \texttt{scripts/gen\_constants.py} (\defref{102}).
+\section{Reproducibility}
+\label{sec:repro}
 
 \begin{lstlisting}[language=bash]
 git clone https://github.com/sarinsk629-blip/hsma-core.git
 cd hsma-core
 ./scripts/gate.sh
-# → 41 goldens generated (determinism-proven)
-# → 34/34 tests passed
-# → GATE GREEN
+# 41 goldens generated (determinism-proven: two-run byte-identical)
+# 34/34 tests passed
+# GATE GREEN
 \end{lstlisting}
-
-\section{The Verification Gate}
-\label{sec:gate}
-
-The gate pipeline:
-\begin{enumerate}
-\item Regenerate: execute the golden-vector emitter (Python)
-\item Configure: CMake with Ninja
-\item Build: compile all test binaries (abort on failure)
-\item Lint: check\_no\_fp.sh (the float-free law)
-\item FAILED-target tripwire: any FAILED target fails the gate
-\item Diagnostics: mempool + consensus health checks
-\item Conformance: all 34 test binaries
-\item Verdict: \GATE{} iff all steps pass
-\end{enumerate}
 
 % ════════════════════════════════════════════════════════════════
 \section{Conclusion}
-% ════════════════════════════════════════════════════════════════
+\label{sec:conclusion}
 
-\hsma{} is not a blockchain. It is not a DAG. It is a
-\textbf{folding-based state machine} where:
+\begin{keybox}{The Complete System}
+\hsma{} is a \textbf{folding-based state machine} where:
 
 \begin{itemize}
-\item Consensus weight derives from \textbf{verified AI inference}
-\item The mempool is \textbf{cryptographically unreadable} before ordering
-\item The entire epoch history compresses into a \textbf{1{,}600-byte proof}
-\item Every design decision, every defect, every fix is \textbf{owned}
+\item Consensus weight derives from \textcolor{hsmaBlue}{\textbf{verified AI inference}}
+\item The mempool is \textcolor{hsmaGold}{\textbf{cryptographically unreadable}} before ordering
+\item The entire epoch history compresses into a \textcolor{hsmaPurple}{\textbf{1{,}600-byte proof}}
+\item Every design decision, every defect, every fix is \textcolor{hsmaGreen}{\textbf{owned in an append-only ledger}}
 \end{itemize}
 
 The four pillars are structurally interdependent. The system is
 implemented, tested, and receipted.
+\end{keybox}
 
 \begin{center}
-\textit{The Satoshi path: build $\to$ publish $\to$ verify $\to$ wait.}\\[0.5em]
-\textit{Built by one person. Zero hiding.}\\[0.5em]
-\textit{\textbf{281 decisions. 223 defects. 203 laws. 34 gates. One system.}}
+{\large\itshape The Satoshi path: build $\to$ publish $\to$ verify $\to$ wait.}\\[0.5em]
+{\large\itshape Built by one person. Zero hiding.}\\[0.8em]
+{\Large\bfseries\color{hsmaBlue} 281 decisions. 223 defects. 203 laws.\\
+34 gates. One system. Zero hiding.}
 \end{center}
 
 % ════════════════════════════════════════════════════════════════
 \appendix
 
-\section{The Decision Ledger: Selected Entries}
-\label{app:ledger}
+\section{Key Decisions}
 
 \begin{longtable}{l p{12cm}}
 \toprule
@@ -1233,28 +843,17 @@ implemented, tested, and receipted.
 DEC-001 & Pasta curves, L=126, unsigned mag + sign flags \\
 DEC-016 & Canonical domain-separated vote preimage \\
 DEC-025 & Commit-then-Simulate pipeline inversion \\
-DEC-030 & Unified trust anchor: same t-of-n across pillars \\
+DEC-030 & Unified trust anchor: same $t$-of-$n$ across pillars \\
 DEC-038 & Floor invariant $\varphi_{\text{floor}} > f/\alpha$ \\
 DEC-039 & Structural floor: $m_{\text{adv}} \le 100 < t = 112$ \\
 DEC-048 & CPS sampler pinned (Algorithms 3.1--3.2) \\
-DEC-054 & Committee $t = 112$ of $n = 224$ \\
-DEC-057 & Early-decryption impossibility by counting \\
 DEC-071 & Dual-layer PCS: Pedersen + WHIR \\
-DEC-090 & Integer-basis-point guard; cmath/FP banned \\
+DEC-090 & Integer-basis-point guard; FP banned \\
 DEC-107 & Poseidon instance HSMA-P3-v1 \\
-DEC-112 & Leaf binding $L(K,v)$ \\
+DEC-112 & Leaf binding $L(K, v)$ \\
 DEC-126 & 192-bit slot schema \\
-DEC-163 & The sumcheck verify sentinel collision \\
-DEC-183 & The htonl phantom (six sessions) \\
-DEC-206 & The stale assertion (six gates asleep) \\
-DEC-218 & The sumcheck verify sentinel fix \\
-DEC-223 & The Vesta Poseidon twin \\
-DEC-232 & The P1-13b golden (EP\_*) \\
 DEC-244 & The GEMM circuit: 36/36 SAT \\
-DEC-245 & The PoUW wiring \\
-DEC-248 & The FS-bound PoUW: grind $\sim$2$^{253}$ \\
-DEC-250 & The epoch PoUW: weight in the explorer \\
-DEC-253 & Weight consensus on the wire \\
+DEC-248 & The FS-bound PoUW: grind $\sim 2^{253}$ \\
 DEC-258 & Two-node convergence (the htonl fix) \\
 DEC-259 & State agreement: non-vacuous fingerprints \\
 DEC-271 & The MSSC vote wire layer \\
@@ -1270,50 +869,28 @@ DEC-281 & The capstone: the full Commit-then-Simulate \\
 \bottomrule
 \end{longtable}
 
-\section{The Complete Law Registry}
-\label{app:laws}
-
-The 203 laws are maintained in \texttt{docs/DECISIONS.md}. The complete
-registry from CA-R169 through CA-R203 (this session's contribution):
+\section{Selected Laws}
 
 \begin{longtable}{p{2cm} p{13cm}}
 \toprule
 \textbf{Law} & \textbf{Statement} \\
 \midrule
 \endhead
-CA-R169 & Every witness region a builder allocates must be addressable by the caller — offsets are API, not convention. \\
-CA-R170 & A verifier's success sentinel must be disjoint from every failure sentinel. \\
+CA-R169 & Every witness region a builder allocates must be addressable by the caller --- offsets are API, not convention. \\
 CA-R171 & A commit message is a claim; the diff is the receipt. \\
-CA-R172 & A patch anchor is a line, not a fragment. \\
-CA-R173 & A defect claim is a claim — verify against the artifact's current state. \\
-CA-R174 & A transform that is never assigned back is a transform that never happened. \\
 CA-R175 & A receipt is derived from the artifact at close-out time, never transcribed. \\
-CA-R176 & A defect claim of absence requires the whole scope to have been displayed. \\
-CA-R177 & A derived finding inherits its pattern's blind spots. \\
 CA-R178 & Wire offsets are layout tables, not tail arithmetic. \\
-CA-R179 & Distributed tests gate on observed readiness, never calibrated sleeps. \\
 CA-R180 & Printed correctness is not wire correctness. \\
 CA-R181 & A close-out gates its commit on its derive's exit code. \\
-CA-R182 & A gate's verdict lives in artifact state, not printed output. \\
-CA-R183 & An anchor has two coordinates — file AND text. \\
 CA-R184 & An agreement check must be shown non-trivial to count as evidence. \\
-CA-R185 & A committed header is a claim about the body. \\
 CA-R186 & A proof binds only what it constrains. \\
 CA-R187 & A vector commitment's binding strength equals its distinct-base count. \\
-CA-R188 & An assert's expected counts are derived from the payload, not estimated. \\
 CA-R189 & Generated constants are proof artifacts; a changed golden is a reviewed diff. \\
-CA-R190 & A path migration sweeps compositions, not just literals. \\
 CA-R191 & A close-out is one block; a FAILED target fails the gate. \\
-CA-R192 & A gate's verdict lives in artifact state, not printed output. \\
 CA-R193 & Small files are written whole, never patched through substitution layers. \\
-CA-R194 & A supersedes claim triggers a consumer audit. \\
-CA-R195 & A golden's identity is judged against its generator and consumers. \\
 CA-R196 & The repository is the complete record; only regenerable outputs are ignored. \\
-CA-R197 & Completeness is verified by git ls-files --others, never by recall. \\
 CA-R198 & A wire format has exactly one layout definition. \\
-CA-R199 & Every dispatched message prints its fate. \\
 CA-R200 & Timing windows are measured from the receipts, not estimated. \\
-CA-R201 & A multi-patch script is idempotent with incremental saves. \\
 CA-R202 & A serialization format's byte order is part of its contract. \\
 CA-R203 & A KEM's hdr must be carried in the wire format or derived from wire data. \\
 \bottomrule
