@@ -1,5 +1,8 @@
 # HSMA — Holographic Spin-Manifold Architecture
 
+[![HSMA Gate](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml/badge.svg)](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml)
+
+
 [![Gate](https://img.shields.io/badge/gate-34%2F34-brightgreen)](https://github.com/sarinsk629-blip/hsma-core)
 [![Decisions](https://img.shields.io/badge/decisions-235-blue)](docs/DECISIONS.md)
 [![Laws](https://img.shields.io/badge/laws-165-orange)](docs/DECISIONS.md)
