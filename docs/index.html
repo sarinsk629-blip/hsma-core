@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSMA: Holographic Spin-Manifold Architecture</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .hero { text-align: center; padding: 60px 0 40px; }
+        .hero h1 {
+            font-size: 2.8em;
+            background: linear-gradient(90deg, #00c9ff, #92fe9d, #00c9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .hero .subtitle { font-size: 1.3em; color: #92fe9d; margin-bottom: 5px; }
+        .hero .tagline { font-size: 1.1em; color: #888; font-style: italic; }
+        .badges { text-align: center; margin: 30px 0; }
+        .badge {
+            display: inline-block; padding: 6px 14px; margin: 4px;
+            border-radius: 20px; font-size: 0.85em; font-weight: bold;
+        }
+        .badge-green { background: #1a4a2a; color: #92fe9d; border: 1px solid #92fe9d; }
+        .badge-blue { background: #1a2a4a; color: #00c9ff; border: 1px solid #00c9ff; }
+        .badge-purple { background: #2a1a4a; color: #c4a0ff; border: 1px solid #c4a0ff; }
+        .pillars {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; margin: 40px 0;
+        }
+        .pillar {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 25px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .pillar:hover { transform: translateY(-3px); border-color: #00c9ff; }
+        .pillar h3 { color: #00c9ff; margin-bottom: 10px; font-size: 1.1em; }
+        .pillar p { color: #aaa; font-size: 0.9em; line-height: 1.6; }
+        .pillar .num { font-size: 2em; color: #333; font-weight: bold; float: right; }
+        .stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px; margin: 40px 0;
+        }
+        .stat { text-align: center; padding: 15px; background: rgba(0,201,255,0.05); border-radius: 10px; }
+        .stat .num { font-size: 2em; color: #92fe9d; font-weight: bold; }
+        .stat .label { color: #888; font-size: 0.85em; }
+        .links { text-align: center; margin: 40px 0; }
+        .btn {
+            display: inline-block; padding: 12px 28px; margin: 8px;
+            border-radius: 8px; text-decoration: none; font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #0050a0; color: white; }
+        .btn-primary:hover { background: #0070d0; }
+        .btn-secondary { background: transparent; color: #00c9ff; border: 2px solid #00c9ff; }
+        .btn-secondary:hover { background: rgba(0,201,255,0.1); }
+        .receipt { background: #16213e; border-radius: 8px; padding: 20px; margin: 20px 0;
+                   font-family: monospace; font-size: 0.85em; color: #92fe9d;
+                   overflow-x: auto; border-left: 3px solid #00c9ff; }
+        .section-title { color: #00c9ff; font-size: 1.3em; margin: 40px 0 15px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .footer { text-align: center; padding: 40px 0; color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="hero">
+        <h1>HSMA</h1>
+        <p class="subtitle">Holographic Spin-Manifold Architecture</p>
+        <p class="tagline">Not a blockchain. Not a DAG. A new category.</p>
+    </div>
+
+    <div class="badges">
+        <span class="badge badge-green">GATE GREEN 34/34</span>
+        <span class="badge badge-blue">41 Goldens</span>
+        <span class="badge badge-purple">π_E = 1,600 bytes</span>
+    </div>
+
+    <div class="section-title">The Four Pillars</div>
+
+    <div class="pillars">
+        <div class="pillar">
+            <span class="num">01</span>
+            <h3>Verifiable AI Inference (PoUW)</h3>
+            <p>Consensus weight derives from verified GEMM matrix multiplications via the sum-check protocol. A 128³ GEMM (2.1M MACs) verifies in ~1.2KB with O(log N) verifier work. Not wasted energy — useful compute.</p>
+        </div>
+        <div class="pillar">
+            <span class="num">02</span>
+            <h3>Metastable Sub-Sampled Consensus</h3>
+            <p>Avalanche-family sampling with weight-proportional preferences. Structural quorum impossibility (ε=0 under f&lt;0.20). Beacon-gated deadlock resolution. The convergence property is demonstrated, not described.</p>
+        </div>
+        <div class="pillar">
+            <span class="num">03</span>
+            <h3>Zero-MEV Encrypted Mempool</h3>
+            <p>Commit-then-Simulate: payloads are threshold-encrypted before the ordering is committed. Nobody can front-run what nobody can read. 224-member committee, threshold t=112.</p>
+        </div>
+        <div class="pillar">
+            <span class="num">04</span>
+            <h3>Holographic State Folding</h3>
+            <p>HyperNova NIVC over the Pasta curve cycle. 41-byte accumulator (O(1) in transaction count). π_E = 1,600 bytes (2.2% of budget), verifiable without the witness in 118ms on ARM64.</p>
+        </div>
+    </div>
+
+    <div class="section-title">The Receipts</div>
+
+    <div class="stats">
+        <div class="stat"><div class="num">281</div><div class="label">Decisions</div></div>
+        <div class="stat"><div class="num">223</div><div class="label">Defects Owned</div></div>
+        <div class="stat"><div class="num">203</div><div class="label">Laws</div></div>
+        <div class="stat"><div class="num">34/34</div><div class="label">Gates Green</div></div>
+        <div class="stat"><div class="num">41</div><div class="label">Golden Headers</div></div>
+        <div class="stat"><div class="num">1,600</div><div class="label">π_E Bytes</div></div>
+    </div>
+
+    <div class="section-title">The Capstone: All Four Pillars in One Run</div>
+
+    <div class="receipt">
+10 ENCRYPTED envelopes arrive (nobody can read them)
+→ ORDER COMMITTED (root=7ec2cd4c..., beacon-shuffled, ungrindable)
+→ 10 THRESHOLD DECRYPTS (all tag OK)
+   [decrypt] envelope 0: "encrypted-decree-0" (tag OK)
+   [decrypt] envelope 1: "encrypted-decree-1" (tag OK)
+   ... through envelope 9 ...
+→ 10 FOLDS (ALL SAT — decree 1/10 through 10/10)
+→ π_E epoch 1: wrap_verify ACCEPT (stage=0)
+→ PoUW epoch 1: 64³ GEMM ACCEPT, weight 262,144 MACs, 1185 ms
+    </div>
+
+    <div class="section-title">Reproduce</div>
+
+    <div class="receipt">
+git clone https://github.com/sarinsk629-blip/hsma-core.git
+cd hsma-core
+./scripts/gate.sh
+# → 41 goldens generated (determinism-proven)
+# → 34/34 tests passed
+# → GATE GREEN
+    </div>
+
+    <div class="links">
+        <a class="btn btn-primary" href="https://github.com/sarinsk629-blip/hsma-core">GitHub Repository</a>
+        <a class="btn btn-secondary" href="https://github.com/sarinsk629-blip/hsma-core/releases/tag/v4.0-whitepaper">Whitepaper v4.0 (LaTeX)</a>
+        <a class="btn btn-secondary" href="https://github.com/sarinsk629-blip/hsma-core/blob/main/docs/DECISIONS.md">Decision Ledger</a>
+    </div>
+
+    <div class="footer">
+        <p>Built by one person. The Satoshi path: build → publish → verify → wait.</p>
+        <p>Zero hiding. 223 defects owned. 203 laws. 281 decisions.</p>
+    </div>
+
+</div>
+</body>
+</html>
