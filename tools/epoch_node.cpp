@@ -45,6 +45,7 @@ static std::vector<std::array<std::uint64_t,4>> digest_chain;
 // test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
 static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
 static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
+static msscvote::AggregateVerify g_agg_verify;   // P3-3b: the batch accumulator
 static msscloop::NodeState g_mssc;
 static std::map<std::uint64_t, consensus::Digest> g_peer_prefs;
 static unsigned g_self_member = 1;
@@ -529,17 +530,16 @@ int main(int argc, char* argv[]) {
                                                                dv.conflict, dv.round, dv.preference);
                             std::printf("[voted] members=%zu\n", g_members.size());
                             for (const auto& [jid, Y] : g_members) {
-                                // DEF-219: bls_verify_aff crashes on edge-case Y (z=0 etc) -
-                                // pre-validate: the G2 point must not be infinity
-                                if (threshold::g2::PisInf(Y)) {
-                                    std::printf("[voted] member %llu: Y is INF - skip\n",
-                                        (unsigned long long)jid);
-                                    continue;
-                                }
+                                if (threshold::g2::PisInf(Y)) continue;
                                 const bool v = msscvote::verify_vote(dv.sigma, pre, Y);
                                 std::printf("[voted] member %llu verify=%d\n",
                                     (unsigned long long)jid, (int)v);
-                                if (v) { accepted = true; member = jid; break; }
+                                if (v) {
+                                    accepted = true; member = jid;
+                                    // P3-3b: accumulate into the batch (for future aggregate verify)
+                                    msscvote::agg_accumulate(g_agg_verify, dv.sigma, Y);
+                                    break;
+                                }
                             }
                         } else {
                             std::printf("[voted] DECODE FAILED\n");
