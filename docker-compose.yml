@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: hsma-node1
+    ports:
+      - "31233:31233"
+      - "32233:32233"
+    command: ["./build/epoch_node", "31233"]
+    restart: unless-stopped
+    networks:
+      - hsma-net
+
+  node2:
+    build: .
+    container_name: hsma-node2
+    ports:
+      - "31234:31234"
+      - "32234:32234"
+    command: ["./build/epoch_node", "31234", "--seed", "node1:31233"]
+    depends_on:
+      - node1
+    restart: unless-stopped
+    networks:
+      - hsma-net
+
+  faucet:
+    build: .
+    container_name: hsma-faucet
+    command: >
+      bash -c "
+        sleep 10 &&
+        ./build/envfaucet node2 31234 &&
+        ./build/envfaucet node1 31233
+      "
+    depends_on:
+      - node1
+      - node2
+    networks:
+      - hsma-net
+
+networks:
+  hsma-net:
+    driver: bridge

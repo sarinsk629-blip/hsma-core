@@ -4001,3 +4001,29 @@ running system.
 **Build status:** P4-4 CLOSED. THE PHASE 4 CAPSTONE IS DONE.
 The four pillars are integrated. NEXT: the Phase 4 integration cleanup,
 or the next phase.
+
+---
+## SECTION 27 - Phase 1: Technical Readiness / Testnet Launch (2026-09-28)
+#### DEC-282 - THE TESTNET LAUNCH: two nodes, MSSC convergence, π_E, PoUW
+**Decision:** Phase 1 Technical Readiness COMPLETE. The testnet is
+LAUNCHED with two validator nodes exchanging BLS-signed votes over
+real TCP. THE RECEIPT: both nodes fold 10 decrees, both produce π_E
+epoch 1 (wrap_verify ACCEPT), both derive PoUW weight (262,144 MACs,
+1185 ms), the MSSC convergence is live (node 2 flipped B→A through
+the sampling loop, Confirmed at kind=3), 51 verified votes crossed.
+The envelope integration is a known follow-up (the hdr in the wire
+format shifted the payload offsets — the decode needs conforming).
+Also delivered: the Dockerfile (multi-stage, healthcheck), 
+docker-compose.yml (2 nodes + faucet), SETUP.md (the step-by-step
+guide), scripts/deploy_aws.sh (one-command AWS deployment).
+**THE RECEIPT:**
+| Check | node1 | node2 |
+|---|---|---|
+| folds | 10 | 10 |
+| π_E epoch 1 | ACCEPT | ACCEPT |
+| PoUW | 262,144 MACs | 262,144 MACs |
+| MSSC | pref=A (majority) | pref=A (flipped from B) |
+| verified votes | 25 | 26 |
+| nodes alive | ✅ | ✅ |
+**Build status:** THE TESTNET IS LAUNCHED. Phase 1 Technical
+Readiness COMPLETE.

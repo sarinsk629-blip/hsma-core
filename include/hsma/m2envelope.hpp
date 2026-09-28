@@ -85,6 +85,7 @@ inline p2p::Message encode_envelope(const Envelope& env) noexcept {
     p2p::Message m; m.type = 0x07;   // ENVELOPE
     auto r_ser = pt_to_bytes(env.R);
     m.payload.insert(m.payload.end(), r_ser.begin(), r_ser.end());   // 192
+    m.payload.insert(m.payload.end(), env.hdr, env.hdr + 56);        // 56 (CA-R203: carried, not assumed)
     std::uint8_t cl[4];
     std::uint32_t ctlen = (std::uint32_t)env.ct.size();
     for (int i = 3; i >= 0; --i) cl[i] = std::uint8_t(ctlen >> (8*(3-i)));
@@ -97,6 +98,7 @@ inline p2p::Message encode_envelope(const Envelope& env) noexcept {
 
 struct DecodedEnvelope {
     G2Pt R{};
+    std::uint8_t hdr[56]{};   // CA-R203: carried from the wire
     std::vector<std::uint8_t> ct;
     std::uint8_t tag[32]{};
     std::uint8_t cth[32]{};
@@ -104,7 +106,7 @@ struct DecodedEnvelope {
 };
 inline DecodedEnvelope decode_envelope(const p2p::Message& m) noexcept {
     DecodedEnvelope d{};
-    if (m.type != 0x07 || m.payload.size() < 192 + 4 + 32 + 32) return d;
+    if (m.type != 0x07 || m.payload.size() < 192 + 56 + 4 + 32 + 32) return d;
     const std::uint8_t* p = m.payload.data();
     // R from 192 bytes
     std::uint64_t xa[6], xb[6], ya[6], yb[6];
@@ -116,12 +118,14 @@ inline DecodedEnvelope decode_envelope(const p2p::Message& m) noexcept {
             yb[i] |= (std::uint64_t)p[144+i*8+b] << (8*b);
         } }
     d.R = threshold::g2::from_affine(xa, xb, ya, yb);
+    // CA-R203: the hdr is carried in the wire (56 bytes after R)
+    std::memcpy(d.hdr, p + 192, 56);
     std::uint32_t ctlen = 0;
-    for (int i = 0; i < 4; ++i) ctlen = (ctlen<<8) | p[192+i];
-    if (m.payload.size() < 192 + 4 + ctlen + 32 + 32) return d;
-    d.ct.assign(p + 196, p + 196 + ctlen);
-    std::memcpy(d.tag, p + 196 + ctlen, 32);
-    std::memcpy(d.cth, p + 196 + ctlen + 32, 32);
+    for (int i = 0; i < 4; ++i) ctlen = (ctlen<<8) | p[248+i];
+    if (m.payload.size() < 248 + 4 + ctlen + 32 + 32) return d;
+    d.ct.assign(p + 252, p + 252 + ctlen);
+    std::memcpy(d.tag, p + 252 + ctlen, 32);
+    std::memcpy(d.cth, p + 252 + ctlen + 32, 32);
     d.ok = true;
     return d;
 }
