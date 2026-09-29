@@ -37,9 +37,17 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 </div>
 
 ## 📲 Connect to the public seed node (running 24/7 on AWS us-east-1):
+git clone https://github.com/sarinsk629-blip/hsma-core.git
+cd hsma-core
+./scripts/gate.sh
+ 34/34 tests passed, GATE GREEN
 
+ Start your node:
+./build/epoch_node 31233
+or connect to our AWS node:
 ./build/epoch_node 31234 --seed 3.237.91.235:31233
-## then watch the live peers counter: http://3.237.91.235:32233/api
+
+### then watch the live peers counter: http://3.237.91.235:32233/api
 No token. No sale. No premine. Economics will be designed with contributors, not for them.
 223 defects owned publicly — every one with evidence, fix, and a generalizable law. Zero hiding.
 If the gate runs GREEN on your machine, star the repo — that is how independent research gets seen.
