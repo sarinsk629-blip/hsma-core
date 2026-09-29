@@ -22,7 +22,23 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 [📄 Whitepaper PDF](https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf) •
 [📝 LaTeX Source](docs/whitepaper_v4.tex) •
 [📊 Decision Ledger](docs/DECISIONS.md) •
-[🌐 Landing Page](https://sarinsk629-blip.github.io/hsma-core/)
+[🌐 Landing Page](https://sarinsk629-blip.github.io/hsma-core/) •
+[🟢 Live Explorer](http://3.237.91.235:32233)
+
+**LIVE TESTNET STATUS — fetched from the running node, not a static image:**
+
+[![π_E](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.pi_e_status&label=%CF%80_E%20verify&fallback=offline&style=for-the-badge)](http://3.237.91.235:32233/api)
+[![epoch](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.epoch&label=epoch&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
+[![peers](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.peers&label=peers&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
+[![PoUW](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.pouw_weight&label=PoUW%20MACs&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
+
+## 🤝 Join the Community
+
+[![Telegram](https://img.shields.io/badge/Telegram-Group-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/hsmaCoreFounder)
+[![Channel](https://img.shields.io/badge/Telegram-Channel-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/hsmaFounder)
+[![Discord](https://img.shields.io/badge/Discord-Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sWE3BfZ9P)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-Group-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/JvUFmzMJzFo6BV5xH2JqXw?s=cl&p=a&mlu=4&ilr=4)
+[![X](https://img.shields.io/badge/Twitter%2FX-%40hsmaFounder-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/hsmaFounder)
 
 </div>
 
