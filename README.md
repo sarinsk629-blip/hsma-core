@@ -25,12 +25,6 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 [🌐 Landing Page](https://sarinsk629-blip.github.io/hsma-core/) •
 [🟢 Live Explorer](http://3.237.91.235:32233)
 
-**LIVE TESTNET STATUS — fetched from the running node, not a static image:**
-
-[![π_E](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.pi_e_status&label=%CF%80_E%20verify&fallback=offline&style=for-the-badge)](http://3.237.91.235:32233/api)
-[![epoch](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.epoch&label=epoch&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
-[![peers](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.peers&label=peers&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
-[![PoUW](https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2F3.237.91.235%3A32233%2Fapi&query=%24.pouw_weight&label=PoUW%20MACs&fallback=%3F&style=for-the-badge)](http://3.237.91.235:32233/api)
 
 ## 🤝 Join the Community
 
@@ -42,7 +36,13 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 
 </div>
 
----
+## 📲 Connect to the public seed node (running 24/7 on AWS us-east-1):
+
+./build/epoch_node 31234 --seed 3.237.91.235:31233
+# then watch the live peers counter: http://3.237.91.235:32233/api
+No token. No sale. No premine. Economics will be designed with contributors, not for them.
+223 defects owned publicly — every one with evidence, fix, and a generalizable law. Zero hiding.
+If the gate runs GREEN on your machine, star the repo — that is how independent research gets seen.
 
 ## ⚡ Run The Verification Yourself
 
