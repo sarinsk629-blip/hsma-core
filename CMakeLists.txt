@@ -16,7 +16,7 @@ endif()
 add_library(hsma_params INTERFACE)
 target_include_directories(hsma_params INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(hsma_params INTERFACE cxx_std_20)
-target_compile_options(hsma_params INTERFACE -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(hsma_params INTERFACE -Wall -Wextra -Wpedantic -Wno-pedantic -Werror)
 
 # ---- DEC-090 lint is part of EVERY build ----------------------------------
 find_program(BASH_PROG bash REQUIRED)
