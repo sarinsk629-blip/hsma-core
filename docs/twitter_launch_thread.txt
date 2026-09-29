@@ -1,0 +1,43 @@
+T1: I built a complete cryptographic proof system from scratch — zero libraries, zero dependencies — on an Android phone.
+It now runs 24/7 on AWS, and my phone in Bangladesh verifies votes signed by that server in Virginia across the open internet.
+Live, verifiable receipts below. (thread)
+
+T2: It's called HSMA. A Layer-1 protocol experiment where consensus weight comes from VERIFIED AI inference — matrix multiplication proven correct via sum-check — instead of wasted hashing (PoW) or pure capital (PoS).
+Four pillars. All connected. All running today:
+
+T3: PoUW: verified GEMM (the core op of every neural net) = consensus weight
+MSSC: metastable sub-sampled voting — structural quorum impossibility (epsilon=0)
+Zero-MEV: txs encrypted, ordering committed BEFORE anyone can decrypt
+Folding: the entire epoch compresses into a 1,600-byte proof
+
+T4: THE TESTNET IS LIVE RIGHT NOW. Verify it from anywhere on Earth — no setup, one command:
+curl http://3.237.91.235:32233/api
+Or just open your browser: http://3.237.91.235:32233
+pi_e_status: ACCEPT. pouw_weight: 262144. A node running continuously on AWS.
+
+T5: The receipts:
+34/34 conformance tests GREEN
+41 golden headers, byte-identical on ARM64/Clang 21 AND x86_64/GCC 15.2
+13+ consecutive BLS-signed votes verified cross-continent (phone <-> AWS)
+10 encrypted envelopes -> ordered -> threshold-decrypted -> folded -> epoch proof ACCEPT
+
+T6: I own 223 defects publicly — each with evidence, a fix, and a generalizable law in a 281-entry append-only decision ledger.
+One bug hid for six sessions: the log printed the right IP while the wire dialed it byte-swapped.
+Zero hiding is the culture, not the slogan.
+
+T7: Whitepaper v4.0 — 1,681 lines of LaTeX, 15 theorems, 10 lemmas, 6 corollaries.
+PDF: https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf
+
+T8: Run it yourself in 3 commands:
+git clone https://github.com/sarinsk629-blip/hsma-core.git
+cd hsma-core
+./scripts/gate.sh  ->  34/34 GREEN
+Then connect to the public seed:
+./build/epoch_node 31234 --seed 3.237.91.235:31233
+Watch the peers counter climb on the live API.
+
+T9: Everything is open. Everything is verifiable. No token, no sale, no premine — economics will be designed with contributors, not for them.
+GitHub: https://github.com/sarinsk629-blip/hsma-core
+Landing: https://sarinsk629-blip.github.io/hsma-core/
+Telegram, Discord, WhatsApp — links in bio.
+Build -> publish -> verify -> wait.

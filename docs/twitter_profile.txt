@@ -1,0 +1,23 @@
+=== TWITTER/X PROFILE KIT — @hsmaFounder ===
+
+NAME:       HSMA | AI Inference IS Consensus
+BIO (A):    Building HSMA — where AI inference IS consensus. Verified GEMM · Zero-MEV · Folding. 34/34 gates GREEN. 223 defects owned. No token. No sale. Testnet ↓
+LOCATION:   us-east-1 + Android phone
+WEBSITE:    https://sarinsk629-blip.github.io/hsma-core/
+PINNED:     Tweet 1 of docs/twitter_launch_thread.txt (pin after posting)
+BANNER:     Real gate.sh output screenshot, dark terminal
+
+=== MASTER LINKS ===
+GitHub:      https://github.com/sarinsk629-blip/hsma-core
+Whitepaper:  https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf
+Ledger:      https://github.com/sarinsk629-blip/hsma-core/blob/main/docs/DECISIONS.md
+CI:          https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml
+Setup:       https://github.com/sarinsk629-blip/hsma-core/blob/main/SETUP.md
+Landing:     https://sarinsk629-blip.github.io/hsma-core/
+Live API:    http://3.237.91.235:32233/api
+Explorer:    http://3.237.91.235:32233
+TG Group:    https://t.me/hsmaCoreFounder
+TG Channel:  https://t.me/hsmaFounder
+Discord:     https://discord.gg/sWE3BfZ9P
+WhatsApp:    https://chat.whatsapp.com/JvUFmzMJzFo6BV5xH2JqXw?s=cl&p=a&mlu=4&ilr=4
+Email:       sarinsk629@gmail.com
