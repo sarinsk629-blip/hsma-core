@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
     {   threshold::Fr c1{}, c2{}, c3{};
         if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
             || !threshold::fr_from_u64(c3, 0x33)) { std::fprintf(stderr, "FATAL: fr init\n"); return 1; }
-        g_test_poly.c = {c1, c2, c3};
+        g_test_poly.c = {c1};  // P3-4 UNIFY: degree-0
         for (std::uint64_t j = 1; j <= 3; ++j) {
             threshold::Fr sj = threshold::dkg::share_for(g_test_poly, j);
             threshold::mont::fe6 k{}; threshold::fr_to_fe6(sj, k);

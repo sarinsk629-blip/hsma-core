@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     threshold::Fr c1{}, c2{}, c3{};
     if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
         || !threshold::fr_from_u64(c3, 0x33)) return 2;
-    threshold::Poly poly; poly.c = {c1, c2, c3};
+    threshold::Poly poly; poly.c = {c1};  // degree-0
     threshold::Fr S1 = threshold::dkg::share_for(poly, 1);
 
     auto wr = consensus::sha256d((const std::uint8_t*)"wr", 2);
