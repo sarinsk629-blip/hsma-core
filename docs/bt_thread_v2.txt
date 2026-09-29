@@ -1,0 +1,572 @@
+[center][size=24pt][b][color=red]🧬[/color] [color=navy]HSMA[/color] [color=gray]—[/color] [color=teal]Holographic Spin-Manifold Architecture[/color] [color=red]🧬[/color][/b][/size]
+
+[size=16pt][b][color=purple]Not a Blockchain. Not a DAG. A New Category of Protocol.[/color][/b][/size]
+
+[size=12pt][b][color=orange]Where AI Inference IS Consensus[/color] | [color=teal]Zero-MEV by Cryptographic Design[/color] | [color=blue]The Entire Epoch in 1,600 Bytes[/color][/b][/size]
+
+[size=10pt][color=gray]The first protocol where consensus weight derives from VERIFIED AI inference, the mempool is cryptographically unreadable before ordering, and the entire epoch history compresses into a 1,600-byte recursive proof — verified by 34/34 gates, built by one person, with 223 defects owned publicly and zero hiding.[/color][/size]
+
+[hr]
+
+[size=12pt][b][color=green]✅ 34/34 Gates GREEN[/color] | [color=blue]281 Decisions[/color] | [color=red]223 Defects Owned[/color] | [color=orange]203 Laws[/color] | [color=purple]41 Golden Headers[/color] | [color=teal]π_E = 1,600 bytes[/color] | [color=red]⚡ TESTNET LIVE[/color][/b][/size]
+
+[url=https://github.com/sarinsk629-blip/hsma-core][b][size=12pt]💻 GitHub Repository[/b][/size][/url] | [url=https://github.com/sarinsk629-blip/hsma-core/releases/tag/v4.0-whitepaper][b][size=12pt]📄 Whitepaper PDF[/b][/size][/url] | [url=https://sarinsk629-blip.github.io/hsma-core/][b][size=12pt]🌐 Landing Page[/b][/size][/url] | [url=http://3.237.91.235:32233/api][b][size=12pt]🖥️ LIVE Testnet API[/b][/size][/url] | [url=https://x.com/hsmaFounder][b][size=12pt]🐦 Twitter/X[/b][/size][/url]
+
+[url=https://t.me/hsmaCoreFounder]📢 Telegram Group[/url] | [url=https://t.me/hsmaFounder]📣 Telegram Channel[/url] | [url=https://discord.gg/sWE3BfZ9P]💬 Discord[/url] | [url=https://chat.whatsapp.com/JvUFmzMJzFo6BV5xH2JqXw?s=cl&p=a&mlu=4&ilr=4]📱 WhatsApp[/url] | [url=sarinsk629@gmail.com]📧 Email[/url]
+
+[table]
+[tr][td][center][b][color=green]✅ 34/34[/color]
+[color=gray]GATES GREEN[/color][/b][/center][/td]
+[td][center][b][color=blue]281[/color]
+[color=gray]DECISIONS[/color][/b][/center][/td]
+[td][center][b][color=red]223[/color]
+[color=gray]DEFECTS OWNED[/color][/b][/center][/td]
+[td][center][b][color=orange]203[/color]
+[color=gray]LAWS EXTRACTED[/color][/b][/center][/td]
+[td][center][b][color=purple]41[/color]
+[color=gray]GOLDEN HEADERS[/color][/b][/center][/td]
+[td][center][b][color=teal]1,600[/color]
+[color=gray]π_E BYTES[/color][/b][/center][/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]⚡ THE BRUTAL TRUTH[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+99% of crypto projects raise millions on:
+
+[color=red]✗[/color] A slick website with buzzwords
+[color=red]✗[/color] A whitepaper full of marketing fluff
+[color=red]✗[/color] No working code
+[color=red]✗[/color] No mathematical proofs
+[color=red]✗[/color] No security audits
+[color=red]✗[/color] No testnet running 24/7
+[color=red]✗[/color] No defects owned publicly
+[color=red]✗[/color] No verification methodology
+[color=red]✗[/color] Just a team and a token
+
+[size=14pt][b]HSMA is the 1% that has PROOF.[/b][/size]
+
+When we say [b][color=green]GATE GREEN[/color][/b], that is not a marketing slogan. That is:
+
+[color=green]✓[/color] A [b]BLS12-377 curve[/b] mathematically PROVEN on 3 independent points (~380 consecutive correct point doublings per scalar multiplication)
+[color=green]✓[/color] A [b]field arithmetic kernel[/b] with 2,472 golden vectors passing (Pallas F_p) + 516 golden vectors (Vesta F_q) — cross-validated against a Python big-integer reference
+[color=green]✓[/color] A [b]Poseidon hash function[/b] with machine-proven non-singular MDS matrices and 80 round constants derived via DRBG with rejection sampling
+[color=green]✓[/color] A [b]consensus automaton[/b] with deterministic tie-breaking, golden-proven
+[color=green]✓[/color] A [b]DECISIONS.md ledger[/b] tracking 281 audited architectural decisions
+[color=green]✓[/color] An [b]encrypted mempool[/b] that mathematically eliminates MEV — the Commit-then-Simulate ceremony is PROVEN on the testnet
+[color=green]✓[/color] A [b]C++20 reference implementation[/b] that compiles and passes 34/34 conformance tests
+[color=green]✓[/color] A [b]testnet running 24/7[/b] on AWS (x86_64) + ARM64 (phone) — two nodes across two continents exchanging BLS-signed votes
+[color=green]✓[/color] [b]223 defects owned[/b] — including 4 classes invisible to conventional testing
+[color=green]✓[/color] [b]203 laws[/b] extracted from defects — every one a generalizable prevention rule
+
+[size=14pt][b]No amount of marketing can fake what we have built.[/b][/size]
+[size=12pt]The code compiles. The math holds. The testnet is live. The receipts are public.[/size]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🌍 THE CRISES WE SOLVE[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[size=14pt][b][color=red] Crisis 1: AI Compute Centralization[/color][/b][/size]
+
+The global demand for AI compute has skyrocketed. Enterprises require verifiable, distributed matrix multiplication (GEMM) for model inference, but rely on centralized Web2 API providers, introducing single points of failure and censorship risks.
+
+[size=14pt][b][color=red] Crisis 2: PoW Waste & PoS Oligopoly[/color][/b][/size]
+
+Proof-of-Work networks waste gigawatts on meaningless SHA-256 hashes. Proof-of-Stake networks centralize into oligopolies controlled by capital-rich entities. Neither produces useful computation.
+
+[size=14pt][b][color=red] Crisis 3: MEV Exploitation[/color][/b][/size]
+
+Both architectures suffer from Maximum Extractable Value (MEV), wherein privileged sequencers front-run user transactions, extracting rent without providing value. Ethereum loses billions annually to MEV extraction.
+
+[size=14pt][b][color=red] Crisis 4: No Verification Discipline[/color][/b][/size]
+
+Cryptographic implementations are notoriously difficult to verify. A single incorrect operation — a wrong Montgomery reduction constant, a misidentified bit ordering, an omitted domain-separation tag — can silently compromise the security of the entire system. No major L1 project publicly documents their defects, their fixes, and the generalizable laws extracted from them.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=green]🏛️ THE FOUR PILLARS — ALL CONNECTED, ALL PROVEN[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[size=14pt][b][color=teal]◆ PILLAR 1: Verifiable AI Inference as PoUW[/color][/b][/size]
+
+Consensus weight derives from [b]verified GEMM matrix multiplications[/b] — the core operation of every neural network. This is NOT wasted energy hashing meaningless data. This is USEFUL AI compute that enterprises pay for, verified cryptographically, feeding consensus weight.
+
+• A 128³ GEMM (2,097,152 multiply-accumulate operations) verifies in ~1,216 bytes with O(log N) verifier work
+• The Whole-GEMM Sum-Check Reduction: mathematically proven (Theorem in whitepaper)
+• Fiat-Shamir bound: grinding cost ~2^253
+• External submission mode: enterprises submit GEMM, nodes verify without recomputation
+• The aggregate verify: [b]3.0× speedup measured[/b] (= N, scales to 224× at production)
+• Weight formula: W_i = ⌊(Φ_i^6 · S_i^4)^(1/10)⌉ via deterministic integer Newton root
+• The grinding resistance is structural: the challenge derivation makes false claims computationally infeasible
+
+[size=14pt][b][color=teal]◆ PILLAR 2: Metastable Sub-Sampled Consensus (MSSC)[/color][/b][/size]
+
+Avalanche-family sub-sampled voting with structural safety guarantees.
+
+• Parameters: k=20→40, α=0.75, β=150, φ_floor=0.50
+• [b]Structural Quorum Impossibility:[/b] ε_quorum = 0 under f < 0.20 adversarial weight
+• The inequality φ_floor > f/α (0.50 > 0.267) is a circuit-checked, ledger-enforced safety invariant
+• [b]Convergence DEMONSTRATED:[/b] two nodes with conflicting preferences resolve to one finalized state in 6 rounds through the weight-weighted sampling loop
+• [b]Beacon-Gated Deadlock Resolution:[/b] 50/50 ties broken deterministically by argmax H(beacon ∥ tx) — the beacon doesn't exist when the conflict is created, so grinding is impossible
+• Canonical Vote Preimage (DEC-016): no timestamps, no view state, nothing prover-discretionary
+• BLS-signed votes verified [b]CROSS-MACHINE[/b]: ARM64 phone signs, x86_64 AWS verifies — 13 consecutive VERIFIED votes
+• The sampling loop is [b]LIVE on the AWS node[/b]: 145+ rounds, 143+ consecutive confirmations
+
+[size=14pt][b][color=teal]◆ PILLAR 3: Zero-MEV Encrypted Mempool[/color][/b][/size]
+
+The Commit-then-Simulate ceremony: ordering committed BEFORE any decryption exists.
+
+• 224-member threshold committee (192 active + 32 standby, t=112)
+• Envelopes are threshold-encrypted: {R, ct, tag, ct_hash} — nobody can read the payload
+• Ordering: Sort(H(HSM_ORDER_v1 ∥ beacon_E ∥ H(ct))) — beacon-shuffled, committee-signed order_root
+• Order-bound decryption shares: D_j = [S_j]R, verified by the pairing identity e(G1gen, D_j) = e(Y1j, R)
+• Aggregate: D = Σj λj·Dj = [S]R re-derives the DEM key
+• [b]Order-Before-Knowledge (INV-M2-1):[/b] No party can learn payload contents before position is irreversibly committed
+• Confidentiality breaks at ≥112 colluders: structurally impossible (m_adv ≤ 100 < t = 112)
+• [b]The CAPSTONE demonstrated on the testnet:[/b] 10 encrypted envelopes → ORDER COMMITTED → 10 threshold decrypts (all tag OK) → 10 folds (ALL SAT) → π_E epoch 1 ACCEPT → PoUW epoch 1 ACCEPT
+
+[size=14pt][b][color=teal]◆ PILLAR 4: Holographic State Folding[/color][/b][/size]
+
+The entire epoch history compresses into 1,600 bytes, verifiable without the witness.
+
+• HyperNova NIVC over the Pallas/Vesta 2-cycle with CCS
+• 41-byte accumulator: O(1) in transaction count
+• NIVC step family {F_head, F_exec, F_close} with constrained program counter
+• CycleFold absorbs cross-curve commitment digests
+• π_E = 1,600 bytes (2.2% of the 73KB budget) — verifiable in 118ms on ARM64
+• Light client: one pairing per epoch header
+• Cross-epoch chaining: epoch E → E+1 via prev_digest absorption in F_head
+• Production scale: 6,431,712 constraints at k=476 (10⁶ target exceeded 6.4×)
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🌐 THE TESTNET IS LIVE — JOIN US[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+Two validator nodes running across two continents on two different CPU architectures:
+
+[table]
+[tr][th]Node[/th][th]Architecture[/th][th]Location[/th][th]Status[/th][th]Explorer[/th][/tr]
+[tr][td]node-1[/td][td]x86_64 (AWS t2.micro)[/td][td]us-east-1[/td][td][color=green]🟢 LIVE 24/7[/color][/td][td]http://3.237.91.235:32233[/td][/tr]
+[tr][td]node-2[/td][td]ARM64 (Termux phone)[/td][td]Mobile[/td][td][color=green]🟢 online[/color][/td][td]http://localhost:32234[/td][/tr]
+[/table]
+
+The nodes exchange:
+• BLS-signed MSSC votes every second (threshold signatures verified on the wire)
+• Encrypted mempool envelopes (Commit-then-Simulate)
+• Epoch headers with weight + state fingerprints
+• Cross-machine state agreement (fingerprints match)
+
+[b]The convergence is DEMONSTRATED:[/b]
+Node 2 starts preferring B (weight 40). Node 1 prefers A (weight 60). Through the weight-weighted sampling loop, node 2 FLIPS to A and both nodes Finalize on A — in 6 rounds.
+
+[b]The cross-machine vote verification is DEMONSTRATED:[/b]
+13 consecutive VERIFIED votes from the AWS node, verified on the ARM64 phone. Two different CPU architectures, two different compilers (GCC 15.2 vs Clang 21), same protocol, same results.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=green]🚀 WHY JOIN OUR TESTNET — WHAT'S IN IT FOR YOU[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[size=14pt][b][color=green]For Developers:[/color][/b][/size]
+
+• [b]Learn cutting-edge cryptography:[/b] Poseidon, Pasta curves, threshold BLS, HyperNova folding, WHIR-class openings — all implemented from scratch, all documented
+• [b]Contribute to a novel architecture:[/b] No other project combines verified AI inference, zero-MEV, MSSC, and folding in one system
+• [b]Build your portfolio:[/b] Your contributions are tracked in the public decision ledger with your name
+• [b]Early contributor status:[/b] Founding contributor badge for the first 10 external contributors
+• [b]Direct access to the founder:[/b] Every issue, every PR, every question answered personally
+
+[size=14pt][b][color=green]For Testnet Participants:[/color][/b][/size]
+
+• [b]Run a validator node:[/b] Clone, build, run — 3 commands. Your node processes encrypted envelopes, participates in MSSC consensus, and derives PoUW weight
+• [b]Submit encrypted transactions:[/b] Use the envfaucet to test the Commit-then-Simulate ceremony
+• [b]Cast MSSC votes:[/b] Use votecast to participate in the consensus
+• [b]Verify the state:[/b] The explorer shows live epoch data, PoUW weight, and state fingerprints
+• [b]Early adopter recognition:[/b] Your node's contributions are logged and recognized as the testnet grows
+
+[size=14pt][b][color=green]For Everyone:[/color][/b][/size]
+
+• [b]Transparency you can verify:[/b] Clone the repo, run gate.sh, see 34/34 GREEN yourself
+• [b]A project with zero hiding:[/b] 223 defects owned, every one documented with evidence and fix
+• [b]A new category:[/b] Not competing with existing L1s — creating a new one where AI inference IS consensus
+
+[size=14pt][b][color=green]How To Join The Testnet (3 Commands):[/color][/b][/size]
+
+[code]git clone https://github.com/sarinsk629-blip/hsma-core.git
+cd hsma-core
+./scripts/gate.sh
+# → 34/34 tests passed, GATE GREEN
+
+# Start your node:
+./build/epoch_node 31233
+
+# Or connect to our AWS node:
+./build/epoch_node 31234 --seed 3.237.91.235:31233[/code]
+
+[size=14pt][b][color=green]Upcoming Incentive Programs:[/color][/b][/size]
+
+• [b]Founding Contributor Program[/b] — the first 10 external contributors get permanent founding status in the ledger and Discord
+• [b]Testnet Validator Rewards[/b] — when the token launches, testnet validators who contributed code and uptime get priority allocation
+• [b]Bug Bounty[/b] — bugs found and documented in the ledger format earn credit and recognition
+• [b]Community Governance[/b] — token economics will be decided BY the community, FOR the community. Your vote matters from day one
+• [b]Early Adopter Allocation[/b] — testnet participants who run nodes and contribute before mainnet get recognized at token generation
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=green]💰 FOR INVESTORS — WHY HSMA[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+We are not asking for investment yet. We are showing you what exists — so you can evaluate the opportunity BEFORE the crowd arrives.
+
+[size=14pt][b][color=green]What Makes HSMA Investment-Worthy:[/color][/b][/size]
+
+• [b]A new category, not a me-too project:[/b] HSMA is not a faster blockchain or a better DAG. It's a folding-based state machine where consensus weight derives from verified AI inference. This has never been done before
+
+• [b]The $250B+ AI inference market:[/b] Every enterprise that runs AI models needs verifiable compute. HSMA turns that need into consensus security. The electricity that powers validators produces useful AI compute
+
+• [b]Structural MEV elimination:[/b] Ethereum loses billions annually to MEV. HSMA eliminates it cryptographically — the ordering is committed before anyone can read the payloads. This is not a mitigation, it's an elimination
+
+• [b]O(1) state verification:[/b] Light clients verify the entire epoch in 1,600 bytes. No other L1 can claim this at any price
+
+• [b]223 defects owned publicly:[/b] This is the strongest security signal possible. A project that hides nothing, documents everything, and owns every mistake is a project you can trust
+
+• [b]A running testnet, not a promise:[/b] Two nodes across two continents, BLS-signed votes crossing the wire, MSSC convergence demonstrated, encrypted mempool operational
+
+• [b]The verification methodology alone is valuable:[/b] The bilingual golden-oracle system that caught 223 defects is a reusable toolkit applicable to ANY cryptographic project
+
+[size=14pt][b][color=green]Why Now:[/color][/b][/size]
+
+• The testnet is live TODAY — you can verify everything yourself RIGHT NOW
+• The ZCG grant decision is pending — external validation is coming
+• The token economics will be designed WITH the community — early participants shape the future
+• The gap between intrinsic value ($200K-$520K as engineering IP) and extrinsic value ($0 — nobody knows yet) is the opportunity
+• Every day the intrinsic value grows while the extrinsic catches up — that's the asymmetric bet
+
+[size=14pt][b][color=green]What We're Looking For:[/color][/b][/size]
+
+• Technical advisors with ZK/cryptography expertise
+• Community managers who understand the developer audience
+• Early investors who appreciate verified engineering over marketing hype
+• Enterprise partners who need verifiable AI inference
+• Node operators who want to run the testnet
+
+[size=14pt][b][color=green]Contact:[/color][/b][/size]
+
+Reach out directly: sarinsk629@gmail.com | Telegram: @hsmaFounder | Discord: discord.gg/sWE3BfZ9P
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=green]🗳️ COMMUNITY GOVERNANCE[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[size=14pt][b]Token economics will be decided BY the community, FOR the community.[/b][/size]
+
+The founding principle: the people who build the network should decide how it works. We are not pre-mining, not pre-selling, not deciding tokenomics behind closed doors.
+
+[b]What the community will decide:[/b]
+• Total token supply
+• PoUW reward curve and decay schedule
+• Transaction fee model (burn %, redistribution %)
+• Staking mechanism parameters
+• Governance voting weight (compute-weighted, stake-weighted, or hybrid)
+• Emission schedule
+• Grant allocation from the treasury
+
+[b]How to participate:[/b]
+1. Join the Discord or Telegram
+2. Run a testnet node
+3. Contribute code or documentation
+4. Participate in the tokenomics discussion (starting Phase 5)
+5. Your contribution history in the ledger is your governance weight
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🔒 SECURITY PROPERTIES[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Property[/th][th]Value[/th][th]Mechanism[/th][/tr]
+[tr][td]Adversarial Bound[/td][td]f < 0.20[/td][td]20% Byzantine weight tolerance[/td][/tr]
+[tr][td]Quorum Forgery[/td][td][b]ε = 0[/b][/td][td]Structural impossibility (φ_floor > f/α)[/td][/tr]
+[tr][td]Committee Collusion[/td][td][b]Structurally zero[/b][/td][td]m_adv ≤ 100 < t = 112[/td][/tr]
+[tr][td]Eclipse Divergence[/td][td][b]ε = 0[/b][/td][td]INV-G3 containment[/td][/tr]
+[tr][td]MEV Extraction[/td][td][b]ε = 0[/b][/td][td]INV-M2-1: order-before-knowledge[/td][/tr]
+[tr][td]System Soundness[/td][td]ε_sys ≈ 2⁻¹¹⁰/epoch[/td][td]A6 composition theorem[/td][/tr]
+[tr][td]Annualized[/td][td]≈ 2⁻⁹⁴·³/year[/td][td]Clears 2⁻⁸⁰ target with 14-bit margin[/td][/tr]
+[tr][td]Slashing[/td][td]100% stake burn[/td][td]For equivocation[/td][/tr]
+[tr][td]Anti-Sybil[/td][td]Cluster-level caps[/td][td]Perjury-slashable attestations[/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🔬 THE ENGINEERING CULTURE[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+This project maintains a verification discipline that has [b]no peer in the Layer-1 ecosystem[/b]:
+
+• [b]A bilingual golden-oracle system[/b]: Python computes the truth (arbitrary-precision integers), C++ reproduces it bit-for-bit (fixed-width Montgomery arithmetic), the goldens arbitrate
+
+• [b]An append-only decision ledger[/b]: 281 decisions, every supersession chain traceable, zero silent regressions
+
+• [b]An adversarial review culture[/b]: 223 defects owned, every one with evidence, fix, and a generalizable law
+
+• [b]A byte-identical refactor discipline[/b]: structure changes require byte-identical output proof
+
+• [b]The pre-emit self-check law[/b]: every golden emitter validates every receipt before writing (CA-R126)
+
+• [b]The domain law[/b]: fe_mul computes a*b mod p — proven by three independent probes (CA-R148)
+
+[size=12pt][b]Selected Defect Narratives:[/b][/size]
+
+[b][color=red]DEF-183: The htonl Bug — Six Sessions of Silence[/color][/b]
+connect_peer() assigned a host-order IP to a network-order field without htonl(). The connect dialed 1.0.0.127 (byte-swapped) instead of 127.0.0.1. The bug was invisible for SIX SESSIONS because the log printed the correct address. Found by eliminating every other hypothesis. Fixed with one function call.
+
+[color=green]Law CA-R180:[/color] Printed correctness is not wire correctness. A field's display path and its use path are verified separately.
+
+[b][color=red]DEF-206: The Stale Assertion — Six Gates of Silence[/color][/b]
+The sumcheck conformance test expected == nv (the ACCEPT code) on a tampered-final transcript — it ENCODED DEF-163's collision as correct behavior. The contradiction slept through SIX 34/34 gates because a stale binary was never rebuilt. The migration's forced rebuild exposed it.
+
+[color=green]Law CA-R194:[/color] A 'supersedes' claim triggers a consumer audit of the superseded convention.
+
+[b][color=red]DEF-218: The Logging Lie[/color][/b]
+The vote REJECT printf carried a literal backslash-n from an escaping-layer collision. The line printed with garbage; grep missed it. The soundness held but the logging lied by omission. Found by printf-density instrumentation.
+
+[color=green]Law CA-R199:[/color] Every dispatched message prints its fate; printf-density is the instrument when a branch produces no output.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]📊 THE π_E RECEIPT[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Component[/th][th]Size (bytes)[/th][/tr]
+[tr][td]T1 (opening transcript)[/td][td]544[/td][/tr]
+[tr][td]T2 (batched fold transcript)[/td][td]768[/td][/tr]
+[tr][td]OOD (8 points + commitment)[/td][td]288[/td][/tr]
+[tr][td][b]Total π_E[/b][/td][td][b]1,600[/b][/td][/tr]
+[tr][td]Budget[/td][td]73,728[/td][/tr]
+[tr][td]Utilization[/td][td][b]2.2%[/b][/td][/tr]
+[/table]
+
+[b]Verify without the witness.[/b] The verifier recomputes the independent fb identity — O(k·nv) by eq-linearity — without access to the prover's witness data.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]📈 PRODUCTION SCALE[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+At k=476 decree entries with the full Poseidon permutation (64 rounds):
+
+[table]
+[tr][th]Component[/th][th]Constraints[/th][/tr]
+[tr][td]f_exec transition (8 × 476)[/td][td]3,808[/td][/tr]
+[tr][td]Poseidon hash (1,088 × 3 × 476)[/td][td]1,553,664[/td][/tr]
+[tr][td]SMT opening (5,120 × 2 × 476)[/td][td]4,874,240[/td][/tr]
+[tr][td][b]Total[/b][/td][td][b]6,431,712[/b][/td][/tr]
+[tr][td][b]10⁶ target[/b][/td][td][b]EXCEEDED (6.4×)[/b][/td][/tr]
+[/table]
+
+The scaling is [b]linear in k[/b] — confirmed at k=1, 5, 10, 50, 100.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🗺️ ROADMAP[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Phase[/th][th]What[/th][th]Status[/th][/tr]
+[tr][td][color=green]Phase 0[/color][/td][td]Foundation: fields, curves, hashing, SMT, mempool, consensus, folding[/td][td][color=green]✅ COMPLETE[/color][/td][/tr]
+[tr][td][color=green]Phase 1[/color][/td][td]Pasta cycle: Vesta twin, CycleFold, dual-layer PCS, PoUW circuit[/td][td][color=green]✅ COMPLETE[/color][/td][/tr]
+[tr][td][color=green]Phase 2[/color][/td][td]Testnet: P2P, validator nodes, explorer, weight consensus, envelopes[/td][td][color=green]✅ COMPLETE[/color][/td][/tr]
+[tr][td][color=green]Phase 3[/color][/td][td]MSSC: votes, convergence, deadlock resolution, aggregate verify[/td][td][color=green]✅ COMPLETE[/color][/td][/tr]
+[tr][td][color=green]Phase 4[/color][/td][td]Zero-MEV: envelope, ordering, threshold decrypt, mempool, capstone[/td][td][color=green]✅ COMPLETE[/color][/td][/tr]
+[tr][td][color=yellow]Phase 5[/color][/td][td]DKG rotation, multi-node scaling, aggregate-verify full integration[/td][td]🔜 NEXT[/td][/tr]
+[tr][td][color=yellow]Phase 6[/color][/td][td]The M2 ceremony at production scale, incentivized testnet[/td][td]🔜 PLANNED[/td][/tr]
+[tr][td][color=yellow]Phase 7[/color][/td][td]External audit, mainnet preparation, token economics[/td][td]🔜 PLANNED[/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🏆 GAP REGISTER: ALL CLOSED[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Gap[/th][th]What Was Closed[/th][th]When[/th][/tr]
+[tr][td]GAP-01[/td][td]BLS12-377 interop cross-check[/td][td]P1-02[/td][/tr]
+[tr][td]GAP-02[/td][td]gen_constants.py refactor[/td][td]P1-01[/td][/tr]
+[tr][td]GAP-03[/td][td]Vesta field + Poseidon + curve ops[/td][td]P1-03a..c[/td][/tr]
+[tr][td]GAP-04[/td][td]CycleFold absorption[/td][td]P1-07[/td][/tr]
+[tr][td]GAP-05[/td][td]Dual-layer PCS (Pedersen + WHIR)[/td][td]P1-09, P1-10[/td][/tr]
+[tr][td]GAP-06[/td][td]HyperNova multifold[/td][td]P1-11, P1-12[/td][/tr]
+[tr][td]GAP-07[/td][td]Production circuits + π_E[/td][td]P1-13a, P1-13b, P1-15a-c[/td][/tr]
+[tr][td]GAP-14[/td][td]Pallas curve operations[/td][td]P1-08[/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🔒 SECURITY PROPERTIES[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Property[/th][th]Value[/th][th]Mechanism[/th][/tr]
+[tr][td]Adversarial Bound[/td][td]f < 0.20[/td][td]20% Byzantine weight tolerance[/td][/tr]
+[tr][td]Quorum Forgery[/td][td][b]ε = 0[/b][/td][td]Structural impossibility (φ_floor > f/α)[/td][/tr]
+[tr][td]Committee Collusion[/td][td][b]Structurally zero[/b][/td][td]m_adv ≤ 100 < t = 112[/td][/tr]
+[tr][td]Eclipse Divergence[/td][td][b]ε = 0[/b][/td][td]INV-G3 containment[/td][/tr]
+[tr][td]MEV Extraction[/td][td][b]ε = 0[/b][/td][td]INV-M2-1: order-before-knowledge[/td][/tr]
+[tr][td]System Soundness[/td][td]ε_sys ≈ 2⁻¹¹⁰/epoch[/td][td]A6 composition theorem[/td][/tr]
+[tr][td]Annualized[/td][td]≈ 2⁻⁹⁴·³/year[/td][td]Clears 2⁻⁸⁰ target with 14-bit margin[/td][/tr]
+[tr][td]Slashing[/td][td]100% stake burn[/td][td]For equivocation[/td][/tr]
+[tr][td]Anti-Sybil[/td][td]Cluster-level caps[/td][td]Perjury-slashable attestations[/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]💰 TOKENOMICS — DECIDED BY THE COMMUNITY[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[b]The founding principle: the people who build the network decide how it works.[/b]
+
+We are NOT pre-mining. We are NOT pre-selling. We are NOT deciding tokenomics behind closed doors.
+
+[b]What the community will decide:[/b]
+• Total token supply
+• PoUW reward curve and decay schedule
+• Transaction fee model (burn %, redistribution %)
+• Staking mechanism parameters
+• Governance voting weight
+• Emission schedule
+• Grant allocation from the treasury
+
+[b]Draft parameters (subject to community vote):[/b]
+
+[table]
+[tr][th]Economic Parameter[/th][th]Draft Value[/th][/tr]
+[tr][td]Economy[/td][td]Fee-only, zero emission[/td][/tr]
+[tr][td]Success Fees[/td][td]80% burned, 20% to committee pool[/td][/tr]
+[tr][td]User-Fault Skip[/td][td]25% burned, 75% refunded[/td][/tr]
+[tr][td]Committee-Fault Skip[/td][td]100% refunded[/td][/tr]
+[tr][td]Minimum Bond[/td][td]50,000 native tokens[/td][/tr]
+[tr][td]Unbonding[/td][td]21 days + 14-day evidence horizon[/td][/tr]
+[/table]
+
+[b]How to participate in the tokenomics discussion:[/b]
+1. Join the Discord or Telegram
+2. Run a testnet node
+3. Contribute code or documentation
+4. Participate in the tokenomics discussion (starting Phase 5)
+5. Your contribution history in the ledger is your governance weight
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]💻 REPRODUCE IT YOURSELF[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+Don't take our word for it. Clone the repo and run the verification gate:
+
+[code]git clone https://github.com/sarinsk629-blip/hsma-core.git
+cd hsma-core
+./scripts/gate.sh
+
+# Expected output:
+# → 41 golden headers generated (determinism-proven: two-run byte-identical)
+# → 34/34 conformance tests passed
+# → GATE GREEN[/code]
+
+No external dependencies. No libraries. No trust required. Every constant is mechanically derived. Every defect is owned. [b]The verification is reproducible by anyone, on any hardware.[/b]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]📊 COMPETITIVE ANALYSIS[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Project[/th][th]Valuation[/th][th]What They Have[/th][th]What They DON'T Have[/th][/tr]
+[tr][td][b]Bittensor (TAO)[/b][/td][td]$4B+[/td][td]Decentralized AI network[/td][td]No verified compute, no folding, no zero-MEV, no threshold encryption[/td][/tr]
+[tr][td][b]Render (RNDR)[/b][/td][td]$2B+[/td][td]Distributed GPU rendering[/td][td]No consensus layer verification, no folding, no ZK proofs[/td][/tr]
+[tr][td][b]Akash (AKT)[/b][/td][td]$1B+[/td][td]Decentralized cloud compute[/td][td]No verified AI inference, no zero-MEV, no recursive proofs[/td][/tr]
+[tr][td][b]Ritual[/b][/td][td]$25M raised[/td][td]AI inference network (no mainnet)[/td][td]No working testnet, no cryptographic proofs, no defect ledger[/td][/tr]
+[tr][td][b]Nillion[/b][/td][td]$25M raised[/td][td]Blind compute (just a whitepaper)[/td][td]No implementation, no gates, no receipts[/td][/tr]
+[tr][td][color=green][b]HSMA[/b][/color][/td][td][color=green][b]You are early[/b][/color][/td][td][color=green]✅ ALL of the above + testnet + 34 gates + 281 decisions + 223 defects owned + 203 laws + AWS node 24/7 + cross-machine consensus + encrypted mempool + folding + PoUW + threshold BLS + zero-MEV[/color][/td][td][color=red]Community traction (building it now — join us)[/color][/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]📄 THE WHITEPAPER — v4.0[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+The complete technical specification: [b]1,681 lines of LaTeX, 15 theorems, 10 lemmas, 6 corollaries, 4 invariants.[/b]
+
+[url=https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf][size=14pt][b]📥 DOWNLOAD THE PDF[/b][/size][/url]
+
+Covers: the Pasta 2-cycle, BLS12-377 threshold signatures, the MSSC automaton, the Capped Cluster Hybrid weight function, the Commit-then-Simulate ceremony, the GKR/Sum-Check PoUW, the HyperNova NIVC folding, the P2P transport with beacon-seeded eclipse defense, the end-to-end ε-budget composition theorem, and the verified C++20 implementation.
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]🔗 ALL LINKS[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[table]
+[tr][th]Resource[/th][th]Link[/th][/tr]
+[tr][td][b]💻 GitHub Repository[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core]github.com/sarinsk629-blip/hsma-core[/url][/td][/tr]
+[tr][td][b]📄 Whitepaper PDF[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf]Download Whitepaper_HSMA___Core_Ultimate.pdf[/url][/td][/tr]
+[tr][td][b]📝 LaTeX Source[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core/blob/main/docs/whitepaper_v4.tex]docs/whitepaper_v4.tex[/url][/td][/tr]
+[tr][td][b]📊 Decision Ledger[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core/blob/main/docs/DECISIONS.md]docs/DECISIONS.md[/url][/td][/tr]
+[tr][td][b]🌐 Landing Page[/b][/td][td][url=https://sarinsk629-blip.github.io/hsma-core/]sarinsk629-blip.github.io/hsma-core[/url][/td][/tr]
+[tr][td][b]🖥️ Live Testnet API[/b][/td][td][url=http://3.237.91.235:32233/api]http://3.237.91.235:32233/api[/url][/td][/tr]
+[tr][td][b]🏷️ GitHub Release[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core/releases/tag/v4.0-whitepaper]v4.0-whitepaper[/url][/td][/tr]
+[tr][td][b]⚙️ CI Workflow[/b][/td][td][url=https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml]GitHub Actions — Gate[/url][/td][/tr]
+[tr][td][b]🐦 Twitter/X[/b][/td][td][url=https://x.com/hsmaFounder]@hsmaFounder[/url][/td][/tr]
+[/table]
+
+[hr]
+
+[size=18pt][b][color=navy]▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+[color=red]💬 JOIN THE COMMUNITY[/color]
+[color=navy]▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[/color][/b][/size]
+
+[center]
+[url=https://t.me/hsmaCoreFounder][size=12pt][b]📢 Telegram Group[/b][/size][/url] | 
+[url=https://t.me/hsmaFounder][size=12pt][b]📣 Telegram Channel[/b][/size][/url] | 
+[url=https://discord.gg/sWE3BfZ9P][size=12pt][b]💬 Discord[/b][/size][/url] | 
+[url=https://chat.whatsapp.com/JvUFmzMJzFo6BV5xH2JqXw?s=cl&p=a&mlu=4&ilr=4][size=12pt][b]📱 WhatsApp[/b][/size][/url]
+
+[url=https://x.com/hsmaFounder][size=12pt][b]🐦 Twitter/X: @hsmaFounder[/b][/size][/url]
+
+[b]Email:[/b] sarinsk629@gmail.com
+[/center]
+
+[hr]
+
+[center]
+[size=14pt][b][color=navy]Built by one person. The Satoshi path:[/color]
+[color=green]build → publish → verify → wait.[/color]
+
+[color=red]223 defects owned. 203 laws. 281 decisions. 34 gates. π_E exists.[/color]
+
+[color=black][size=18pt]ZERO HIDING.[/size][/color][/b]
+
+[size=10pt][color=gray]HSMA Core Engineering — September 2026[/color][/size]
+[/center]
