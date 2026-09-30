@@ -4064,3 +4064,7 @@ Readiness COMPLETE.
 ## DEF-229 — GCC misleading-indentation: cross-compiler catch #4; sweep law refined
 - Evidence: consensus.hpp:97 (epoch_ variant) + :101 (round variant, prior run) — AWS GCC -Werror stops the gate; Termux Clang silent. Sibling sweep by broad regex produced 13 hits, 12 false positives (braced/chained/multiline forms GCC never flags).
 - Law (refined): sweep with the defect's exact signature, not a generalization of it — a broad sweep buries the real sibling in noise; the strictest compiler remains the true enumerator of the class.
+
+## DEF-229 — GCC misleading-indentation: cross-compiler catch #4; sweep law refined
+- Evidence: consensus.hpp:97 (epoch_ variant) + :101 (round variant, prior run) — AWS GCC -Werror stops the gate; Termux Clang silent. Sibling sweep by broad regex produced 13 hits, 12 false positives (braced/chained/multiline forms GCC never flags).
+- Law (refined): sweep with the defect's exact signature, not a generalization of it — a broad sweep buries the real sibling in noise; the strictest compiler remains the true enumerator of the class.
