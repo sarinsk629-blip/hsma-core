@@ -39,3 +39,6 @@ hsma_backup.tar.gz
 hsma-core/
 # docs/*.bak.*: editor backup files
 docs/*.bak.*
+node*.log
+node_asan.log
+*.log
