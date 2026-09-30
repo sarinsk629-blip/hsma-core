@@ -9,7 +9,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1127 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1130 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -34,3 +34,60 @@
 [voted] ok=1 epoch=0 round=0
 [voted] members=3
 [voted] member 1 verify=0
+[voted] member 2 verify=1
+[agg-batch] join: round=0 count->2
+[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1422.1 ms
+[vote] VERIFIED from member 2 (epoch 0, round 0)
+[mssc] round 2: pref=B conf=1 kind=1
+[mssc] round 3: pref=B conf=2 kind=1
+[mssc] round 4: pref=B conf=3 kind=1
+[mssc] round 5: pref=B conf=4 kind=1
+[mssc] round 6: pref=B conf=5 kind=3
+[mssc] round 7: pref=B conf=6 kind=3
+[mssc] round 8: pref=B conf=7 kind=3
+[mssc] round 9: pref=B conf=8 kind=3
+[mssc] round 10: pref=B conf=9 kind=3
+[mssc] round 11: pref=B conf=10 kind=3
+[mssc] round 12: pref=B conf=11 kind=3
+[mssc] round 13: pref=B conf=12 kind=3
+[mssc] round 14: pref=B conf=13 kind=3
+[mssc] round 15: pref=B conf=14 kind=3
+[mssc] round 16: pref=B conf=15 kind=3
+[mssc] round 17: pref=B conf=16 kind=3
+[mssc] round 18: pref=B conf=17 kind=3
+[mssc] round 19: pref=B conf=18 kind=3
+[mssc] round 20: pref=B conf=19 kind=3
+[mssc] round 21: pref=B conf=20 kind=3
+[mssc] round 22: pref=B conf=21 kind=3
+[mssc] round 23: pref=B conf=22 kind=3
+[mssc] round 24: pref=B conf=23 kind=3
+[mssc] round 25: pref=B conf=24 kind=3
+[mssc] round 26: pref=B conf=25 kind=3
+[mssc] round 27: pref=B conf=26 kind=3
+[mssc] round 28: pref=B conf=27 kind=3
+[mssc] round 29: pref=B conf=28 kind=3
+[mssc] round 30: pref=B conf=29 kind=3
+[mssc] round 31: pref=B conf=30 kind=3
+[mssc] round 32: pref=B conf=31 kind=3
+[mssc] round 33: pref=B conf=32 kind=3
+[mssc] round 34: pref=B conf=33 kind=3
+[mssc] round 35: pref=B conf=34 kind=3
+[mssc] round 36: pref=B conf=35 kind=3
+[mssc] round 37: pref=B conf=36 kind=3
+[mssc] round 38: pref=B conf=37 kind=3
+[mssc] round 39: pref=B conf=38 kind=3
+[mssc] round 40: pref=B conf=39 kind=3
+[mssc] round 41: pref=B conf=40 kind=3
+[mssc] round 42: pref=B conf=41 kind=3
+[mssc] round 43: pref=B conf=42 kind=3
+[mssc] round 44: pref=B conf=43 kind=3
+[mssc] round 45: pref=B conf=44 kind=3
+[mssc] round 46: pref=B conf=45 kind=3
+[mssc] round 47: pref=B conf=46 kind=3
+[mssc] round 48: pref=B conf=47 kind=3
+[mssc] round 49: pref=B conf=48 kind=3
+[mssc] round 50: pref=B conf=49 kind=3
+[mssc] round 51: pref=B conf=50 kind=3
+[mssc] round 52: pref=B conf=51 kind=3
+[mssc] round 53: pref=B conf=52 kind=3
+[mssc] round 54: pref=B conf=53 kind=3
