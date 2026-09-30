@@ -4034,3 +4034,9 @@ Readiness COMPLETE.
 - Law (CA-R205): component liveness is not process liveness. A server with N threads has N liveness obligations; the orchestrator can only see one. Every serving thread must heartbeat, and a stalled server must exit so the supervisor can restart it — silence is a defect even when the math is correct.
 - Mitigations: (1) interim external watchdog (below); (2) in-node: explorer heartbeat counter in /api (uptime_s, last_accept_s) + watchdog thread that _exit(1) on stall, letting systemd Restart=always recover.
 - Receipt preserved: 81,549 rounds / 809 consecutive confirmations / 22.6h continuous consensus — docs/uptime_receipt_22h.txt
+
+## DEC-283 — Phase 5 Closure Doctrine: Core Freeze by machine-checkable binding
+- Scope: nine work packages (P5-A..P5-I) close every designed-not-implemented property; full register in this entry's companion docs.
+- Definition of complete: 0 unbound files; 9/9 properties PROVEN or WAIVED(reason); every whitepaper claim receipted; 72h multi-node soak clean; one external non-founder gate-green; Core Freeze entry.
+- Doctrine: "no more code" is re-stated honestly as Core Freeze — the architecture is frozen, the map is total, and every post-freeze change is a ledger-gated PR. Software that never changes is dead software; undisclosed work is the only true gap.
+- Law: a phase is not closed by declaration; it is closed by a gate that fails if the closure decays.

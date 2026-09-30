@@ -1,0 +1,2 @@
+Sep 29 07:45:22 ip-172-31-8-74 epoch_node[55245]: [mssc] round 81: pref=A conf=79 kind=3
+Sep 29 07:58:06 ip-172-31-8-74 epoch_node[55245]: [vote] VERIFIED from member 1 (epoch 0, round 81)
