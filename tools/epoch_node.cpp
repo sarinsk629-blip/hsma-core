@@ -18,6 +18,7 @@
 #include <hsma/threshold/m2.hpp>
 #include <hsma/threshold/beacon.hpp>
 #include <hsma/threshold/dkg.hpp>
+#include <hsma/threshold/dkg_vss.hpp>
 #include <map>
 #include <chrono>
 #include <hsma/threshold/dkg.hpp>
@@ -44,6 +45,7 @@ static std::vector<std::array<std::uint64_t,4>> digest_chain;
 // P3-1b (DEC-271): the test committee. HONEST SCOPE: the poly is a PUBLIC
 // test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
 static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
+static hsma::threshold::vss::Transcript g_dkg_T{}; // P5-A: file scope — committee init AND member self-proof both read it
 static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
 static msscvote::AggregateVerify g_agg_verify;   // P3-3b: the batch accumulator
 static msscloop::NodeState g_mssc;
@@ -270,7 +272,11 @@ int main(int argc, char* argv[]) {
     {   threshold::Fr c1{}, c2{}, c3{};
         if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
             || !threshold::fr_from_u64(c3, 0x33)) { std::fprintf(stderr, "FATAL: fr init\n"); return 1; }
-        g_test_poly.c = {c1};  // P3-4 UNIFY: degree-0
+        if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/3, /*t=*/2)) { std::fprintf(stderr, "FATAL: dkg deal\n"); return 1; }
+        for (std::uint64_t j = 1; j <= g_dkg_T.n; ++j)
+          if (!hsma::threshold::vss::verify_share(g_dkg_T, j, g_dkg_T.Y[j])) { std::fprintf(stderr, "FATAL: Feldman share %llu\n", (unsigned long long)j); return 1; }
+        g_test_poly = g_dkg_T.f; // P5-A: the committed polynomial (alias)
+        std::printf("[dkg] epoch=0 n=3 t=2 - 3/3 shares Feldman-VERIFIED (beacon-seeded, no trusted dealer)\n");
         for (std::uint64_t j = 1; j <= 3; ++j) {
             threshold::Fr sj = threshold::dkg::share_for(g_test_poly, j);
             threshold::mont::fe6 k{}; threshold::fr_to_fe6(sj, k);
@@ -279,7 +285,9 @@ int main(int argc, char* argv[]) {
         std::printf("[vote] test committee registered: 3 members\n");
     }
     {   g_self_member = (my_port == p2p::DEFAULT_PORT) ? 1 : 2;
-        g_own_share = g_test_poly.c[0];  // P4-3b: the SECRET (degree-0 behavior for the envelope decrypt)
+        g_own_share = hsma::threshold::dkg::share_for(g_test_poly, g_self_member); // P5-A: real t-of-n share
+        { threshold::mont::fe6 os{}; threshold::fr_to_fe6(g_own_share, os);
+          if (!hsma::threshold::vss::verify_own(g_dkg_T, g_self_member, os)) { std::fprintf(stderr, "FATAL: own share failed Feldman self-proof\n"); return 1; } }
         const char* pref_str = (g_self_member == 1) ? "decreeA" : "decreeB";
         g_mssc.conflict = consensus::sha256d((const std::uint8_t*)"conflict_set_0", 14);
         g_mssc.preference = consensus::sha256d((const std::uint8_t*)pref_str, strlen(pref_str));

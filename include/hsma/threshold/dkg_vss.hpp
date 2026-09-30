@@ -27,10 +27,9 @@ inline bool config_ok(std::uint64_t n, std::uint64_t t) {
     return t >= 2 && n >= t && (2 * t) > n && n <= 224;
 }
 
+static_assert(sizeof(consensus::Digest) == 32, "P5-A conform: Digest expected 32 bytes");
 inline void digest_to_bytes(const consensus::Digest& d, std::uint8_t out[32]) {
-    for (int w = 0; w < 4; ++w)
-        for (int b = 0; b < 8; ++b)
-            out[(w << 3) | b] = std::uint8_t(d[w] >> (8 * b));   // conform: Digest indexable
+    std::memcpy(out, &d, 32);          // opaque conform: struct is 32B standard layout
 }
 
 // Deterministic epoch seed. prev == nullptr for genesis epoch.
@@ -40,7 +39,7 @@ inline void epoch_seed(std::uint8_t out[32], std::uint64_t epoch,
     std::memcpy(buf, "HSM_DKG_V1", 10);
     for (int i = 0; i < 8; ++i) buf[10 + i] = std::uint8_t(epoch >> (8 * i));
     std::size_t len = 18;
-    if (prev) { std::memcpy(buf + 18, *prev, 32); len = 50; }  // conform: Digest contiguous
+    if (prev) { std::memcpy(buf + 18, prev, 32); len = 50; }   // prev is Digest*
     consensus::Digest d = consensus::sha256d(buf, len);
     digest_to_bytes(d, out);
 }
@@ -83,6 +82,21 @@ inline bool deal(Transcript& T, std::uint64_t epoch, std::uint64_t n, std::uint6
     return true;
 }
 
+// G2 equality via affine coordinates (g2.hpp exposes to_affine, no Peq — DEC conform).
+// to_affine returns false for infinity; both-infinity == equal.
+inline bool pt_eq(const g2::G2Pt& A, const g2::G2Pt& B) {
+    std::uint64_t ax0[6], ax1[6], ay0[6], ay1[6];
+    std::uint64_t bx0[6], bx1[6], by0[6], by1[6];
+    const bool aok = g2::to_affine(A, ax0, ax1, ay0, ay1);
+    const bool bok = g2::to_affine(B, bx0, bx1, by0, by1);
+    if (!aok && !bok) return true;
+    if (aok != bok)   return false;
+    return std::memcmp(ax0, bx0, sizeof ax0) == 0
+        && std::memcmp(ax1, bx1, sizeof ax1) == 0
+        && std::memcmp(ay0, by0, sizeof ay0) == 0
+        && std::memcmp(ay1, by1, sizeof ay1) == 0;
+}
+
 // G2-only Feldman check, Horner: rhs = C_{t-1}; for k = t-2..0: rhs = [j]rhs + C_k.
 // rhs == Y_j  iff  the share for member j is the committed polynomial's evaluation.
 inline bool verify_share(const Transcript& T, std::uint64_t j, const g2::G2Pt& Yj) {
@@ -94,7 +108,7 @@ inline bool verify_share(const Transcript& T, std::uint64_t j, const g2::G2Pt& Y
     g2::G2Pt rhs = T.C[T.t - 1];
     for (std::int64_t k = std::int64_t(T.t) - 2; k >= 0; --k)
         rhs = g2::Padd(g2::Pmul(rhs, js), T.C[k]);
-    return g2::peq(rhs, Yj);        // ← CONFORM POINT: round-2 grep names the real equality
+    return pt_eq(rhs, Yj);          // affine-compare shim (no Peq in g2.hpp)
 }
 
 // A member proves its OWN share is the committed one (no trusted-dealer trust).

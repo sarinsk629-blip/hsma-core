@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <hsma/threshold/dkg_vss.hpp>
 using namespace hsma;
 
 static threshold::Poly g_test_poly_local() {
@@ -27,7 +28,9 @@ int main(int argc, char** argv) {
     // THE MISMATCH: the node's share ≠ the secret
     // FIX: the envfaucet encrypts under X_E = [share_for(poly, 1)]·G2gen
     // (= the node's actual share as member 1), so the node's dec_share matches
-    threshold::Fr s_secret{}; threshold::fr_from_u64(s_secret, 0x11);
+    hsma::threshold::vss::Transcript ef_T{};
+    if (!hsma::threshold::vss::deal(ef_T, 0, 3, 2)) { return 2; }
+    threshold::Fr s_secret = ef_T.f.c[0]; // P5-A: beacon-dealt secret = node's g_env_secret
     threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s_secret, sk);
     auto X_E = threshold::g2::Pmul(threshold::g2::gen(), sk);
 

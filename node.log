@@ -1,0 +1,43 @@
+[dkg] epoch=0 n=3 t=2 - 3/3 shares Feldman-VERIFIED (beacon-seeded, no trusted dealer)
+[vote] test committee registered: 3 members
+[mssc] member 2: weight 40, initial pref decreeB
+═══════════════════════════════════════
+  HSMA EPOCH NODE — P2-02
+  port: 31234 | k_entries: 10 | epoch: 0
+═══════════════════════════════════════
+[node] listening on port 31234
+[seed] 3.237.91.235:31233
+[peer] connected to seed
+[node] generating 10 local decree entries...
+[pi_E] epoch 0 complete (10 entries) — producing π_E...
+[pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1132 ms
+[gossip] epoch header sent to 1 peers
+
+═══════════════════════════════════════
+  EPOCH 0 COMPLETE — π_E PRODUCED
+  decree entries: 10
+  verify: ACCEPT
+  peers: 1
+  entering gossip loop (listening for new decrees)...
+═══════════════════════════════════════
+[explorer] HTTP server listening on port 32234
+[explorer] open http://localhost:32234 in a browser
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=0
+[voted] members=3
+[voted] member 1 verify=0
+[voted] member 2 verify=0
+[voted] member 3 verify=0
+[vote] REJECT (bad signature or unknown member)
+[peer] new connection (fd=7)
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=0
+[voted] members=3
+[voted] member 1 verify=1
+[vote] VERIFIED from member 1 (epoch 0, round 0)
+[mssc] round 1: pref=B conf=0 kind=2
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=0
+[voted] members=3
+[voted] member 1 verify=0

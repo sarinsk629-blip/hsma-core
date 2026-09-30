@@ -4047,3 +4047,16 @@ Readiness COMPLETE.
 - Discovery: msscvote.hpp already exports agg_accumulate/agg_verify (aggprobe: 1 pairing, ACCEPT + tamper-REJECT) — P5-B reclassified from build to node-loop integration.
 - Discovery: sim_beacon ((epoch,prev)->Digest) remains in force — DKG seed chain conforms to it; no parallel beacon invented.
 - Law: before writing a new header, grep the tree you have, not the tree you remember. The register assumed two builds that were already integrations.
+
+## DEF-228 — The stale-binary hunt: probe TRUE, live node REJECT, zero code defect
+- Evidence: vcheck2 — preimage match TRUE, sigma round-trip TRUE, verify-vs-Y1 TRUE — while the running node rejected the identical vote. Root cause: node process predating conform patches; background builds masked the failure.
+- Law (CA-R206): a probe that passes against the tree and a process that fails against the wire do not contradict — they date the process. Foreground builds + binary fingerprints (md5 at build and launch) are the instrument.
+- Closure receipt: fresh md5 6e3b7075... @18:23 — [vote] VERIFIED from member 1 on the REAL t-of-n share; the interleaved verify=0 lines are AWS legacy-key votes correctly REJECTED by the new committee.
+
+## DEC-285 — P5-A CLOSED: production threshold committee live at n=3,t=2
+- Committee: beacon-seeded Feldman VSS (no trusted dealer), all shares verified at startup, distinct Y_j — membership is meaningful for the first time.
+- Wire: vote signed with share_for(f,1), verified against Y1 only; foreign keys rejected — the threshold identity property demonstrated on the live testnet.
+- Envelope key: X_E = [f(0)]G2 = public commitment C[0] — encryptors need no secret.
+- Conformed across all three binaries (node/votecast/envfaucet) via one deal() — derivation-divergence class structurally dead (P3-4 closure).
+- Honest scope: seed publicly recomputable (structure real, confidentiality awaits threshold-beacon-signed seed at P5-C). 224/112 is a config flip post-capstone.
+- Laws: anchors regex-tolerant (two whitespace-drift failures taught it); probe-vs-process dating (CA-R206); degree-0 mask lifted by real construction (DEF-227).
