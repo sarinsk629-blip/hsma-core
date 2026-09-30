@@ -4,6 +4,7 @@
 #include <hsma/threshold/g2.hpp>
 #include <hsma/threshold/poly.hpp>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -34,7 +35,14 @@ int main(int argc, char** argv) {
     threshold::mont::fe6 sk{}; threshold::fr_to_fe6(s_secret, sk);
     auto X_E = threshold::g2::Pmul(threshold::g2::gen(), sk);
 
-    int fd = p2p::connect_peer(0x7F000001, (std::uint16_t)port);
+    // DEF-183 law: the displayed host and the dialed host are the same host.
+    std::uint32_t ip = 0x7F000001; // loopback default
+    if (host && std::strcmp(host, "127.0.0.1") != 0) {
+        struct in_addr a{};
+        if (inet_pton(AF_INET, host, &a) != 1) { std::printf("[envfaucet] bad host: %s\n", host); return 1; }
+        ip = ntohl(a.s_addr);   // connect_peer contract: HOST-order (p2p.hpp DEF-183 comment) — inet_pton gives network-order, convert
+    }
+    int fd = p2p::connect_peer(ip, (std::uint16_t)port);
     if (fd < 0) { std::printf("[envfaucet] connect FAILED\n"); return 1; }
 
     for (int i = 0; i < 10; ++i) {

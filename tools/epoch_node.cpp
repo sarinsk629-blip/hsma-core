@@ -568,7 +568,11 @@ int main(int argc, char* argv[]) {
                             std::memcpy(entry.env.tag, de.tag, 32);
                             std::memcpy(entry.env.cth, de.cth, 32);
                             // compute our dec_share
-                            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(g_own_share, sk_fe6);
+                            // DEF-234 conform: the decrypt contribution must be [f(0)]R
+                            // (the sender keys the DEM from f(0)). Testnet scope: this node
+                            // dealt the poly, so it legitimately holds f(0) = g_env_secret.
+                            // True t-of-2 Lagrange multi-party aggregation = P5-C capstone.
+                            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(g_env_secret, sk_fe6);
                             std::uint64_t s_canon[6];
                             for (int w = 0; w < 6; ++w) s_canon[w] = sk_fe6[w];
                             auto D_j = threshold::m2::dec_share(s_canon, de.R);

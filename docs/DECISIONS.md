@@ -4068,3 +4068,9 @@ Readiness COMPLETE.
 ## DEF-229 — GCC misleading-indentation: cross-compiler catch #4; sweep law refined
 - Evidence: consensus.hpp:97 (epoch_ variant) + :101 (round variant, prior run) — AWS GCC -Werror stops the gate; Termux Clang silent. Sibling sweep by broad regex produced 13 hits, 12 false positives (braced/chained/multiline forms GCC never flags).
 - Law (refined): sweep with the defect's exact signature, not a generalization of it — a broad sweep buries the real sibling in noise; the strictest compiler remains the true enumerator of the class.
+
+## DEF-234 CLOSED — decrypt contribution conformed to f(0): the final degree-0 mask lifted
+- The writer (envelope-receipt block) computed D_j = dec_share(f(j), R) while the sender keys the DEM from [f(0)]R. Under degree-0, f(j) == f(0), so the site's own comment ("our share IS the secret (1-of-1)") was true; P5-A's real poly split them and TAG FAILED became mathematically inevitable. One token: g_own_share -> g_env_secret at the writer.
+- Mask series complete: member identity (DEF-227), wire scrutiny (DEF-228), decrypt algebra (DEF-234). Each invisible under the degree-0 shortcut; each exposed within minutes of the real construction landing; each fixed by one surgical conform.
+- P5-C capstone spec inherited: replace dealer-decrypt with t-of-2 Lagrange aggregation (D_agg = sum(lambda_j*D_j)) — a live failing-then-passing test now exists as its spec.
+- Law (final form): the degree-0 committee was not a shortcut, it was a debt — and P5-A collected all three debts in one session.

@@ -6,6 +6,7 @@
 #include <hsma/threshold/g2.hpp>
 #include <hsma/threshold/poly.hpp>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -35,7 +36,13 @@ int main(int argc, char** argv) {
     if (msg.payload.size() != msscvote::VOTE_PAYLOAD) { std::printf("[votecast] encode FAILED\n"); return 2; }
 
     // DEF-183's law: host-order ip, htonl inside connect_peer
-    int fd = p2p::connect_peer(0x7F000001, (std::uint16_t)port);
+    std::uint32_t ip = 0x7F000001;
+    if (host && std::strcmp(host, "127.0.0.1") != 0) {
+        struct in_addr a{};
+        if (inet_pton(AF_INET, host, &a) != 1) { std::printf("[votecast] bad host: %s\n", host); return 1; }
+        ip = ntohl(a.s_addr);   // connect_peer contract: HOST-order (p2p.hpp DEF-183 comment) — inet_pton gives network-order, convert
+    }
+    int fd = p2p::connect_peer(ip, (std::uint16_t)port);
     if (fd < 0) { std::printf("[votecast] connect FAILED\n"); return 1; }
     if (!p2p::send_message(fd, msg)) { std::printf("[votecast] send FAILED\n"); close(fd); return 1; }
     std::printf("[votecast] vote sent (%zu bytes payload)%s\n",

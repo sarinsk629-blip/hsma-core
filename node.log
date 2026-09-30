@@ -6,38 +6,104 @@
   port: 31234 | k_entries: 10 | epoch: 0
 ═══════════════════════════════════════
 [node] listening on port 31234
-[seed] 3.237.91.235:31233
-[peer] connected to seed
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1132 ms
-[gossip] epoch header sent to 1 peers
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1128 ms
+[gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
   EPOCH 0 COMPLETE — π_E PRODUCED
   decree entries: 10
   verify: ACCEPT
-  peers: 1
+  peers: 0
   entering gossip loop (listening for new decrees)...
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=3
-[voted] member 1 verify=0
-[voted] member 2 verify=0
-[voted] member 3 verify=0
-[vote] REJECT (bad signature or unknown member)
-[peer] new connection (fd=7)
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=3
-[voted] member 1 verify=1
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 1: pref=B conf=0 kind=2
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=3
-[voted] member 1 verify=0
+[peer] new connection (fd=6)
+[recv] type=7 size=334
+[mempool] envelope 1 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 2 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 3 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 4 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 5 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 6 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 7 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 8 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 9 stored (ct=18 bytes)
+[recv] type=7 size=334
+[mempool] envelope 10 stored (ct=18 bytes)
+[mempool] ORDER COMMITTED: root=9e56891113511ffd
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 261856bb9171b3200a4ad5168d49689ffad0a5c4a23d1d166ce90e2b602aab987188d19e016f9ca8787a677b8c392b0079ad5b273b72cb308c54c616abc0438cf11781179e014aa217f05a911cee62af1c60f0039cab7f25d62b5f922a17820020b26d805e3a3bdc774d9e6d5a647eea2e10e45a5038724c80de00a52a364525fd6c8a438967a9b1bd49ed1f978e4200b684e3d3209a0f7ba29800069b5af9bea3a0a19bcd240b2620308b16d858b321805397c12e4fda0e96216f99264de700
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006400000000000000
+[dbg] D_agg: 261856bb9171b320 | hdr: 0700000000000000 | k: beeb599f
+[decrypt] envelope 0: "encrypted-decree-0" (tag OK)
+[fold] decree 1/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: ae9b7b26f75330e4ac94899ab34df1e39b4987630546fc55c231d5e77e348f4fa20e0bac0d9dcb2b2ccab786b61b6a0149e8acd164bbbeeb8830f0853f0c42e2ecd5a82c42c888bc8f4583e0d383738b72463f155bdf038dbe29597bdb5b4f005b68d80bdee19d6fdf6b6f85cf302c73b8003ee0ef1a7acb7379ab563065b4f9c406c1656436dcb236b920c9d2c328007b97007f602566c9915bdd55cb43d6883cfacb348942737cc553e97def444bd03ca7dbe1d882b7cf8c19999e46284c01
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000006400000000000000
+[dbg] D_agg: ae9b7b26f75330e4 | hdr: 0700000000000000 | k: 7741516a
+[decrypt] envelope 1: "encrypted-decree-1" (tag OK)
+[fold] decree 2/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 0b8e13b4c27075884529d7758fac3f4214d954f8cd3cd7e210f33bf2fcf94b8b19ce9745ab1985252c785da3c5b94e0136df7d16ec337bebfe29fab14e242a7416956ed12a6cbb37e1b7d55185cd6d4489ad5ca34ab21976b2f8c7f397b84400d6e8bdf3cf2348ba4ef667904bb908737bfb7c6b71465d589dc01d107bad718ab35fc36d5bda247e40b365c00d4a600127d8fb88680afb4f3fdd91a59d9783e7f29fc55bfe135ab8f98aeebc57846c8b1f9ed4847bfabc1ff4f571d14a7e8900
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000006400000000000000
+[dbg] D_agg: 0b8e13b4c2707588 | hdr: 0700000000000000 | k: df58f1f9
+[decrypt] envelope 2: "encrypted-decree-2" (tag OK)
+[fold] decree 3/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 3df139c4cfd08459ba42b51c7a8a2adb457152b7aa3c7bad10f9a7881efc4fee81971ea979c8c58a03c9f7db88a47300a59ca3a048b39cc8ebae67899fadaf4383a6296e64fab15807c665768cc448e45d70d30268c7d04fc5498b410e6b0a00f0b9e0312aafe71a6879a48b27339d88254907c9ff2f6d5a62d9beec9a90989bd49839863b8a10c124d8a740bbf14a0114707d80f760b9f13509f694e17da8f8fdd69e8d292acb1b1526b2411f1ed03a2f2810adba5407968b20a3264c132d01
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000006400000000000000
+[dbg] D_agg: 3df139c4cfd08459 | hdr: 0700000000000000 | k: 542f8f6d
+[decrypt] envelope 3: "encrypted-decree-3" (tag OK)
+[fold] decree 4/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: cc759e2818542b14d73aafa8db2739c7d16f5441b2eb18f7388e25fbf9055de693ad80a465a97f9af2b00c3f63d610017354b18dda5cf80ce93eac6593420cb29e97dcb8d4acd7b55f0d23c853e2db98a3dd131c6f2cf32cc8ae63ec56f67701b9b55d4b6f6383b08fe3cafb0e83a5121bcb2d4d936265d9b43191d4f43edf4ddcfcfe0a3dac356a053b935d1dc052006c981033848a23233e768d89bf3d312f40b6c289fff8c0f807eaaa75fab930c3ed068c73a61319d6a92bd52435cb3201
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000006400000000000000
+[dbg] D_agg: cc759e2818542b14 | hdr: 0700000000000000 | k: eb6234e1
+[decrypt] envelope 4: "encrypted-decree-4" (tag OK)
+[fold] decree 5/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 5489f173915c5bf3954c9e3b3efb7e341c74892bd9ad054400807304662df5506f6880511e4900e6854228a90dab620083be650f55f5474fc46557b4a319d80aab8fcc7a517ff9a618de72f1e5d9fe9482ad7064d8735bc6905ebaade2b8f50003f96ff37aa10429be9455d8baab6d08793e62611e2bebc484a99c39ed36ce445de2b691e4d375783e1af3ae0dffb90030d018e6fe4a29c4c079b38e92f175f115c370bf32e4e8bd2dee378e52104f300c855587285b24ac24e27b6ac3dc0f01
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000006400000000000000
+[dbg] D_agg: 5489f173915c5bf3 | hdr: 0700000000000000 | k: ff8719f2
+[decrypt] envelope 5: "encrypted-decree-5" (tag OK)
+[fold] decree 6/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: fe212757cf06a3df5a4339269ada2560202f1d45307f8d62593f5772c78b77a3941f8ca1b7a042d3ebb61cb9f87ebd005db61e7d8c8466c1570a7d84305fb32a17cd884f8616598f44ed1883acd8b6623ea202f3da8eb94cf44f59200a315001b087e7d386d14edd93a66a5c9b1f620ac7123c47ce4398603923599b6091c465f236ad3003f3f4b35bfaa290ea844000387aeb77c2392da3c925452f1e177ef2e495273b74c70e113a4acd255a9a75d4503499bb679af5a6e888040a0b7c9401
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000006400000000000000
+[dbg] D_agg: fe212757cf06a3df | hdr: 0700000000000000 | k: d7052fd8
+[decrypt] envelope 6: "encrypted-decree-6" (tag OK)
+[fold] decree 7/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 72d64ac29e62e35161cf35cedae62e641841786eefa8d9aeb5e990ce8520c0e76caf91c6a1b58f1ad24df4216cc12b00ec583cf2f1915301fea87df18dcf16f86c9dd0b5c0613d4c148664cceefb9e8526e08caa7250e80b9681baf7b6033c00d27580929643b1851ed3f558399a4fcab475f7eef4552f29618f3f5fb10ce577c2f28dffba429b4ebf22d3946c29ea00c6e2ba466c795f6250f694afb1a29417a72a95d8dcf75b4445ba2aa1104f0157fcf543472d47b55e428f1bddae208d00
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000007000000000000006400000000000000
+[dbg] D_agg: 72d64ac29e62e351 | hdr: 0700000000000000 | k: 2d6384aa
+[decrypt] envelope 7: "encrypted-decree-7" (tag OK)
+[fold] decree 8/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: ab64f4a931b5fcf9d09d9d7c7d1eeafd25909cac7b3735466f46d971aa96c07981af1407b8a8be32408a12913dc50800e8924a5949763147233cb176752e863806fda7359ac758cb429bd23d52d3c6f932ab223458f23872a6bd0ac2080c4400a1e4a73233418fda7d6364a1695a25e2f3fe665b40673f3bc58a5c26233f7c43e6b0dc4ce2aa6a43f8898543f03a47008b0e51ba6f4ab7d947f141d197fb0ff1626695fa6c9c67fcb9dfec99d799680ea1e9fb712aa126c8102e1c55b4dc4800
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000008000000000000006400000000000000
+[dbg] D_agg: ab64f4a931b5fcf9 | hdr: 0700000000000000 | k: c1fdbf83
+[decrypt] envelope 8: "encrypted-decree-8" (tag OK)
+[fold] decree 9/10 folded, SAT
+[dbg-node] xe: 087494adb4faff42
+[dbg-node] ss_full: 1c87537520b0a3a77b42e3717697c12a45f4613200dabee6681dd57ce73ff1159cfdf032b503cc8681cf96236ef394006e31ee1f2138178e3900e4bf6dde9c3ce70ab1ecaf2cc6514d8345f35ef2d16a48e4a3f2a86270f665c17c8bfd75950017ffa7aebd249bae4cf764c291fa34b0a3bac87fbe7224d2a5a2d7a7f1f2e1f441fc2ea66d2fe7daeafda85b5b7f790116d9a40b260ed2d51205043dae4a04fc9509aeb6bef78dbfcaca6968df0fdb507df1dc3d9b320184e476394f7fa29e00
+[dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000009000000000000006400000000000000
+[dbg] D_agg: 1c87537520b0a3a7 | hdr: 0700000000000000 | k: fccde497
+[decrypt] envelope 9: "encrypted-decree-9" (tag OK)
+[fold] decree 10/10 folded, SAT
+[pi_E] epoch 1 complete — producing π_E...
+[pi_E] epoch 1: wrap_verify ACCEPT (stage=0)
+[pouw] epoch 1: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1128 ms
+[gossip] epoch 1 header sent to 1 peers
