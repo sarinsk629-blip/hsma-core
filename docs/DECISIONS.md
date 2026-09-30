@@ -4027,3 +4027,10 @@ guide), scripts/deploy_aws.sh (one-command AWS deployment).
 | nodes alive | ✅ | ✅ |
 **Build status:** THE TESTNET IS LAUNCHED. Phase 1 Technical
 Readiness COMPLETE.
+## DEF-226 — Explorer thread wedge: 22h alive, accept queue full, zero liveness self-check
+- Evidence: ss showed `LISTEN 5 4` on 32233 (backlog saturated, accept() not called); loopback curl returned 000; external curl timed out (kernel SYN drop, not RST). Same process: MSSC thread at round 81,549, conf=809, ticking 1/sec continuously — consensus core healthy for 22.6h.
+- Root cause (provisional): explorer thread stopped calling accept() — deadlock or blocking-read-without-timeout candidate; exact site unresolved. Restart (PID 55245 -> 58503) cleared it; backlog returned to `LISTEN 0 4`.
+- Failure amplifier: systemd reported `active (running)` — main-PID liveness masked component death. No heartbeat existed to expose it. Found by EXTERNAL observation (curl timeout), not by any internal check.
+- Law (CA-R205): component liveness is not process liveness. A server with N threads has N liveness obligations; the orchestrator can only see one. Every serving thread must heartbeat, and a stalled server must exit so the supervisor can restart it — silence is a defect even when the math is correct.
+- Mitigations: (1) interim external watchdog (below); (2) in-node: explorer heartbeat counter in /api (uptime_s, last_accept_s) + watchdog thread that _exit(1) on stall, letting systemd Restart=always recover.
+- Receipt preserved: 81,549 rounds / 809 consecutive confirmations / 22.6h continuous consensus — docs/uptime_receipt_22h.txt
