@@ -70,6 +70,9 @@ struct MempoolEntry {
 };
 static std::vector<MempoolEntry> g_mempool;
 static std::vector<std::vector<std::uint8_t>> g_dec_shares;  // our shares per envelope
+// P5-C: collected decryption shares per envelope — (member_id, D_j) pairs.
+// Decryption fires when the count of DISTINCT member x's reaches t=2.
+static std::map<std::size_t, std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>>> g_thr_shares;
 static std::uint8_t g_order_root[32] = {};
 static threshold::g2::G2Pt g_xe;   // the committee's aggregate public key
 static bool g_order_committed = false;
@@ -537,7 +540,30 @@ int main(int argc, char* argv[]) {
                 p2p::Message msg;
                 if (p2p::recv_message(peer_fds[i], msg)) {
                         std::printf("[recv] type=%u size=%zu\n", msg.type, msg.payload.size());
-                    if (msg.type == 0x06) {
+                    if (msg.type == 0x08) {
+                        // P5-C: DEC_SHARE from a peer — {envelope_index u32, member_id u32, D_j 192B}
+                        if (msg.payload.size() != 200) { std::printf("[thr] 0x08 bad size\n"); }
+                        else {
+                            const std::uint8_t* p = msg.payload.data();
+                            std::size_t eix = (std::size_t)p[0] | ((std::size_t)p[1]<<8) | ((std::size_t)p[2]<<16) | ((std::size_t)p[3]<<24);
+                            std::uint64_t mid = (std::uint64_t)p[4] | ((std::uint64_t)p[5]<<8) | ((std::uint64_t)p[6]<<16) | ((std::uint64_t)p[7]<<24);
+                            std::uint64_t xa[6], xb[6], ya[6], yb[6];
+                            for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
+                                for (int b = 0; b < 8; ++b) {
+                                    xa[i] |= (std::uint64_t)p[8+i*8+b] << (8*b);
+                                    xb[i] |= (std::uint64_t)p[56+i*8+b] << (8*b);
+                                    ya[i] |= (std::uint64_t)p[104+i*8+b] << (8*b);
+                                    yb[i] |= (std::uint64_t)p[152+i*8+b] << (8*b);
+                                } }
+                            auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
+                            auto& v = g_thr_shares[eix];
+                            bool have = false;
+                            for (const auto& [m0, d0] : v) if (m0 == mid) have = true;
+                            if (!have) { v.push_back({mid, Dj});
+                                std::printf("[thr] 0x08: share from member %llu for envelope %zu (collected %zu)\n",
+                                    (unsigned long long)mid, eix, v.size()); }
+                        }
+                    } else if (msg.type == 0x06) {
                         // P3-1b (DEC-271): the MSSC vote wire path
                         auto dv = msscvote::decode_vote(msg);
                         std::printf("[voted] ok=%d epoch=%u round=%llu\n",
@@ -600,7 +626,7 @@ int main(int argc, char* argv[]) {
                             // (the sender keys the DEM from f(0)). Testnet scope: this node
                             // dealt the poly, so it legitimately holds f(0) = g_env_secret.
                             // True t-of-2 Lagrange multi-party aggregation = P5-C capstone.
-                            threshold::mont::fe6 sk_fe6{}; threshold::fr_to_fe6(g_env_secret, sk_fe6);
+                            threshold::mont::fe6 sk_fe6{}; { threshold::Fr own = threshold::dkg::share_for(g_test_poly, g_self_member); threshold::fr_to_fe6(own, sk_fe6); } // P5-C: own share
                             std::uint64_t s_canon[6];
                             for (int w = 0; w < 6; ++w) s_canon[w] = sk_fe6[w];
                             auto D_j = threshold::m2::dec_share(s_canon, de.R);
@@ -608,6 +634,19 @@ int main(int argc, char* argv[]) {
                             g_mempool.push_back(std::move(entry));
                             std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
                                 g_mempool.size(), de.ct.size());
+                            // P5-C: broadcast our DEC_SHARE (0x08) — {eix u32, member u32, D_j 192B}
+                            {   std::size_t eix = g_mempool.size() - 1;
+                                std::vector<std::uint8_t> pl(200, 0);
+                                pl[0] = std::uint8_t(eix); pl[1] = std::uint8_t(eix>>8);
+                                pl[2] = std::uint8_t(eix>>16); pl[3] = std::uint8_t(eix>>24);
+                                pl[4] = std::uint8_t(g_self_member);
+                                std::memcpy(pl.data()+8, g_dec_shares.back().data(), 192);
+                                for (int fd : peer_fds) {
+                                    p2p::Message m08{}; m08.type = 0x08; m08.payload = pl;
+                                    p2p::send_message(fd, m08);
+                                }
+                                std::printf("[thr] own D_j broadcast for envelope %zu (member %u)\n",
+                                    eix, g_self_member); }
                             // the ordering ceremony: when we have 3 envelopes
                             if (g_mempool.size() >= (std::size_t)K_ENTRIES && !g_order_committed) {
                                 const auto beacon = consensus::sha256d((const std::uint8_t*)"beacon_p4", 9);
@@ -631,22 +670,36 @@ int main(int argc, char* argv[]) {
                                 std::printf("[mempool] ORDER COMMITTED: root=");
                                 for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
                                 std::printf("\n");
-                                // P4-3b: the threshold decrypt — our share IS the secret (1-of-1)
+                                // P5-C: threshold decrypt — requires t=2 DISTINCT member shares.
+                                // Our own D_j is stored (writer, own share now). Peers' D_j arrive
+                                // via message 0x08 into g_thr_shares. Decrypt fires only when the
+                                // collected x-set reaches t — the negative test (1 node alone)
+                                // must show NO decrypt. DEF-234's dealer shortcut is retired.
                                 for (std::size_t ei = 0; ei < g_mempool.size(); ++ei) {
                                     auto& me = g_mempool[ei];
                                     if (me.decrypted) continue;
-                                    // deserialize our stored dec_share
-                                    auto& dsb = g_dec_shares[ei];
+                                    // collect: our own share (from g_dec_shares) + any peer shares (0x08)
+                                    std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> shares;
+                                    {   // own
+                                        auto& dsb = g_dec_shares[ei];
+                                        std::uint64_t da[6], db[6], ya[6], yb[6];
+                                        shares.push_back({g_self_member, threshold::g2::from_affine(da, db, ya, yb)});
+                                    }
+                                    for (const auto& [mid, Dj] : g_thr_shares[ei])
+                                        shares.push_back({mid, Dj});
+                                    // distinct-x check
+                                    bool dup = false;
+                                    for (std::size_t a = 0; a < shares.size() && !dup; ++a)
+                                        for (std::size_t b2 = a+1; b2 < shares.size(); ++b2)
+                                            if (shares[a].first == shares[b2].first) { dup = true; break; }
+                                    if (dup) { std::printf("[thr] duplicate member share — skipped\n"); continue; }
+                                    if (shares.size() < 2) { std::printf("[thr] envelope %zu: %zu/%u shares, waiting\n", ei, shares.size(), 2u); continue; }
+                                    threshold::g2::G2Pt D_agg{};
+                                    if (!hsma::threshold::vss::agg_dec_share(D_agg, shares)) { std::printf("[thr] agg FAILED\n"); continue; }
+                                    std::printf("[thr] envelope %zu: threshold met (%zu shares, members %u,%u)\n",
+                                        ei, shares.size(), (unsigned)shares[0].first, (unsigned)shares[1].first);
                                     std::uint64_t da[6], db[6], ya[6], yb[6];
-                                    for (int i = 0; i < 6; ++i) { da[i]=0; db[i]=0; ya[i]=0; yb[i]=0;
-                                        for (int b = 0; b < 8; ++b) {
-                                            da[i] |= (std::uint64_t)dsb[i*8+b] << (8*b);
-                                            db[i] |= (std::uint64_t)dsb[48+i*8+b] << (8*b);
-                                            ya[i] |= (std::uint64_t)dsb[96+i*8+b] << (8*b);
-                                            yb[i] |= (std::uint64_t)dsb[144+i*8+b] << (8*b);
-                                        } }
-                                    auto D_agg = threshold::g2::from_affine(da, db, ya, yb);
-                                    // the DEM key
+                                    // the DEM key (D_agg from agg_dec_share above)
                                     auto ss_b = m2env::pt_to_bytes(D_agg);
                                     auto xe_b = m2env::pt_to_bytes(g_xe);
                                     std::uint8_t hdr[56] = {};

@@ -116,4 +116,46 @@ inline bool verify_own(const Transcript& T, std::uint64_t j, const mont::fe6& s_
     return verify_share(T, j, g2::Pmul(g2::gen(), s_scalar));
 }
 
+
+// ---- P5-C: threshold decryption aggregation (t-of-n, Lagrange at x=0) ----
+// D_j = [f(j)]R  (each member's contribution, computed via threshold::m2::dec_share)
+// Aggregate: D = Sum_j lambda_j * D_j = [f(0)]R   — WITHOUT any member learning f(0).
+// lambda_j = prod_{m != j} x_m / (x_m - x_j) over Fr, for the participating x-set.
+// Requires exactly t participants (n=3, t=2 testnet: any 2 of 3).
+
+// Lagrange coefficient for participant x_j over the full participating x-set.
+inline Fr lagrange_at_zero(const std::vector<std::uint64_t>& xs, std::uint64_t xj) {
+    Fr num{}, den{}, t{};
+    fr_from_u64(num, 1); fr_from_u64(den, 1);
+    for (std::uint64_t xm : xs) {
+        if (xm == xj) continue;
+        Fr fxm{}; fr_from_u64(fxm, xm);
+        Fr fxj{}; fr_from_u64(fxj, xj);
+        num = fr_mul(num, fxm);                 // num *= x_m
+        t = fr_sub(fxm, fxj);                   // den *= (x_m - x_j)
+        den = fr_mul(den, t);
+    }
+    Fr dinv{}; fr_inv(dinv, den);               // scalar_r.hpp API: bool fr_inv(Fr& out, const Fr& a)
+    return fr_mul(num, dinv);                   // lambda_j = num * den^{-1}
+}
+
+// Aggregate t decryption-share POINTS into [f(0)]R (G2 points).
+// shares: pairs of (member_id, D_j). Must contain exactly t entries.
+inline bool agg_dec_share(g2::G2Pt& D_out,
+                          const std::vector<std::pair<std::uint64_t, g2::G2Pt>>& shares) {
+    if (shares.empty()) return false;
+    std::vector<std::uint64_t> xs;
+    for (const auto& [j, D] : shares) xs.push_back(j);
+    if ((std::uint64_t)xs.size() != shares.size()) return false;
+    bool first = true;
+    for (const auto& [j, Dj] : shares) {
+        Fr lam = lagrange_at_zero(xs, j);
+        mont::fe6 lk{}; fr_to_fe6(lam, lk);
+        g2::G2Pt term = g2::Pmul(Dj, lk);
+        D_out = first ? term : g2::Padd(D_out, term);
+        first = false;
+    }
+    return true;
+}
+
 } // namespace hsma::threshold::vss

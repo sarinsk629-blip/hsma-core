@@ -6,88 +6,114 @@
   port: 31234 | k_entries: 10 | epoch: 0
 ═══════════════════════════════════════
 [node] listening on port 31234
+[seed] 3.237.91.235:31233
+[peer] connected to seed
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1130 ms
-[gossip] epoch header sent to 0 peers
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1180 ms
+[gossip] epoch header sent to 1 peers
 
 ═══════════════════════════════════════
   EPOCH 0 COMPLETE — π_E PRODUCED
   decree entries: 10
   verify: ACCEPT
-  peers: 0
+  peers: 1
   entering gossip loop (listening for new decrees)...
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
-[peer] new connection (fd=6)
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
+[voted] ok=1 epoch=0 round=1769
 [voted] members=3
 [voted] member 1 verify=1
-[agg-batch] join: round=0 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 1: pref=B conf=0 kind=2
-[peer] new connection (fd=7)
+[agg-batch] join: round=1769 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1769)
+[mssc] round 1: pref=A conf=0 kind=2
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
+[voted] ok=1 epoch=0 round=1770
 [voted] members=3
-[voted] member 1 verify=0
-[voted] member 2 verify=1
-[agg-batch] join: round=0 count->2
-[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1422.1 ms
-[vote] VERIFIED from member 2 (epoch 0, round 0)
-[mssc] round 2: pref=B conf=1 kind=1
-[mssc] round 3: pref=B conf=2 kind=1
-[mssc] round 4: pref=B conf=3 kind=1
-[mssc] round 5: pref=B conf=4 kind=1
-[mssc] round 6: pref=B conf=5 kind=3
-[mssc] round 7: pref=B conf=6 kind=3
-[mssc] round 8: pref=B conf=7 kind=3
-[mssc] round 9: pref=B conf=8 kind=3
-[mssc] round 10: pref=B conf=9 kind=3
-[mssc] round 11: pref=B conf=10 kind=3
-[mssc] round 12: pref=B conf=11 kind=3
-[mssc] round 13: pref=B conf=12 kind=3
-[mssc] round 14: pref=B conf=13 kind=3
-[mssc] round 15: pref=B conf=14 kind=3
-[mssc] round 16: pref=B conf=15 kind=3
-[mssc] round 17: pref=B conf=16 kind=3
-[mssc] round 18: pref=B conf=17 kind=3
-[mssc] round 19: pref=B conf=18 kind=3
-[mssc] round 20: pref=B conf=19 kind=3
-[mssc] round 21: pref=B conf=20 kind=3
-[mssc] round 22: pref=B conf=21 kind=3
-[mssc] round 23: pref=B conf=22 kind=3
-[mssc] round 24: pref=B conf=23 kind=3
-[mssc] round 25: pref=B conf=24 kind=3
-[mssc] round 26: pref=B conf=25 kind=3
-[mssc] round 27: pref=B conf=26 kind=3
-[mssc] round 28: pref=B conf=27 kind=3
-[mssc] round 29: pref=B conf=28 kind=3
-[mssc] round 30: pref=B conf=29 kind=3
-[mssc] round 31: pref=B conf=30 kind=3
-[mssc] round 32: pref=B conf=31 kind=3
-[mssc] round 33: pref=B conf=32 kind=3
-[mssc] round 34: pref=B conf=33 kind=3
-[mssc] round 35: pref=B conf=34 kind=3
-[mssc] round 36: pref=B conf=35 kind=3
-[mssc] round 37: pref=B conf=36 kind=3
-[mssc] round 38: pref=B conf=37 kind=3
-[mssc] round 39: pref=B conf=38 kind=3
-[mssc] round 40: pref=B conf=39 kind=3
-[mssc] round 41: pref=B conf=40 kind=3
-[mssc] round 42: pref=B conf=41 kind=3
-[mssc] round 43: pref=B conf=42 kind=3
-[mssc] round 44: pref=B conf=43 kind=3
-[mssc] round 45: pref=B conf=44 kind=3
-[mssc] round 46: pref=B conf=45 kind=3
-[mssc] round 47: pref=B conf=46 kind=3
-[mssc] round 48: pref=B conf=47 kind=3
-[mssc] round 49: pref=B conf=48 kind=3
-[mssc] round 50: pref=B conf=49 kind=3
-[mssc] round 51: pref=B conf=50 kind=3
-[mssc] round 52: pref=B conf=51 kind=3
-[mssc] round 53: pref=B conf=52 kind=3
-[mssc] round 54: pref=B conf=53 kind=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1770 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1770)
+[mssc] round 2: pref=A conf=1 kind=1
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1771
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1771 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1771)
+[mssc] round 3: pref=A conf=2 kind=1
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1772
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1772 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1772)
+[mssc] round 4: pref=A conf=3 kind=1
+[peer] new connection (fd=7)
+[recv] type=7 size=334
+[mempool] envelope 1 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 0 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 2 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 1 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 3 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 2 (member 2)
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1773
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1773 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1773)
+[recv] type=7 size=334
+[mempool] envelope 4 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 3 (member 2)
+[mssc] round 5: pref=A conf=4 kind=1
+[recv] type=7 size=334
+[mempool] envelope 5 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 4 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 6 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 5 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 7 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 6 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 8 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 7 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 9 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 8 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 10 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 9 (member 2)
+[mempool] ORDER COMMITTED: root=9e56891113511ffd
+[thr] envelope 0: 1/2 shares, waiting
+[thr] envelope 1: 1/2 shares, waiting
+[thr] envelope 2: 1/2 shares, waiting
+[thr] envelope 3: 1/2 shares, waiting
+[thr] envelope 4: 1/2 shares, waiting
+[thr] envelope 5: 1/2 shares, waiting
+[thr] envelope 6: 1/2 shares, waiting
+[thr] envelope 7: 1/2 shares, waiting
+[thr] envelope 8: 1/2 shares, waiting
+[thr] envelope 9: 1/2 shares, waiting
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1774
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1774 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1774)
+[mssc] round 6: pref=A conf=5 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1775
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=1775 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1775)
+[mssc] round 7: pref=A conf=6 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=1776
+[voted] members=3
