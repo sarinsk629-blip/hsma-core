@@ -17,6 +17,9 @@ int main(int argc, char** argv) {
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
     int port = argc > 2 ? atoi(argv[2]) : 31233;
     bool tamper = argc > 3 && std::strcmp(argv[3], "--tamper") == 0;
+    unsigned member = 1;
+    for (int i = 1; i < argc; ++i)
+        if (std::strcmp(argv[i], "--member") == 0 && i + 1 < argc) member = (unsigned)atoi(argv[i + 1]);
 
     threshold::Fr c1{}, c2{}, c3{};
     if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
@@ -24,7 +27,7 @@ int main(int argc, char** argv) {
     hsma::threshold::vss::Transcript vc_T{};
     if (!hsma::threshold::vss::deal(vc_T, 0, 3, 2)) { return 2; }
     threshold::Poly poly = vc_T.f; // P5-A: same committed poly as the node
-    threshold::Fr S1 = threshold::dkg::share_for(poly, 1);
+    threshold::Fr S1 = threshold::dkg::share_for(poly, member); // P5-B: selectable signer
 
     auto wr = consensus::sha256d((const std::uint8_t*)"wr", 2);
     auto cf = consensus::sha256d((const std::uint8_t*)"cf", 2);

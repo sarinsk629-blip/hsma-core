@@ -48,6 +48,13 @@ static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp
 static hsma::threshold::vss::Transcript g_dkg_T{}; // P5-A: file scope — committee init AND member self-proof both read it
 static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
 static msscvote::AggregateVerify g_agg_verify;   // P3-3b: the batch accumulator
+// P5-B (DEC-287): per-(round,preference) same-message vote batches.
+// BGLS law: e(sum sigma_i, G2) == e(H(pre), sum Y_i) holds ONLY for a shared
+// preimage — batches are keyed by (round, preference-digest). At 2 sigs:
+// ONE pairing verifies the batch. g_agg_verify (old global) retired.
+struct AggBatch { msscvote::AggregateVerify av{}; std::vector<std::uint8_t> pre{}; unsigned count = 0; };
+static std::map<std::array<std::uint8_t, 40>, AggBatch> g_agg_batches;
+static unsigned long long g_agg_receipts = 0;   // lifetime verified-batch count
 static msscloop::NodeState g_mssc;
 static std::map<std::uint64_t, consensus::Digest> g_peer_prefs;
 static unsigned g_self_member = 1;
@@ -496,6 +503,8 @@ int main(int argc, char* argv[]) {
                         g_mssc.preference, sig);
                     for (int fd : peer_fds) p2p::send_message(fd, msg);
                 }
+                // P5-B hygiene: stale single-sig batches die with the round (testnet scope)
+                if (g_agg_batches.size() > 128) g_agg_batches.clear();
                 if (!g_peer_prefs.empty()) {
                     std::vector<consensus::Digest> pp;
                     for (const auto& [id, pref] : g_peer_prefs) pp.push_back(pref);
@@ -546,7 +555,26 @@ int main(int argc, char* argv[]) {
                                 if (v) {
                                     accepted = true; member = jid;
                                     // P3-3b: accumulate into the batch (for future aggregate verify)
-                                    msscvote::agg_accumulate(g_agg_verify, dv.sigma, Y);
+                                    // P5-B: batch by (round, preference) — same-message aggregation only
+                                    { std::array<std::uint8_t, 40> bkey{};
+                                      for (int i = 0; i < 8; ++i) bkey[i] = std::uint8_t(dv.round >> (8 * i));
+                                      const std::uint8_t* pb = (const std::uint8_t*)&dv.preference;
+                                      for (int i = 0; i < 32; ++i) bkey[8 + i] = pb[i];
+                                      auto& b = g_agg_batches[bkey];
+                                      std::printf("[agg-batch] join: round=%llu count->%u\n",
+                                          (unsigned long long)dv.round, b.count + 1);
+                                      if (b.count == 0) b.pre = pre;   // the batch's shared preimage
+                                      msscvote::agg_accumulate(b.av, dv.sigma, Y);
+                                      if (++b.count >= 2) {
+                                          const auto t0 = std::chrono::steady_clock::now();
+                                          const bool ok = msscvote::agg_verify(b.av, b.pre);
+                                          const double ams = std::chrono::duration<double, std::milli>(
+                                              std::chrono::steady_clock::now() - t0).count();
+                                          std::printf("[agg] batch of %u same-pref sigs -> %s | 1 pairing | %.1f ms\n",
+                                              b.count, ok ? "ACCEPT" : "REJECT!!", ams);
+                                          if (ok) ++g_agg_receipts;
+                                          g_agg_batches.erase(bkey);
+                                      } }
                                     break;
                                 }
                             }
