@@ -10,6 +10,8 @@
 | `SETUP.md` | DOCS/INFRA (review) |
 | `LICENSE` | DOCS/INFRA (review) |
 | `CONTRIBUTING.md` | DOCS/INFRA (review) |
+| `hsma_backup.tar.gz` | WAIVED-ARTIFACT (LOCAL-BACKUP artifact (untracked from git; lives on disk only)) |
+| `Whitepaper_HSMA___Core_Ultimate.pdf` | WAIVED-ARTIFACT (RELEASE-ARTIFACT (mirrors docs/whitepaper_v4.pdf + GitHub Release asset)) |
 | `docker-compose.yml` | DOCS/INFRA (review) |
 | `include/hsma/params.hpp` | P1-params <- *_params_gen headers |
 | `include/hsma/fe.hpp` | P1-fields <- field_golden + vesta_field_golden |
@@ -134,6 +136,7 @@
 | `scripts/bridge_final.py` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
 | `scripts/deploy_aws.sh` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
 | `scripts/gen_binding.py` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
+| `scripts/gate_p5.sh` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
 | `scripts/__pycache__/gen_common.cpython-314.pyc` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
 | `scripts/gen/core_legacy.py` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
 | `scripts/gen/legacy_tail.py` | VERIFY-INFRA <- gate.sh + gate_p5.sh |
@@ -222,6 +225,9 @@
 | `docs/twitter_launch_thread.txt` | DOCS/INFRA (review) |
 | `docs/uptime_receipt_22h.txt` | DOCS/INFRA (review) |
 | `docs/tree_snapshot.txt` | DOCS/INFRA (review) |
+| `docs/BINDING_MATRIX.md` | DOCS/INFRA (review) |
+| `docs/PROPERTY_REGISTER.md` | DOCS/INFRA (review) |
+| `docs/CLAIM_REGISTER.md` | DOCS/INFRA (review) |
 | `docs/specs/README.md` | DOCS/INFRA (review) |
 | `docs/refs/ref_curves_g2.rs` | DOCS/INFRA (review) |
 | `docs/refs/ref_curves_g1.rs` | DOCS/INFRA (review) |
@@ -569,10 +575,3 @@
 | `third_party/pairing/x/pairing-0.23.0/rust-toolchain` | WAIVED-ARCHIVE/REFERENCE (never compiled) |
 | `third_party/pairing/x/pairing-0.23.0/.github/workflows/ci.yml` | WAIVED-ARCHIVE/REFERENCE (never compiled) |
 | `third_party/pairing/x/pairing-0.23.0/src/lib.rs` | WAIVED-ARCHIVE/REFERENCE (never compiled) |
-
-## UNBOUND — GATE FAILS UNTIL BOUND OR WAIVED IN LEDGER
-
-| File | ??? |
-|---|---|
-| `hsma_backup.tar.gz` | ??? |
-| `Whitepaper_HSMA___Core_Ultimate.pdf` | ??? |

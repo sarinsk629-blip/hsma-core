@@ -4040,3 +4040,10 @@ Readiness COMPLETE.
 - Definition of complete: 0 unbound files; 9/9 properties PROVEN or WAIVED(reason); every whitepaper claim receipted; 72h multi-node soak clean; one external non-founder gate-green; Core Freeze entry.
 - Doctrine: "no more code" is re-stated honestly as Core Freeze — the architecture is frozen, the map is total, and every post-freeze change is a ledger-gated PR. Software that never changes is dead software; undisclosed work is the only true gap.
 - Law: a phase is not closed by declaration; it is closed by a gate that fails if the closure decays.
+
+## DEC-284 — Binding matrix total; P5-A conformed to the real tree; P5-B discovered pre-built
+- Binding: 567 files bound/waived at first pass; 2 artifacts waived with reasons (backup tarball untracked; whitepaper PDF = release mirror). 0 UNBOUND after waive.
+- Conformance: dkg_vss.hpp written against the REAL API (hsma::threshold namespace, G2Pt/Padd/Pmul, gen(), sha256d->Digest, share_for) — no invented names except the single equality conform point.
+- Discovery: msscvote.hpp already exports agg_accumulate/agg_verify (aggprobe: 1 pairing, ACCEPT + tamper-REJECT) — P5-B reclassified from build to node-loop integration.
+- Discovery: sim_beacon ((epoch,prev)->Digest) remains in force — DKG seed chain conforms to it; no parallel beacon invented.
+- Law: before writing a new header, grep the tree you have, not the tree you remember. The register assumed two builds that were already integrations.

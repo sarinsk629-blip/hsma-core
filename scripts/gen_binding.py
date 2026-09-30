@@ -2,7 +2,11 @@
 """P5-I: file -> pillar -> proof binding. Gate FAILS on any unbound non-waived file."""
 import os, sys
 EXCLUDE_DIRS = {"build", ".git", "generated"}
-WAIVED = {"attic/", "third_party/"}          # archive + reference-oracle classes (never compiled)
+WAIVED = {"attic/", "third_party/"}
+WAIVED_FILES = {
+  "hsma_backup.tar.gz": "LOCAL-BACKUP artifact (untracked from git; lives on disk only)",
+  "Whitepaper_HSMA___Core_Ultimate.pdf": "RELEASE-ARTIFACT (mirrors docs/whitepaper_v4.pdf + GitHub Release asset)",
+}          # archive + reference-oracle classes (never compiled)
 RULES = [  # most-specific prefix first — first hit wins
   ("include/hsma/threshold/beacon", "P2/P3-beacon",  "threshold_golden + test_step35"),
   ("include/hsma/threshold/dkg",    "P2/P3-DKG",     "test_step35 + p42probe"),
@@ -55,6 +59,7 @@ RULES = [  # most-specific prefix first — first hit wins
   ("src/",                          "PROBES",        "per-probe receipts"),
 ]
 def classify(p):
+    if p in WAIVED_FILES: return "WAIVED-ARTIFACT (" + WAIVED_FILES[p] + ")"
     for w in WAIVED:
         if p.startswith(w): return "WAIVED-ARCHIVE/REFERENCE (never compiled)"
     if p.startswith("libhsma_"): return "WAIVED-PLANNED-SPLIT (DEC logged)"
