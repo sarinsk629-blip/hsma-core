@@ -4074,3 +4074,11 @@ Readiness COMPLETE.
 - Mask series complete: member identity (DEF-227), wire scrutiny (DEF-228), decrypt algebra (DEF-234). Each invisible under the degree-0 shortcut; each exposed within minutes of the real construction landing; each fixed by one surgical conform.
 - P5-C capstone spec inherited: replace dealer-decrypt with t-of-2 Lagrange aggregation (D_agg = sum(lambda_j*D_j)) — a live failing-then-passing test now exists as its spec.
 - Law (final form): the degree-0 committee was not a shortcut, it was a debt — and P5-A collected all three debts in one session.
+
+## DEC-286 — THE CROSS-MACHINE SWEEP COMPLETE: every pillar path receipted through every code path
+- Committee: [dkg] 3/3 Feldman-VERIFIED derived independently on ARM64/Clang (Bangladesh) and x86_64/GCC (Virginia) from one commit — beacon-seeded, no trusted dealer, distinct Y_j.
+- MSSC: threshold-share votes VERIFIED transatlantically via the node dial (x3) AND the public tool dial (votecast remote).
+- Mempool: 10 envelopes encrypted in Bangladesh, stored and ordered in Virginia, threshold-decrypted with tag OK — [f(0)]R on both sides, ss_full byte-identical.
+- Defects closed in the arc: DEF-231 (decorative host), DEF-232 (connect_peer latency class), DEF-233 (contract-in-comment overridden), DEF-234 (decrypt share-vs-secret — the last degree-0 mask).
+- Process laws earned: CA-R206 (probe vs process dating), CA-R207-refined (artifact fingerprint = mtime + source commit — a fresh build of stale source is the newest disguise), CA-R210 (defect comments are contracts), regex-tolerant anchors, read-then-patch, three-witness differential.
+- The degree-0 era is over. The committee is real, the masks are lifted, and every receipt that follows rests on verifiable threshold shares.
