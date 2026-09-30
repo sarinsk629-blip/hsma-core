@@ -11,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1131 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1136 ms
 [gossip] epoch header sent to 1 peers
 
 ═══════════════════════════════════════
@@ -28,8 +28,8 @@
 [recv] type=6 size=204
 [recv] type=6 size=204
 [recv] type=6 size=204
-[recv] type=6 size=204
 [peer] new connection (fd=7)
+[recv] type=6 size=204
 [recv] type=7 size=334
 [mempool] envelope 1 stored (ct=18 bytes)
 [thr] own D_j broadcast for envelope 0 (member 2)
@@ -51,6 +51,12 @@
 [recv] type=7 size=334
 [mempool] envelope 7 stored (ct=18 bytes)
 [thr] own D_j broadcast for envelope 6 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 8 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 7 (member 2)
+[recv] type=7 size=334
+[mempool] envelope 9 stored (ct=18 bytes)
+[thr] own D_j broadcast for envelope 8 (member 2)
 [recv] type=6 size=204
 [recv] type=6 size=204
 [recv] type=8 size=228
@@ -68,11 +74,12 @@
 [recv] type=8 size=228
 [thr] 0x08: share from member 1 for envelope 6 (collected 1)
 [recv] type=8 size=228
-[thr] 0x08: share for UNKNOWN envelope
+[thr] 0x08: share from member 1 for envelope 7 (collected 1)
 [recv] type=8 size=228
-[thr] 0x08: share for UNKNOWN envelope
+[thr] 0x08: share from member 1 for envelope 8 (collected 1)
 [recv] type=8 size=228
-[thr] 0x08: share for UNKNOWN envelope
+[thr] 0x08: share from member 1 PARKED (envelope not yet known)
+[recv] type=6 size=204
 [recv] type=6 size=204
 [recv] type=6 size=204
 [recv] type=6 size=204
