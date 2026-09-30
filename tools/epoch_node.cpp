@@ -547,7 +547,7 @@ int main(int argc, char* argv[]) {
                 if (p2p::recv_message(peer_fds[i], msg)) {
                         std::printf("[recv] type=%u size=%zu\n", msg.type, msg.payload.size());
                     if (msg.type == 0x08) {
-                        // P5-C v2: content-addressed DEC_SHARE — {cth 32B, member u32, D_j 192B} = 228B
+                        // P5-C v3: content-addressed + PARKING — {cth 32B, member u32, D_j 192B}
                         if (msg.payload.size() != 228) { std::printf("[thr] 0x08 bad size %zu\n", msg.payload.size()); }
                         else {
                             const std::uint8_t* p = msg.payload.data();
@@ -555,71 +555,29 @@ int main(int argc, char* argv[]) {
                             std::memcpy(cth.data(), p, 32);
                             std::uint64_t mid = (std::uint64_t)p[32] | ((std::uint64_t)p[33]<<8)
                                               | ((std::uint64_t)p[34]<<16) | ((std::uint64_t)p[35]<<24);
-                            std::size_t eix = g_mempool.size();
-                            for (std::size_t q = 0; q < g_mempool.size(); ++q)
-                                if (std::memcmp(g_mempool[q].env.cth, cth.data(), 32) == 0) { eix = q; break; }
-                            if (eix == g_mempool.size()) {
-                                std::printf("[thr] 0x08: share for UNKNOWN envelope\n");
-                            } else {
-                                std::uint64_t xa[6], xb[6], ya[6], yb[6];
-                                for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
-                                    for (int b = 0; b < 8; ++b) {
-                                        xa[i] |= (std::uint64_t)p[36+i*8+b] << (8*b);
-                                        xb[i] |= (std::uint64_t)p[84+i*8+b] << (8*b);
-                                        ya[i] |= (std::uint64_t)p[132+i*8+b] << (8*b);
-                                        yb[i] |= (std::uint64_t)p[180+i*8+b] << (8*b);
-                                    } }
-                                auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
-                                auto& v = g_thr_shares[cth];
-                                bool have = false;
-                                for (const auto& [m0, d0] : v) if (m0 == mid) have = true;
-                                if (!have) { v.push_back({mid, Dj});
+                            std::uint64_t xa[6], xb[6], ya[6], yb[6];
+                            for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
+                                for (int b = 0; b < 8; ++b) {
+                                    xa[i] |= (std::uint64_t)p[36+i*8+b] << (8*b);
+                                    xb[i] |= (std::uint64_t)p[84+i*8+b] << (8*b);
+                                    ya[i] |= (std::uint64_t)p[132+i*8+b] << (8*b);
+                                    yb[i] |= (std::uint64_t)p[180+i*8+b] << (8*b);
+                                } }
+                            auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
+                            auto& v = g_thr_shares[cth];
+                            bool have = false;
+                            for (const auto& [m0, d0] : v) if (m0 == mid) have = true;
+                            if (!have) {
+                                v.push_back({mid, Dj});          // PARKED regardless of mempool state
+                                std::size_t eix = g_mempool.size();
+                                for (std::size_t q = 0; q < g_mempool.size(); ++q)
+                                    if (std::memcmp(g_mempool[q].env.cth, cth.data(), 32) == 0) { eix = q; break; }
+                                if (eix == g_mempool.size())
+                                    std::printf("[thr] 0x08: share from member %llu PARKED (envelope not yet known)\n",
+                                        (unsigned long long)mid);
+                                else
                                     std::printf("[thr] 0x08: share from member %llu for envelope %zu (collected %zu)\n",
-                                        (unsigned long long)mid, eix, v.size()); }
-
-                                // P5-C retrigger (DEF-237): attempt decrypt now — the ORDER-COMMITTED
-                                // loop is one-shot; late shares must self-serve. tech debt: body duplicated.
-                                if (g_order_committed && !g_mempool[eix].decrypted) {
-                                    std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> sh2;
-                                    {   auto& dsb2 = g_dec_shares[eix];
-                                        std::uint64_t da2[6], db2[6], ya2[6], yb2[6];
-                                        for (int i = 0; i < 6; ++i) { da2[i]=0; db2[i]=0; ya2[i]=0; yb2[i]=0;
-                                            for (int b = 0; b < 8; ++b) {
-                                                da2[i] |= (std::uint64_t)dsb2[i*8+b] << (8*b);
-                                                db2[i] |= (std::uint64_t)dsb2[48+i*8+b] << (8*b);
-                                                ya2[i] |= (std::uint64_t)dsb2[96+i*8+b] << (8*b);
-                                                yb2[i] |= (std::uint64_t)dsb2[144+i*8+b] << (8*b);
-                                            } }
-                                        sh2.push_back({g_self_member, threshold::g2::from_affine(da2, db2, ya2, yb2)});
-                                    }
-                                    for (const auto& [m9, d9] : g_thr_shares[g_mempool[eix].key()]) sh2.push_back({m9, d9});
-                                    bool dup9 = false;
-                                    for (std::size_t a = 0; a < sh2.size() && !dup9; ++a)
-                                        for (std::size_t b3 = a+1; b3 < sh2.size(); ++b3)
-                                            if (sh2[a].first == sh2[b3].first) { dup9 = true; break; }
-                                    if (!dup9 && sh2.size() >= 2) {
-                                        threshold::g2::G2Pt Dagg2{};
-                                        if (hsma::threshold::vss::agg_dec_share(Dagg2, sh2)) {
-                                            auto ss2 = m2env::pt_to_bytes(Dagg2);
-                                            auto xe2 = m2env::pt_to_bytes(g_xe);
-                                            std::uint8_t hdr2[56] = {};
-                                            { std::uint8_t snd2[32] = {}; threshold::m2::ser_hdr(hdr2, 7, snd2, (std::uint64_t)eix, 100); }
-                                            std::uint8_t k2[32];
-                                            threshold::m2::kdf(k2, ss2.data(), xe2.data(), hdr2);
-                                            std::vector<std::uint8_t> pl2;
-                                            bool ok2 = threshold::m2::dem_decrypt(pl2, k2, hdr2,
-                                                g_mempool[eix].env.ct.data(), g_mempool[eix].env.ct.size(), g_mempool[eix].env.tag);
-                                            if (ok2) {
-                                                g_mempool[eix].decrypted = true; g_mempool[eix].payload = pl2;
-                                                pl2.push_back('\n');
-                                                std::printf("[decrypt] envelope %zu: \"%s\" (tag OK) [via 0x08 retrigger]\n",
-                                                    eix, std::string(pl2.begin(), pl2.end()-1).c_str());
-                                                std::vector<std::uint8_t> dp(pl2.begin(), pl2.end()-1);
-                                                handle_decree(dp);
-                                            } else std::printf("[decrypt] envelope %zu: TAG FAILED [retrigger]\n", eix);
-                                        }
-                                    }
-                                }
+                                        (unsigned long long)mid, eix, v.size());
                             }
                         }
                     } else if (msg.type == 0x06) {                    } else if (msg.type == 0x06) {
