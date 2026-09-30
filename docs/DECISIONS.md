@@ -4060,3 +4060,7 @@ Readiness COMPLETE.
 - Conformed across all three binaries (node/votecast/envfaucet) via one deal() — derivation-divergence class structurally dead (P3-4 closure).
 - Honest scope: seed publicly recomputable (structure real, confidentiality awaits threshold-beacon-signed seed at P5-C). 224/112 is a config flip post-capstone.
 - Laws: anchors regex-tolerant (two whitespace-drift failures taught it); probe-vs-process dating (CA-R206); degree-0 mask lifted by real construction (DEF-227).
+
+## DEF-229 — GCC misleading-indentation: cross-compiler catch #4; sweep law refined
+- Evidence: consensus.hpp:97 (epoch_ variant) + :101 (round variant, prior run) — AWS GCC -Werror stops the gate; Termux Clang silent. Sibling sweep by broad regex produced 13 hits, 12 false positives (braced/chained/multiline forms GCC never flags).
+- Law (refined): sweep with the defect's exact signature, not a generalization of it — a broad sweep buries the real sibling in noise; the strictest compiler remains the true enumerator of the class.
