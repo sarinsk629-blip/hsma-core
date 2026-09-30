@@ -48,7 +48,7 @@ or
 connect to our AWS node:
 ./build/epoch_node 31234 --seed 3.237.91.235:31233
 
-### then watch the live peers counter: http://3.237.91.235:32233/api
+#### then watch the live peers counter: http://3.237.91.235:32233/api
 No token. No sale. No premine. Economics will be designed with contributors, not for them.
 223 defects owned publicly — every one with evidence, fix, and a generalizable law. Zero hiding.
 If the gate runs GREEN on your machine, star the repo — that is how independent research gets seen.
