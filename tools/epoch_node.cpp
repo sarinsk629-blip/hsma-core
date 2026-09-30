@@ -67,12 +67,18 @@ struct MempoolEntry {
     m2env::Envelope env;
     bool decrypted = false;
     std::vector<std::uint8_t> payload;
+    // P5-C: content key for g_thr_shares — the envelope's own ct_hash
+    std::array<std::uint8_t,32> key() const {
+        std::array<std::uint8_t,32> k{};
+        std::memcpy(k.data(), env.cth, 32);
+        return k;
+    }
 };
 static std::vector<MempoolEntry> g_mempool;
 static std::vector<std::vector<std::uint8_t>> g_dec_shares;  // our shares per envelope
 // P5-C: collected decryption shares per envelope — (member_id, D_j) pairs.
 // Decryption fires when the count of DISTINCT member x's reaches t=2.
-static std::map<std::size_t, std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>>> g_thr_shares;
+static std::map<std::array<std::uint8_t,32>, std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>>> g_thr_shares; // P5-C: content-addressed by H(ct)
 static std::uint8_t g_order_root[32] = {};
 static threshold::g2::G2Pt g_xe;   // the committee's aggregate public key
 static bool g_order_committed = false;
@@ -541,73 +547,82 @@ int main(int argc, char* argv[]) {
                 if (p2p::recv_message(peer_fds[i], msg)) {
                         std::printf("[recv] type=%u size=%zu\n", msg.type, msg.payload.size());
                     if (msg.type == 0x08) {
-                        // P5-C: DEC_SHARE from a peer — {envelope_index u32, member_id u32, D_j 192B}
-                        if (msg.payload.size() != 200) { std::printf("[thr] 0x08 bad size\n"); }
+                        // P5-C v2: content-addressed DEC_SHARE — {cth 32B, member u32, D_j 192B} = 228B
+                        if (msg.payload.size() != 228) { std::printf("[thr] 0x08 bad size %zu\n", msg.payload.size()); }
                         else {
                             const std::uint8_t* p = msg.payload.data();
-                            std::size_t eix = (std::size_t)p[0] | ((std::size_t)p[1]<<8) | ((std::size_t)p[2]<<16) | ((std::size_t)p[3]<<24);
-                            std::uint64_t mid = (std::uint64_t)p[4] | ((std::uint64_t)p[5]<<8) | ((std::uint64_t)p[6]<<16) | ((std::uint64_t)p[7]<<24);
-                            std::uint64_t xa[6], xb[6], ya[6], yb[6];
-                            for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
-                                for (int b = 0; b < 8; ++b) {
-                                    xa[i] |= (std::uint64_t)p[8+i*8+b] << (8*b);
-                                    xb[i] |= (std::uint64_t)p[56+i*8+b] << (8*b);
-                                    ya[i] |= (std::uint64_t)p[104+i*8+b] << (8*b);
-                                    yb[i] |= (std::uint64_t)p[152+i*8+b] << (8*b);
-                                } }
-                            auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
-                            auto& v = g_thr_shares[eix];
-                            bool have = false;
-                            for (const auto& [m0, d0] : v) if (m0 == mid) have = true;
-                            if (!have) { v.push_back({mid, Dj});
-                                std::printf("[thr] 0x08: share from member %llu for envelope %zu (collected %zu)\n",
-                                    (unsigned long long)mid, eix, v.size()); }
-                        // P5-C retrigger (DEF-237): the ORDER-COMMITTED decrypt loop is one-shot;
-                        // a share arriving after commitment must attempt its own decrypt. tech debt:
-                        // body duplicated from the ORDER-COMMITTED loop — extract to fn at P5-C polish.
-                        if (g_order_committed && eix < g_mempool.size() && !g_mempool[eix].decrypted) {
-                            std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> sh2;
-                            {   auto& dsb2 = g_dec_shares[eix];
-                                std::uint64_t da2[6], db2[6], ya2[6], yb2[6];
-                                for (int i = 0; i < 6; ++i) { da2[i]=0; db2[i]=0; ya2[i]=0; yb2[i]=0;
+                            std::array<std::uint8_t,32> cth{};
+                            std::memcpy(cth.data(), p, 32);
+                            std::uint64_t mid = (std::uint64_t)p[32] | ((std::uint64_t)p[33]<<8)
+                                              | ((std::uint64_t)p[34]<<16) | ((std::uint64_t)p[35]<<24);
+                            std::size_t eix = g_mempool.size();
+                            for (std::size_t q = 0; q < g_mempool.size(); ++q)
+                                if (std::memcmp(g_mempool[q].env.cth, cth.data(), 32) == 0) { eix = q; break; }
+                            if (eix == g_mempool.size()) {
+                                std::printf("[thr] 0x08: share for UNKNOWN envelope\n");
+                            } else {
+                                std::uint64_t xa[6], xb[6], ya[6], yb[6];
+                                for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
                                     for (int b = 0; b < 8; ++b) {
-                                        da2[i] |= (std::uint64_t)dsb2[i*8+b] << (8*b);
-                                        db2[i] |= (std::uint64_t)dsb2[48+i*8+b] << (8*b);
-                                        ya2[i] |= (std::uint64_t)dsb2[96+i*8+b] << (8*b);
-                                        yb2[i] |= (std::uint64_t)dsb2[144+i*8+b] << (8*b);
+                                        xa[i] |= (std::uint64_t)p[36+i*8+b] << (8*b);
+                                        xb[i] |= (std::uint64_t)p[84+i*8+b] << (8*b);
+                                        ya[i] |= (std::uint64_t)p[132+i*8+b] << (8*b);
+                                        yb[i] |= (std::uint64_t)p[180+i*8+b] << (8*b);
                                     } }
-                                sh2.push_back({g_self_member, threshold::g2::from_affine(da2, db2, ya2, yb2)});
-                            }
-                            for (const auto& [m9, d9] : g_thr_shares[eix]) sh2.push_back({m9, d9});
-                            bool dup9 = false;
-                            for (std::size_t a = 0; a < sh2.size() && !dup9; ++a)
-                                for (std::size_t b3 = a+1; b3 < sh2.size(); ++b3)
-                                    if (sh2[a].first == sh2[b3].first) { dup9 = true; break; }
-                            if (!dup9 && sh2.size() >= 2) {
-                                threshold::g2::G2Pt Dagg2{};
-                                if (hsma::threshold::vss::agg_dec_share(Dagg2, sh2)) {
-                                    auto ss2 = m2env::pt_to_bytes(Dagg2);
-                                    auto xe2 = m2env::pt_to_bytes(g_xe);
-                                    std::uint8_t hdr2[56] = {};
-                                    { std::uint8_t snd2[32] = {}; threshold::m2::ser_hdr(hdr2, 7, snd2, (std::uint64_t)eix, 100); }
-                                    std::uint8_t k2[32];
-                                    threshold::m2::kdf(k2, ss2.data(), xe2.data(), hdr2);
-                                    std::vector<std::uint8_t> pl2;
-                                    bool ok2 = threshold::m2::dem_decrypt(pl2, k2, hdr2,
-                                        g_mempool[eix].env.ct.data(), g_mempool[eix].env.ct.size(), g_mempool[eix].env.tag);
-                                    if (ok2) {
-                                        g_mempool[eix].decrypted = true; g_mempool[eix].payload = pl2;
-                                        pl2.push_back('\n');
-                                        std::printf("[decrypt] envelope %zu: \"%s\" (tag OK) [via 0x08 retrigger]\n",
-                                            eix, std::string(pl2.begin(), pl2.end()-1).c_str());
-                                        std::vector<std::uint8_t> dp(pl2.begin(), pl2.end()-1);
-                                        handle_decree(dp);
-                                    } else std::printf("[decrypt] envelope %zu: TAG FAILED [retrigger]\n", eix);
+                                auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
+                                auto& v = g_thr_shares[cth];
+                                bool have = false;
+                                for (const auto& [m0, d0] : v) if (m0 == mid) have = true;
+                                if (!have) { v.push_back({mid, Dj});
+                                    std::printf("[thr] 0x08: share from member %llu for envelope %zu (collected %zu)\n",
+                                        (unsigned long long)mid, eix, v.size()); }
+
+                                // P5-C retrigger (DEF-237): attempt decrypt now — the ORDER-COMMITTED
+                                // loop is one-shot; late shares must self-serve. tech debt: body duplicated.
+                                if (g_order_committed && !g_mempool[eix].decrypted) {
+                                    std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> sh2;
+                                    {   auto& dsb2 = g_dec_shares[eix];
+                                        std::uint64_t da2[6], db2[6], ya2[6], yb2[6];
+                                        for (int i = 0; i < 6; ++i) { da2[i]=0; db2[i]=0; ya2[i]=0; yb2[i]=0;
+                                            for (int b = 0; b < 8; ++b) {
+                                                da2[i] |= (std::uint64_t)dsb2[i*8+b] << (8*b);
+                                                db2[i] |= (std::uint64_t)dsb2[48+i*8+b] << (8*b);
+                                                ya2[i] |= (std::uint64_t)dsb2[96+i*8+b] << (8*b);
+                                                yb2[i] |= (std::uint64_t)dsb2[144+i*8+b] << (8*b);
+                                            } }
+                                        sh2.push_back({g_self_member, threshold::g2::from_affine(da2, db2, ya2, yb2)});
+                                    }
+                                    for (const auto& [m9, d9] : g_thr_shares[g_mempool[eix].key()]) sh2.push_back({m9, d9});
+                                    bool dup9 = false;
+                                    for (std::size_t a = 0; a < sh2.size() && !dup9; ++a)
+                                        for (std::size_t b3 = a+1; b3 < sh2.size(); ++b3)
+                                            if (sh2[a].first == sh2[b3].first) { dup9 = true; break; }
+                                    if (!dup9 && sh2.size() >= 2) {
+                                        threshold::g2::G2Pt Dagg2{};
+                                        if (hsma::threshold::vss::agg_dec_share(Dagg2, sh2)) {
+                                            auto ss2 = m2env::pt_to_bytes(Dagg2);
+                                            auto xe2 = m2env::pt_to_bytes(g_xe);
+                                            std::uint8_t hdr2[56] = {};
+                                            { std::uint8_t snd2[32] = {}; threshold::m2::ser_hdr(hdr2, 7, snd2, (std::uint64_t)eix, 100); }
+                                            std::uint8_t k2[32];
+                                            threshold::m2::kdf(k2, ss2.data(), xe2.data(), hdr2);
+                                            std::vector<std::uint8_t> pl2;
+                                            bool ok2 = threshold::m2::dem_decrypt(pl2, k2, hdr2,
+                                                g_mempool[eix].env.ct.data(), g_mempool[eix].env.ct.size(), g_mempool[eix].env.tag);
+                                            if (ok2) {
+                                                g_mempool[eix].decrypted = true; g_mempool[eix].payload = pl2;
+                                                pl2.push_back('\n');
+                                                std::printf("[decrypt] envelope %zu: \"%s\" (tag OK) [via 0x08 retrigger]\n",
+                                                    eix, std::string(pl2.begin(), pl2.end()-1).c_str());
+                                                std::vector<std::uint8_t> dp(pl2.begin(), pl2.end()-1);
+                                                handle_decree(dp);
+                                            } else std::printf("[decrypt] envelope %zu: TAG FAILED [retrigger]\n", eix);
+                                        }
+                                    }
                                 }
                             }
                         }
-                        }
-                    } else if (msg.type == 0x06) {
+                    } else if (msg.type == 0x06) {                    } else if (msg.type == 0x06) {
                         // P3-1b (DEC-271): the MSSC vote wire path
                         auto dv = msscvote::decode_vote(msg);
                         std::printf("[voted] ok=%d epoch=%u round=%llu\n",
@@ -678,13 +693,12 @@ int main(int argc, char* argv[]) {
                             g_mempool.push_back(std::move(entry));
                             std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
                                 g_mempool.size(), de.ct.size());
-                            // P5-C: broadcast our DEC_SHARE (0x08) — {eix u32, member u32, D_j 192B}
+                            // P5-C v2: content-addressed DEC_SHARE — {cth 32B, member u32, D_j 192B} = 228B
                             {   std::size_t eix = g_mempool.size() - 1;
-                                std::vector<std::uint8_t> pl(200, 0);
-                                pl[0] = std::uint8_t(eix); pl[1] = std::uint8_t(eix>>8);
-                                pl[2] = std::uint8_t(eix>>16); pl[3] = std::uint8_t(eix>>24);
-                                pl[4] = std::uint8_t(g_self_member);
-                                std::memcpy(pl.data()+8, g_dec_shares.back().data(), 192);
+                                std::vector<std::uint8_t> pl(228, 0);
+                                std::memcpy(pl.data(), g_mempool[eix].env.cth, 32);
+                                pl[32] = std::uint8_t(g_self_member);
+                                std::memcpy(pl.data()+36, g_dec_shares.back().data(), 192);
                                 for (int fd : peer_fds) {
                                     p2p::Message m08{}; m08.type = 0x08; m08.payload = pl;
                                     p2p::send_message(fd, m08);
@@ -729,7 +743,7 @@ int main(int argc, char* argv[]) {
                                         std::uint64_t da[6], db[6], ya[6], yb[6];
                                         shares.push_back({g_self_member, threshold::g2::from_affine(da, db, ya, yb)});
                                     }
-                                    for (const auto& [mid, Dj] : g_thr_shares[ei])
+                                    for (const auto& [mid, Dj] : g_thr_shares[me.key()])
                                         shares.push_back({mid, Dj});
                                     // distinct-x check
                                     bool dup = false;
