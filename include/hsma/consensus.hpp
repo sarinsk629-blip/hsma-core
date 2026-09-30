@@ -94,11 +94,13 @@ public:
         // ---- seed: exactly 159 bytes, 15-byte tag (CA-112/113) ----
         std::uint8_t seed[159]; std::size_t o = 0;
         std::memcpy(seed + o, "HSM_PEERSEED_v1", 15); o += 15;
-        for (int i = 0; i < 8; ++i) seed[o+i] = std::uint8_t(epoch_ >> (8*i)); o += 8;
+        for (int i = 0; i < 8; ++i) seed[o+i] = std::uint8_t(epoch_ >> (8*i));
+        o += 8;
         sn_.root.to_bytes(seed + o);      o += 32;
         beacon.to_bytes(seed + o);        o += 32;
         cv.conflict.to_bytes(seed + o);   o += 32;
-        for (int i = 0; i < 8; ++i) seed[o+i] = std::uint8_t(round >> (8*i)); o += 8;
+        for (int i = 0; i < 8; ++i) seed[o+i] = std::uint8_t(round >> (8*i));
+        o += 8;
         sn_.ids[sn_.self_row].to_bytes(seed + o); o += 32;
         static_assert(159 == 15+8+32+32+32+8+32);
 
