@@ -45,8 +45,7 @@ static std::vector<std::array<std::uint64_t,4>> digest_chain;
 // P3-1b (DEC-271): the test committee. HONEST SCOPE: the poly is a PUBLIC
 // test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
 static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
-static hsma::threshold::vss::Transcript g_dkg_T{};
-static explorer::NodeState g_ns_shared{}; // P5-D: the ONE status the explorer serves live
+static hsma::threshold::vss::Transcript g_dkg_T{}; // P5-A: file scope — committee init AND member self-proof both read it
 static std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> g_members;
 static msscvote::AggregateVerify g_agg_verify;   // P3-3b: the batch accumulator
 // P5-B (DEC-287): per-(round,preference) same-message vote batches.
@@ -62,21 +61,6 @@ static unsigned g_self_member = 1;
 static threshold::Fr g_own_share;
 static threshold::Fr g_env_secret;   // P4-3b: the poly secret for the envelope decrypt
 static std::chrono::steady_clock::time_point g_last_tick;
-// ---- P5-D (DEF-226 closure): component liveness ----
-static std::atomic<std::uint64_t> g_hb_consensus{0};
-static const std::chrono::steady_clock::time_point g_boot = std::chrono::steady_clock::now();
-static void hb_watchdog() {
-    for (;;) {
-        std::this_thread::sleep_for(std::chrono::seconds(30));
-        const std::uint64_t c0 = g_hb_consensus.load(std::memory_order_relaxed);
-        std::this_thread::sleep_for(std::chrono::seconds(60));
-        if (g_hb_consensus.load(std::memory_order_relaxed) == c0) {
-            std::fprintf(stderr, "[watchdog] consensus heartbeat stalled >60s - _Exit(1), supervisor restarts\n");
-            std::fflush(stderr);
-            std::_Exit(1);
-        }
-    }
-}
 static msscloop::Config g_cfg;
 // P4-3 (DEC-279): the encrypted mempool state
 struct MempoolEntry {
@@ -280,8 +264,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
 }
 
 int main(int argc, char* argv[]) {
-    std::setvbuf(stdout, nullptr, _IONBF, 0);
-    std::thread(hb_watchdog).detach(); // P5-D // [G7] lesson: redirected stdout was fully buffered - logs stayed empty
+    std::setvbuf(stdout, nullptr, _IONBF, 0); // [G7] lesson: redirected stdout was fully buffered - logs stayed empty
     unsigned my_port = p2p::DEFAULT_PORT;
     
     // parse arguments
@@ -490,8 +473,8 @@ int main(int argc, char* argv[]) {
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
     // for simplicity, use a fixed port: 8080
-    std::thread exp_thread([&]() {
-        explorer::run_explorer(my_port + 1000, g_ns_shared);
+    std::thread exp_thread([ns, my_port]() {
+        explorer::run_explorer(my_port + 1000, ns);
     });
     exp_thread.detach();
     
@@ -511,11 +494,6 @@ int main(int argc, char* argv[]) {
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration<double>(now - g_last_tick).count() >= 1.0) {
                 g_last_tick = now;
-                // P5-D: the main-loop pulse — time-based, NOT peer-gated (a solo node is alive).
-                // DEF-244: the peer-gated heartbeat froze on fresh nodes -> watchdog restart loop.
-                g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
-                g_ns_shared.uptime_s = (unsigned long long)std::chrono::duration_cast<std::chrono::seconds>(now - g_boot).count();
-                g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
                 {
                     auto pre = msscvote::vote_preimage(0,
                         consensus::sha256d((const std::uint8_t*)"wr",2),
@@ -538,7 +516,6 @@ int main(int argc, char* argv[]) {
                         g_mssc.rounds,
                         g_mssc.preference == consensus::sha256d((const std::uint8_t*)"decreeA",7) ? "A" : "B",
                         g_mssc.confidence, (int)rr.kind);
-
                 }
             }
         }

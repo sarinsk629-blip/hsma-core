@@ -36,6 +36,8 @@ struct NodeState {
     unsigned pouw_inner{};             // P2-06: the epoch GEMM inner dimension
     std::uint64_t pouw_weight{};       // verified MACs (0 if REJECT/PENDING)
     std::string pouw_verify;           // "ACCEPT" | "REJECT" | "PENDING"
+    unsigned long long uptime_s = 0;   // P5-D: node age in seconds (node-written)
+    unsigned long long hb_consensus = 0; // P5-D: consensus heartbeat counter (node-written)
 };
 
 // build the JSON API response
@@ -57,12 +59,15 @@ inline std::string build_json(const NodeState& ns) noexcept {
         "  \"p2p_port\": %u,\n"
         "  \"pouw_inner\": %u,\n"
         "  \"pouw_weight\": %llu,\n"
-        "  \"pouw_verify\": \"%s\"\n"
+        "  \"pouw_verify\": \"%s\",\n"
+        "  \"uptime_s\": %llu,\n"
+        "  \"hb_consensus\": %llu\n"
         "}",
         ns.version.c_str(), ns.epoch, ns.decree_count, ns.k_entries,
         ns.state_root_hex.c_str(), ns.pi_e_status.c_str(), ns.pi_e_size,
         ns.total_rows, ns.total_vars, ns.peer_count, ns.port,
-        ns.pouw_inner, (unsigned long long)ns.pouw_weight, ns.pouw_verify.c_str());
+        ns.pouw_inner, (unsigned long long)ns.pouw_weight, ns.pouw_verify.c_str(),
+        (unsigned long long)ns.uptime_s, (unsigned long long)ns.hb_consensus);
     return std::string(buf);
 }
 
