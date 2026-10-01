@@ -4128,3 +4128,11 @@ Readiness COMPLETE.
 - Fix: the pulse moved to the 1-second time gate — unconditional, increments every second regardless of peers. The watchdog is now a main-loop watchdog, which is what DEF-226 requires. The MSSC tick printf stays peer-gated (it logs consensus-with-peers, correctly).
 - Law (CA-R223): a liveness signal must be defined on the WATCHDOG'S terms — unconditional over the component it guards — never borrowed from a conditional code path. A heartbeat that can legitimately stop is not a heartbeat; it is a conditional that will eventually kill a healthy node.
 - Chain of catches this defect ran: flatline curl -> wiring audit (all three legs verified clean) -> therefore the SOURCE never fired -> read the gate structure -> peer gate named. The pulse test is now load-bearing in both directions: it proves wiring AND proves signal.
+
+## DEC-291 — P5-D functionally complete: the pulse is public on both continents
+- Receipts: phone solo 11/11 -> 17/17 (DEF-244's solo case proven); AWS fresh-restart 4/4 -> 61/61 climbing. hb == uptime exactly — one tick per second, main loop proven alive at every observation.
+- The stack: heartbeat (unconditional, time-gated) + watchdog (60s stall -> exit) + systemd Restart=always + cron probe + /api liveness fields + fingerprint triple at every deploy. Six mechanisms, one property: the machine cannot be silently dead.
+- DEF-244 closed pre-deployment by the pulse test — the restart-loop landmine never shipped. Chain: flatline -> wiring clean -> source gate -> peer gate named -> time-gate fix -> solo proof.
+- Soak started (docs/soak_72h.txt): +72h, target NRestarts=0, zero watchdog fires, uptime continuity. DEF-226 closes at soak exit.
+- P5-D remainder: soak receipt only. Then P5-E (stake/slash) — the economic layer, per register.
+- The week's totals, for the record: P5-A/B/C/I closed, P5-D functionally complete; DEF-231..244 owned; CA-R205..R223 earned. The testnet survives empty rooms, rejected grants, and tired founders — it pulses, proves, and recovers, unattended.
