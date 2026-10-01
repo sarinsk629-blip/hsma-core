@@ -659,7 +659,14 @@ int main(int argc, char* argv[]) {
                     } else if (msg.type == 0x07) {
                         // P4-3 (DEC-279): the encrypted mempool envelope
                         auto de = m2env::decode_envelope(msg);
-                        if (de.ok) {
+                        // P5-C: envelope dedup by cth — a repeated envelope IS the same
+                        // envelope; re-storing it poisons eix indexing across ceremonies
+                        // (DEF-241: the cross-ceremony poisoning, both nodes 0/0).
+                        bool dup_env = false;
+                        for (const auto& q : g_mempool)
+                            if (std::memcmp(q.env.cth, de.cth, 32) == 0) { dup_env = true; break; }
+                        if (dup_env) std::printf("[mempool] envelope DUPLICATE by cth — skipped\n");
+                        if (de.ok && !dup_env) {
                             MempoolEntry entry;
                             entry.env.R = de.R;
                             entry.env.ct = de.ct;
