@@ -4116,3 +4116,8 @@ Readiness COMPLETE.
 - Fields opened: metastable finality without chains/DAGs; useful-work consensus with mathematical proof (vs vote-verified UPoW); threshold-bound mempools (extendable to auctions/rollup sequencing); the bilingual golden-oracle verification methodology (portable to any cryptographic project).
 - Launch path confirmed (CA-R222 lineage): Satoshi never listed Bitcoin — the community built exchanges (Bitcoin Market, Mar 2010; Mt. Gox, Jul 2010) around software that worked. Path: artifact -> distribution (HN/paper/threads, free) -> participation liquidity (testnet points, bounties) -> fair genesis to contributors -> DEX first, CEX after volume. No pre-sale, no paid listing, no early token.
 - The value thesis: intrinsic (engineering IP) rose with P5-C — threshold decryption as a running fact is the rarest artifact in the public ecosystem. Extrinsic follows the artifact, on the Satoshi clock (BTC: 2008 whitepaper -> 2011 .00 = 28 months of empty rooms).
+
+## CA-R214 (amendment) — the law's author violated it in the same session it was cited
+- Evidence: P5-D patch gate ran 'clang++ ... | tail -4; echo exit=$?' — chained again, exit 0 over the pre-patch rebuild. The tick-assert then saved the source (write-after-assert = zero half-state), making this the FIRST live save by assert-before-write.
+- Clause: assert-before-write is now mandatory ORDER — the guard exists to prevent partial state, and it only works if nothing lands before it. (DEF-240's PARK2 had the order reversed; this patch had it right and still needed the gate fixed.)
+- The gate format is henceforth: compile on its own line, echo on the next, NOTHING between. Any patch block I emit violating this is itself a defect.
