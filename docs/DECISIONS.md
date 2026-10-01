@@ -4103,3 +4103,10 @@ Readiness COMPLETE.
 - DEF-241's dedup proven in the same run: fresh AWS mempool + deterministic duplicates = aligned indexes = 10/10. CA-R220 (idempotent ceremonies) now holds by construction.
 - Register notes: (a) rebroadcast-on-connect — shares are state, not events; (b) 2f962af message overclaim noted under CA-R218; (c) daemon-reload warning on AWS systemd — cosmetic, queued.
 - The mempool no longer trusts any single machine. The committee decrypts together, or not at all — across continents.
+
+## DEC-289 — P5-C CLOSED, FULL SYMMETRY: 10/10 cooperative threshold decrypts on BOTH machines
+- The final receipt: PHONE 10/10 (AWS's 10 rebroadcast shares received on connect + own shares -> threshold -> tag OK x10) AND AWS 10/10 (own + phone's transatlantic shares). DEF-242's rebroadcast-on-connect closed the last asymmetry — ceremonies now converge from any state, no restart choreography, no ordering discipline.
+- The complete P5-C proof stack: (1) math — vcheck5, aggregation == [f(0)]R byte-exact; (2) wire — 0x08 both directions, both protocols; (3) cooperation — every decrypt on both machines used shares from two continents; (4) negative — solo node waits forever; (5) convergence — fresh peer reaches 10/10 via state-sync (rebroadcast), not choreography.
+- The arc, receipted: DEF-234 (share-vs-secret) -> the cooperative decrypt exists; DEF-239 (transport race) -> the state-sync design; DEF-241 (ceremony poisoning) -> dedup; DEF-242 (fresh-peer starvation) -> rebroadcast. Four defects, one property: the mempool trusts no single machine.
+- Laws exercised: CA-R207 (fingerprint triple caught my protocol-split misdiagnosis), CA-R213 (duration before structure — the 1.4s pairing), CA-R216/217 (seam + restore after the cascade), CA-R218 (read the diff), CA-R219 (founder decomposed the analyst's wrong claim), CA-R220 (idempotent ceremonies), CA-R221 (audit what fixes disable).
+- P5-C: CLOSED. The mempool decrypts together, or not at all — across continents.
