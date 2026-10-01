@@ -42,3 +42,4 @@ docs/*.bak.*
 node*.log
 node_asan.log
 *.log
+*.pre_p5d
