@@ -4096,3 +4096,10 @@ Readiness COMPLETE.
 - The day's honest tally: four real defects (231-234), one retracted diagnosis (buffering — disproven by the codebase's own [G7]), one reclassification (236), and four wrong theories killed by evidence in public: buffering, latch, deadlock, corruption. The log told the truth every time; we kept misreading the time.
 - CA-R213 (final form): a "hang" is a claim about DURATION. Measure the operation's cost first; the /proc S-state + cumulative CPU + an isolated timing probe settle it in one command. Structure theories come after timing facts.
 - Optimization deferred, not ignored: 1422 ms aggregate on a phone is fine for the testnet's 1 s round cadence at n=3 but NOT for production n=224 — the final-exponentiation optimization (cyclotomic compressed exp, pairing-product sharing) is registered as P5-B' with vcheck4's 1528 ms as the baseline.
+
+## DEC-288 — P5-C CLOSED: threshold decryption where NO single machine suffices
+- THE RECEIPT: AWS 10/10 cooperative decrypts — every envelope opened by lambda_1*D_1 + lambda_2*D_2 = [f(0)]R, where D_1 was AWS's share and D_2 crossed the Atlantic from the phone. Zero TAG FAILED. The phone side: 2 decrypts (mechanism symmetric-proven), 8 waiting on single-broadcast delivery (rebroadcast-on-connect registered as polish).
+- The four-layer proof stack: (1) vcheck5 — aggregation == [f(0)]R byte-exact; (2) wire — 0x08 both directions; (3) cooperative — AWS 10/10 + phone 2, each decrypt requiring BOTH machines' shares; (4) negative — solo node waits forever.
+- DEF-241's dedup proven in the same run: fresh AWS mempool + deterministic duplicates = aligned indexes = 10/10. CA-R220 (idempotent ceremonies) now holds by construction.
+- Register notes: (a) rebroadcast-on-connect — shares are state, not events; (b) 2f962af message overclaim noted under CA-R218; (c) daemon-reload warning on AWS systemd — cosmetic, queued.
+- The mempool no longer trusts any single machine. The committee decrypts together, or not at all — across continents.
