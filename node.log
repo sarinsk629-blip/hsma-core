@@ -11,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1132 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1134 ms
 [gossip] epoch header sent to 1 peers
 
 ═══════════════════════════════════════
@@ -35,7 +35,7 @@
 [voted] members=3
 [voted] member 1 verify=1
 [agg-batch] join: round=0 count->2
-[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1422.9 ms
+[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1421.7 ms
 [vote] VERIFIED from member 1 (epoch 0, round 0)
 [mssc] round 2: pref=A conf=1 kind=1
 [recv] type=6 size=204
@@ -129,45 +129,45 @@
 [decrypt] envelope 0: TAG FAILED
 [thr] envelope 1: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: fa4190b1c9707a05ae87cbee061192a90269cbbdcf18899d195fcee9a81c9e78d20680110d8bbfe0fb7aecb0b921ee00938e6740533cf464efa0f4464ebaf7c30cc0985ae6af54b33d587dc25df61e810abab9fefdc869cfe4ef24abf7396d01ab1cbce2d0b488005b6b225b67608d68ae79bc3dbd8c3142f502d49b9d80af2a9ed38bdac4fba60bbd982463a07a4c0073152cb57c679dc2b86dcbaccaa11b077ad36e2a3bdd4a55c881b38d8c242512db7017cf1ad6a947082a3e06e5fcec00
+[dbg-node] ss_full: db92bcf5e6a0f666bd699a7ecf20c24854866fb2ac2251ee5f888892eee3ab033216c7b7857d086d2d0fb2e5e3c8db004e86f5901dbe740aec5c59e93c2dbc0f3096826e5a07a2a8b618175bebd0cf7ea938cf22ef194da496b34fdf68a0460002a882decf169d59b374e8e668f9c01e1cc0484c1d67f36d4d485e21bc876fa202bbd0aa2b622be2740d942bb6eddf004e9c702242af301ed071d097954362276e5b39a01e446f058eef73fe1c0cfae89e87f6b56c8b1353c9dbc64b42f25401
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000006400000000000000
-[dbg] D_agg: fa4190b1c9707a05 | hdr: 0700000000000000 | k: f4a29481
+[dbg] D_agg: db92bcf5e6a0f666 | hdr: 0700000000000000 | k: 9b3b95fe
 [decrypt] envelope 1: TAG FAILED
 [thr] envelope 2: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: 5f662f0c0f8be0299941271d236041c9b142008799de763e11a2ca9f2e7e41596ed0a2f9fa5c25d57534f225ecbb240130a065de189d2ae246f348e7bedc182e07c1f54a5dfb21eceb471931fa005d29b9a32aa3ca6a91fd9eaa5de37b17e4005b6c0552a0150d7c4f5d9a2fcb469c2a1708cf4f6ddd5b5f686e4ddba9e1d54c7978ce199aad3b146c4500005b806b00c437cd7002328d3368d01f0e98170a039e34e57faffacf7b57b4e9f5c526b8f4d86e2e274d6f592b605cba3dab17fc00
+[dbg-node] ss_full: a2aa39ab5264f0e8d22175eab21867c769e71645ac27dfa8727a26ffa29c94e0535e6fdcaa69c2a1196c510cae273f0147db54b709278c4080141fd867396c6eaa98107e05259ea1cc39430895b8961264fe0a496264744ee115a1d586e1ca00a3b29a965013df455229d668390a1e725c46a6f7477845d04e2e7698501d3212769010946ae242e72ce93a75d4f00c01cf95b98b11b20d91d54c2fb7fe23541c2e390196d0229dadd9c6381cd28d279561e471365d03fbabcf621b63c8673c01
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000006400000000000000
-[dbg] D_agg: 5f662f0c0f8be029 | hdr: 0700000000000000 | k: 57eaa69f
+[dbg] D_agg: a2aa39ab5264f0e8 | hdr: 0700000000000000 | k: 4051b88f
 [decrypt] envelope 2: TAG FAILED
 [thr] envelope 3: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: 7c265bcc25e9c3650ae8a06b5c1ffc75d7124fd4d32d0d641bba3abd16d32ec4bd54bb8df2f57becbc03c9dd17ff3100e1cca9d3ea50fd8e33c01ee67e45939ef376cf9a58abdb6ed88076af828bbe02906af432a641a7a46311adcf98a35701dc10569edd22dacacef8a9bb3e0d524cc304ca47ab713d62a1acfd1fb679736e7307ce7274d12c9c45406a604d18bd00b603d3a31ccaaee90c935e6235d6404a5b11e808141a8324244f5cd84b0b5a61fcf0054562a5cf09d064595e676bab01
+[dbg-node] ss_full: e02bff20b556f1bb56c7200a72dd30d1216706b0060dc445d92f57a8cf1c33daf540b9cc85cb1689a436601a9a13bf003f6300817e3ef1c8f8899af695bdffc3efd4ae4096b91f912e9b8d48dd05952db260a6dbaebe841d77008e0b52e51d016920b7a4a9f6722857ec7f5273d571716fdf5f476135b374db8d090343b29388e2f7c27db8b9484a80b9c0836f0e6901622727f1daf0c0110f767b398bab0307ce689cad16c821c08a50ebe299a5f6baf8441b7421b1dc26ddc37df423ed0b00
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000006400000000000000
-[dbg] D_agg: 7c265bcc25e9c365 | hdr: 0700000000000000 | k: ea542eaf
+[dbg] D_agg: e02bff20b556f1bb | hdr: 0700000000000000 | k: 241e9fc7
 [decrypt] envelope 3: TAG FAILED
 [thr] envelope 4: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: b335490a1a8388778e1b9b4d95eb2fd72eb7c8d554b1d73acb6c3c5fb88e5151154e13833f3ff064405af0547d132b00910616340fa8f8ec05eacb2ccd53c7b8aff09d767b0e1e2387efc7ffce02ae4481b253d2f226db4b963bc00e4df5d500169c4657c629a794491c4c4f5c6e68bb93e018a9d44adda310fd8515535befe39528dff85fdb7136097ae6198c1888008afa487d3f40c62810434fe041d4159bb74b5b8334b95d820e8af07c205c916297cb6d62fd922483c3a8846b23a06600
+[dbg-node] ss_full: 5f59e99e51cf70af36eaf6d0033d9e58b749c760280e83124bbdb9f7f40464648dbe04d9d619d07dfad72061e3961e0145ad75a496d212a57af1c8751f3c76d1e8901bb243013b35ab15824da9375baafbe39b85049f422460749d433a86190063e5867546aecb22a4c7f25ac60b0a6e449287c851e580f9bde96998680b3be5a9bc70fae2efc519aedcb271a3d7130051c6308a7f34dcc6b1c0f9e0ca3cd179ab817a12555fb75aaebaa39795543e3ee55aa917de915563fd3409f3b00b5400
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000006400000000000000
-[dbg] D_agg: b335490a1a838877 | hdr: 0700000000000000 | k: 6f14ea95
+[dbg] D_agg: 5f59e99e51cf70af | hdr: 0700000000000000 | k: a9d2040f
 [decrypt] envelope 4: TAG FAILED
 [thr] envelope 5: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: 0814ee80cb3403ad32b5a5799403e2499b7c21675a0f58c0f46c6e938e09fd9dde3fc20a95a3679f260b115dcbfdac00f5fb75ae035dd68b02bd751170ddb9400b53ea12a66720f78fdc60a2706b1b0f69957e58d6d3ee91dcfba4631001ae00148aec2371c3582546eb33dda344b519733d714ded2a19d57cded1727f199dfb2d862ec907cb324079552e8e0e9aaa009390e54282a95847598b77062d4f51804354494c882bef20f659e1af4e62e2c2b98e6b94116bff4eeb58c03d98531f00
+[dbg-node] ss_full: 5fa957343c85701931c6035d66c438bf727618216838b08d188268c49f894c564f8b4a3ecc2a7aacd7e43fddab7086003b691eaccd6ba1581edd215e70b92499fb09ec6cdd566c33e89b9c077c2e7d6fad742fdc4f83aeb4798b0ddef997f50016b109b5b927efa83c8b6ea41c14e0a01214ca371e883ac82dfe60ad447cab2853756f1fffb3b62892873f6e3e817a00af95271b2075de6be696be4f98b0a2f46d8a478b72624449372df1b5ee68f95f08be2a8a8d2514522bae4be241042601
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000005000000000000006400000000000000
-[dbg] D_agg: 0814ee80cb3403ad | hdr: 0700000000000000 | k: 4f5c6427
+[dbg] D_agg: 5fa957343c857019 | hdr: 0700000000000000 | k: 437b9883
 [decrypt] envelope 5: TAG FAILED
 [thr] envelope 6: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: fd91a11d3e174c6a06a23b7cab84c53e1cfc6f56c3561126fc1aaf38d30170d01336c05a8e56c1f269ea0cb811ad40015ddf5f715bf6e9640ed4ed5e36dfe68e2422587b91b2145a2ba58acf90cd1da476cd024aefcc2f472c0020f2e38ceb00241d0344537829f108d2141ef801ba5d4f7493e5532d083913b185f7e7f89ab2680b28ddc12efaf475a355ec09137e00f01528502e2c6fb75d79f783dc7f4202d2b16354c902f115b9c2a08aa49dbc18a4a19c6b705166513f04210449517800
+[dbg-node] ss_full: e4d5609ed0b0dd34a2704f66a8a748d8e2b94bb555f3dbd035a5facf6cc04dd93402c167e7efaa7eb300ccbcda7957009205ac0db5c440e94e4cc14b55b7b1539cd1da0d7d56affb3a499c7caf5ae3b3fb82e518792c2408b47144b49c06a3015b59b7198af2215422fb2ba5d6957309e46158f67a4d38a83e34c4638e24e04c44ac232f8c6f8b98ec532a75537f2f000e995378cd80e4c5954e7952248af8badb3a0008f7bc55ea9ac628a8c70ead836c109c15bfa59c7fb3dd2de773c07e00
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000006000000000000006400000000000000
-[dbg] D_agg: fd91a11d3e174c6a | hdr: 0700000000000000 | k: 71a0c6d6
+[dbg] D_agg: e4d5609ed0b0dd34 | hdr: 0700000000000000 | k: 0244a22a
 [decrypt] envelope 6: TAG FAILED
 [thr] envelope 7: threshold met (2 shares, members 2,1)
 [dbg-node] xe: 087494adb4faff42
-[dbg-node] ss_full: b2d124c33ff8887c81487c7c6078ad333372b740fd2df8fd84ecac9e0c1de0a1e78b0e6e8e2048002c4fbbe9b5f20d01563c0485314cf3ff1a4f0970e9edbbe72fcc49884fb40a9731762770476b6101414ff52eea754538a82dc2aece03610024e38e15d90ab41732d0b655c85d6018eef37d555d318384842ecb958df09076ed7ac8a984bb3da0fbcaa429cac2b400354669f41fdc109e8dc51a96f84c89d343a104a5e8299daf883a060b77e5fb7cda2ebbfb012b8e59ddf695b9c23f5901
+[dbg-node] ss_full: 9af1cff90301a8910e6c4afaed51b2083ab12dd38e06dec895e248935314806148ea9ccdf5cf40ca0697c258f8a03800c696936e83b26be69ac1d82d8b11f023704bc7e9f1009a8a5ae1a78bc56ad96b65deef7bca7abe3a40fcb6be697b5901f118e6e4a7308086bca6797213b2f126fd9369c73bbe60040e200fd523bd608a62d0104391eaf92b7f575f202501910110b04e3b6a14287a8a1996460705df4b284da5d50ffaa5c5c96ea082848efd2e4bbc77c8222ff7416321251c9832e100
 [dbg-node] hdr_full: 0700000000000000000000000000000000000000000000000000000000000000000000000000000007000000000000006400000000000000
-[dbg] D_agg: b2d124c33ff8887c | hdr: 0700000000000000 | k: 3706bc16
+[dbg] D_agg: 9af1cff90301a891 | hdr: 0700000000000000 | k: 157d384e
 [decrypt] envelope 7: TAG FAILED
 [thr] envelope 8: 1/2 shares, waiting
 [thr] envelope 9: 1/2 shares, waiting
@@ -249,158 +249,4 @@
 [mssc] round 17: pref=A conf=16 kind=3
 [recv] type=6 size=204
 [voted] ok=1 epoch=0 round=16
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=16 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 16)
-[mssc] round 18: pref=A conf=17 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=17
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=17 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 17)
-[mssc] round 19: pref=A conf=18 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=18
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=18 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 18)
-[mssc] round 20: pref=A conf=19 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=19
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=19 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 19)
-[mssc] round 21: pref=A conf=20 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=20
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=20 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 20)
-[mssc] round 22: pref=A conf=21 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=21
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=21 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 21)
-[mssc] round 23: pref=A conf=22 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=22
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=22 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 22)
-[mssc] round 24: pref=A conf=23 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=23
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=23 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 23)
-[mssc] round 25: pref=A conf=24 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=24
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=24 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 24)
-[mssc] round 26: pref=A conf=25 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=25
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=25 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 25)
-[mssc] round 27: pref=A conf=26 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=26
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=26 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 26)
-[mssc] round 28: pref=A conf=27 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=27
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=27 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 27)
-[mssc] round 29: pref=A conf=28 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=28
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=28 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 28)
-[mssc] round 30: pref=A conf=29 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=29
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=29 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 29)
-[mssc] round 31: pref=A conf=30 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=30
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=30 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 30)
-[mssc] round 32: pref=A conf=31 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=31
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=31 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 31)
-[mssc] round 33: pref=A conf=32 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=32
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=32 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 32)
-[mssc] round 34: pref=A conf=33 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=33
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=33 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 33)
-[mssc] round 35: pref=A conf=34 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=34
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=34 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 34)
-[mssc] round 36: pref=A conf=35 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=35
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=35 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 35)
-[mssc] round 37: pref=A conf=36 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=36
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=36 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 36)
-[mssc] round 38: pref=A conf=37 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=37
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=37 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 37)
-[mssc] round 39: pref=A conf=38 kind=3
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=38
 [voted] members=3

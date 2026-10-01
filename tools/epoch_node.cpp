@@ -532,6 +532,22 @@ int main(int argc, char* argv[]) {
             if (new_fd >= 0) {
                 peer_fds.push_back(new_fd);
                 std::printf("[peer] new connection (fd=%d)\n", new_fd);
+                        // P5-C polish (DEF-242): shares are STATE, not events.
+                        // A newly connected peer must receive every stored decryption
+                        // share — otherwise dedup-silence + one-broadcast starves it
+                        // (the cross-ceremony waiting x10). g_dec_shares aligns 1:1
+                        // with g_mempool (both push together, dedup skips both).
+                        for (std::size_t sx = 0; sx < g_dec_shares.size() && sx < g_mempool.size(); ++sx) {
+                            std::vector<std::uint8_t> pl(200, 0);
+                            pl[0] = std::uint8_t(sx); pl[1] = std::uint8_t(sx>>8);
+                            pl[2] = std::uint8_t(sx>>16); pl[3] = std::uint8_t(sx>>24);
+                            pl[4] = std::uint8_t(g_self_member);
+                            std::memcpy(pl.data()+8, g_dec_shares[sx].data(), 192);
+                            p2p::Message m08{}; m08.type = 0x08; m08.payload = pl;
+                            p2p::send_message(new_fd, m08);
+                        }
+                        if (!g_dec_shares.empty())
+                            std::printf("[thr] rebroadcast %zu stored shares to new peer\n", g_dec_shares.size());
             }
         }
         
