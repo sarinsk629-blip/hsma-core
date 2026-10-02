@@ -475,22 +475,22 @@ int main(int argc, char* argv[]) {
 
     // start the explorer (P2-03)
     explorer::NodeState ns;
-    ns.epoch = current_epoch;
-    ns.decree_count = decree_count;
-    ns.k_entries = K_ENTRIES;
+    g_ns_shared.epoch = current_epoch;
+    g_ns_shared.decree_count = decree_count;
+    g_ns_shared.k_entries = K_ENTRIES;
     {   fp::fe dc = fp::fe_to_canonical(accumulator.z[0]);
         char hex[128]; hex[0] = 0;
         for (int k = 3; k >= 0; --k) { char tmp[20]; snprintf(tmp, sizeof(tmp), "%016llx", (unsigned long long)dc.l[k]); strcat(hex, tmp); }
         ns.state_root_hex = hex; }
-    ns.pi_e_status = ok ? "ACCEPT" : "PENDING";
-    ns.pi_e_size = 1600;
+    g_ns_shared.pi_e_status = ok ? "ACCEPT" : "PENDING";
+    g_ns_shared.pi_e_size = 1600;
     ns.total_rows = (unsigned)A.row.size();
-    ns.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
-    ns.peer_count = peer_fds.size();
-    ns.port = my_port;
-    ns.pouw_inner = pouw_inner;
-    ns.pouw_weight = pouw_weight;
-    ns.pouw_verify = pouw_verify;
+    g_ns_shared.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
+    g_ns_shared.peer_count = peer_fds.size();
+    g_ns_shared.port = my_port;
+    g_ns_shared.pouw_inner = pouw_inner;
+    g_ns_shared.pouw_weight = pouw_weight;
+    g_ns_shared.pouw_verify = pouw_verify;
 
     // P2-08: DEFECT-171 - epoch 0 complete; the node now accepts epoch 1 decrees
     ++current_epoch;
