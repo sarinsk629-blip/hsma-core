@@ -4142,3 +4142,10 @@ Readiness COMPLETE.
 - Root cause: a draft parameter from the header sketch survived into the enforcement code because NOTHING cross-checked parameter scale-consistency. B_min 50,000 and cluster_cap 100 could never coexist sensibly.
 - Law (CA-R225): every parameter must carry a SCALE RELATIONSHIP to at least one other parameter (here: cluster_cap >= B_min, since a single minimum bond must fit under one cluster cap). Golden vectors are the instrument — the mismatch was invisible until the oracle pinned both numbers.
 - The catch chain: V3's earlier failure (B_min vs deposit scale) and V4's failure (cap vs B_min scale) are the SAME class — parameter tables written prose-first, not relation-first.
+
+## DEF-246 — transitive-include luck: std::string used without <string>; CI caught what Termux forgave
+- Evidence: test_step35 compiled clean on Termux/libc++ (transitive include via another header), failed on CI/libstdc++ 14 with 'implicit instantiation of undefined template' — the strictest-toolchain law (DEF-225 lineage) striking through the STANDARD LIBRARY this time, not our code.
+- Root cause: the inline-constants rewrite dropped #include <string> that the original draft had — a patch regression, caught by CI exactly as designed.
+- Fix: explicit <string> + <cstring>; the V1 comparison converted to strcmp (also resolving the -Wstring-compare warning CI raised).
+- Law (CA-R230): every TU declares EVERY std header it names — transitive includes are luck, and luck does not survive a second standard library. The CI gate is the second standard library. Cross-platform conformance = Termux libc++ AND GitHub libstdc++ both green, always.
+- The system note: this is the CI badge doing its exact job — the first CI catch since the badge went live, and it caught a real portability defect in under 8 minutes without human attention.
