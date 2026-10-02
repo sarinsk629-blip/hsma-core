@@ -9,4 +9,5 @@
 | Slashing (100% burn) | PROVEN | whitepaper table; economic layer not coded | test_step35: 100% burn (300,000 units), golden-backed|
 | Anti-Sybil (cluster caps) | PROVEN | specified; not independently enforced | test_step35: cluster floor 53,333 exact, golden-backed|
 | Adversarial Bound f<0.20 | PROVEN | economic parameter; enforced by P5-E stake layer | test_step35: HALT at 20.00%, golden-backed|
+| Activation Certification (1-LSB) | PROVEN | test_step37: 768 entries, exhaustive enumeration, worst err 0 LSB | P5-F phase-1 (LogUp-in-CCS wiring next) |
 | System Soundness A6 | WAIVED | mathematical composition; machine-check deferred | external audit |
