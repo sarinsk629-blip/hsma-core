@@ -4172,3 +4172,10 @@ Readiness COMPLETE.
 - The automaton read gave the containment its shape: FloorAbort guards low-sampled rounds; alpha checks are integer-exact (bp arithmetic); confidence only rises on >= alpha of sampled weight; the heal is just... honest weight returning. No special eclipse code — the properties ARE the design.
 - Register after this flip: 7 of 9 PROVEN. Remaining: Committee Collusion (config flip at production scale) + System Soundness (external audit — the right outsider validation).
 - Law (CA-R227): a containment test against a zero-state victim tests nothing — adversarial-proof tests must construct the victim as the adversary will find it: weighted, connected, mid-opinion.
+
+## DEC-295 — P5-F phase-2 CLOSED: the LogUp argument proven, honest and adversarial
+- Positive: 3 tables x 128 deterministic lookups, distinct alphas — all balance. Multiplicity (same index twice) balances with m=2. The multiset algebra is exact over Mersenne-61.
+- Negative: a lookup value 1 LSB above the table entry UNBALANCES the batch. The argument has teeth — it rejects the exact fabrication it exists to prevent.
+- Field note: Mersenne-61 is the TESTNET proof-prime (cheap Fermat inverses); production binds the same argument to Pallas F_p — the argument is field-agnostic, the CCS integration formalizes the constraint side (phase-3, registered).
+- The AI stack now: L1 GEMM (proven, live) + L2 external submission (proven, live) + L3 activations — tables certified 0-LSB AND lookups provable (tonight). Layer 4 (ModelCommit binding) remains.
+- The negative test is the theorem: an argument that only passes honest provers proves nothing. The forged-lookup unbalance IS the security claim, demonstrated.
