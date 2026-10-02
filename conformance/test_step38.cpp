@@ -1,6 +1,7 @@
 // P5-F phase-2: the LogUp multiset argument — honest lookups balance,
 // forged lookups unbalance, across ALL THREE activation tables.
-#include <hsma/pouw/logup.hpp>
+#include <hsma/pouw/logup.hpp>          // the integer core
+#include <hsma/pouw/logup_ref.hpp>      // the oracle (construction-time floats)
 #include <cstdio>
 using namespace hsma;
 int main(){
@@ -16,7 +17,7 @@ int main(){
             const unsigned idx = (n * 37 + which * 11) % pouw::logup::N_ENTRIES;  // deterministic scatter
             b.add_lookup(idx, tbl[idx]);               // HONEST: the real table value
         }
-        const auto tsum = pouw::logup::table_side_sum(b, [&](unsigned i){ return tbl[i]; });
+        const auto tsum = pouw::logup::table_side_sum(b, [&](unsigned i)->int{ return tbl[i]; });
         C(pouw::logup::balanced(b, tsum), nm);
     }
 

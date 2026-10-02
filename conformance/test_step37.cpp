@@ -1,5 +1,6 @@
 // P5-F conformance: activation tables certified to 1 LSB by exhaustive enumeration.
-#include <hsma/pouw/logup.hpp>
+#include <hsma/pouw/logup.hpp>          // the integer core
+#include <hsma/pouw/logup_ref.hpp>      // the oracle (construction-time floats)
 #include <cstdio>
 using namespace hsma;
 int main(){

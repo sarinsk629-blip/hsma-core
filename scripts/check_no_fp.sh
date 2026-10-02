@@ -5,7 +5,10 @@
 # before matching, so the detector matches FLOAT TOKENS, not claims about them.
 set -uo pipefail
 hits=""
-for f in $(find include libhsma_fp libhsma_numcore -name "*.hpp" -o -name "*.cpp" 2>/dev/null); do
+# CA-R231: construction-time ORACLE files are exempt — floats are the measuring
+# stick (the Python oracle's sibling), never the core. The exemption is HERE, in
+# the script, because header comments are stripped before matching.
+for f in $(find include libhsma_fp libhsma_numcore -name "*.hpp" -o -name "*.cpp" 2>/dev/null | grep -v "logup_ref.hpp"); do
   m=$(sed -e 's|//.*$||' "$f" | grep -nE '#include[[:space:]]*<(cmath|complex|cfloat)>|\b(double|float|long double)\b' | sed "s|^|$f:|")
   if [ -n "$m" ]; then
     hits="$hits
