@@ -266,3 +266,8 @@ add_test(NAME step33_conformance COMMAND test_step33)
 add_executable(test_step34 conformance/test_step34.cpp)
 target_include_directories(test_step34 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step34_conformance COMMAND test_step34)
+
+# ---- P5-E: stake/slash/cluster/adversarial conformance (step35) ----
+add_executable(test_step35 conformance/test_step35.cpp)
+target_include_directories(test_step35 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+add_test(NAME step35_conformance COMMAND test_step35)
