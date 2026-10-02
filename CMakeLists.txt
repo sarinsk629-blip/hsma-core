@@ -286,3 +286,8 @@ add_test(NAME step37_conformance COMMAND test_step37)
 add_executable(test_step38 conformance/test_step38.cpp)
 target_include_directories(test_step38 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step38_conformance COMMAND test_step38)
+
+# ---- P5-G: ModelCommit binding (step39) ----
+add_executable(test_step39 conformance/test_step39.cpp)
+target_include_directories(test_step39 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+add_test(NAME step39_conformance COMMAND test_step39)
