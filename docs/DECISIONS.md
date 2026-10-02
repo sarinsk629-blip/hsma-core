@@ -4193,3 +4193,10 @@ Readiness COMPLETE.
 - Triple-gate seal: Termux/libc++ ALL PASS x2 tests, DEC-090 lint exit 0, CI/libstdc++ 14 green. The oracle/core boundary now holds on every toolchain the project touches.
 - The catch chain worth archiving: CI lint red (first autonomous double-catch: include hygiene + architectural floats) -> split attempt 1 left straddlers -> split attempt 2 duplicated constants -> dedup -> SEALED. Each gate caught what the previous fix broke. The gates are a system, not a checklist.
 - Register: 8/10 PROVEN. AI stack L1-L4 all receipted. Remaining: soak (Oct 4), collusion config-flip, external audit.
+
+## DEC-298 — P5-G CLOSED: ModelCommit binding proven; the AI stack is COMPLETE
+- The last unverified link: "correct computation" per WHOSE model? ModelCommit closes it: C = Com(digest(weights); r) registered once; every workload carries an opening that must recompute C. Binding without disclosure — weights stay proprietary, the commitment does the trusting.
+- The receipt set: digest deterministic AND tamper-sensitive to a single bit; honest workload ADMITTED; three forgery classes REJECTED (wrong weights / wrong opening / unknown model); commitment r-dependent (hiding, structural).
+- The four-layer AI stack, all receipted: L1 GEMM sum-check (proven, live) -> L2 external submission (proven) -> L3 activations (0 LSB + LogUp adversarial) -> L4 model binding (tonight). "Verified AI inference" is now a complete architecture, not a claim.
+- Conform note: Digest opaque-conform (memcpy, per P5-A precedent) and the opens() struct-pass — both named by the compiler before any test ran. The gate order held: syntax -> include -> build -> verdict.
+- Register: ModelCommit row added PROVEN. The AI stack joins the proven wall.
