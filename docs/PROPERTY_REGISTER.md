@@ -6,7 +6,7 @@
 | Component Liveness | WAIVED | DEF-226; external watchdog live; in-node heartbeat pending | P5-D |
 | Committee Collusion cap | WAIVED | testnet=degree-0 honest scope; 224/112 config post-capstone | P5-A/C |
 | Eclipse Divergence (eps=0) | WAIVED | g1net sampler exists; adversarial harness absent | P5-H |
-| Slashing (100% burn) | WAIVED | whitepaper table; economic layer not coded | P5-E |
-| Anti-Sybil (cluster caps) | WAIVED | specified; not independently enforced | P5-E |
-| Adversarial Bound f<0.20 | WAIVED | economic parameter; enforced by P5-E stake layer | P5-E |
+| Slashing (100% burn) | PROVEN | whitepaper table; economic layer not coded | test_step35: 100% burn (300,000 units), golden-backed|
+| Anti-Sybil (cluster caps) | PROVEN | specified; not independently enforced | test_step35: cluster floor 53,333 exact, golden-backed|
+| Adversarial Bound f<0.20 | PROVEN | economic parameter; enforced by P5-E stake layer | test_step35: HALT at 20.00%, golden-backed|
 | System Soundness A6 | WAIVED | mathematical composition; machine-check deferred | external audit |
