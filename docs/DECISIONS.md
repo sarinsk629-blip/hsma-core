@@ -4186,3 +4186,10 @@ Readiness COMPLETE.
 - The four-layer AI stack, all receipted: L1 GEMM sum-check (proven, live) -> L2 external submission (proven) -> L3 activations (0 LSB + LogUp adversarial) -> L4 model binding (tonight). "Verified AI inference" is now a complete architecture, not a claim.
 - Conform note: Digest opaque-conform (memcpy, per P5-A precedent) and the opens() struct-pass — both named by the compiler before any test ran. The gate order held: syntax -> include -> build -> verdict.
 - Register: ModelCommit row added PROVEN. The AI stack joins the proven wall.
+
+## DEC-297 — P5-F FULLY SEALED: the oracle/core boundary is architectural
+- The lint didn't just catch floats — it forced the CORRECT architecture: logup.hpp (integer-only, provable core: tables, LogUp accumulator, field ops) separated from logup_ref.hpp (construction-time oracle: reference functions, certification, all doubles).
+- The exemption is script-level and justified (path grep -v logup_ref), NOT comment-token — because the lint strips comments before matching (CA-R231 confirmed: header-token exemptions are structurally invisible to comment-stripping lints).
+- Triple-gate seal: Termux/libc++ ALL PASS x2 tests, DEC-090 lint exit 0, CI/libstdc++ 14 green. The oracle/core boundary now holds on every toolchain the project touches.
+- The catch chain worth archiving: CI lint red (first autonomous double-catch: include hygiene + architectural floats) -> split attempt 1 left straddlers -> split attempt 2 duplicated constants -> dedup -> SEALED. Each gate caught what the previous fix broke. The gates are a system, not a checklist.
+- Register: 8/10 PROVEN. AI stack L1-L4 all receipted. Remaining: soak (Oct 4), collusion config-flip, external audit.
