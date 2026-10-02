@@ -4136,3 +4136,9 @@ Readiness COMPLETE.
 - Soak started (docs/soak_72h.txt): +72h, target NRestarts=0, zero watchdog fires, uptime continuity. DEF-226 closes at soak exit.
 - P5-D remainder: soak receipt only. Then P5-E (stake/slash) — the economic layer, per register.
 - The week's totals, for the record: P5-A/B/C/I closed, P5-D functionally complete; DEF-231..244 owned; CA-R205..R223 earned. The testnet survives empty rooms, rejected grants, and tired founders — it pulses, proves, and recovers, unattended.
+
+## DEF-245 — cluster_cap default scale-inconsistent: 100 vs B_min 50,000
+- Evidence: V4 failed with tick present, deposits valid, math re-derived correct (80,000 x 100,000 / 150,000 = 53,333) — the only free variable was Params.cluster_cap = 100 (a placeholder default that survived into the enforcement layer). With cap=100: (80000*100)/150000 = 53, off by exactly 1000x.
+- Root cause: a draft parameter from the header sketch survived into the enforcement code because NOTHING cross-checked parameter scale-consistency. B_min 50,000 and cluster_cap 100 could never coexist sensibly.
+- Law (CA-R225): every parameter must carry a SCALE RELATIONSHIP to at least one other parameter (here: cluster_cap >= B_min, since a single minimum bond must fit under one cluster cap). Golden vectors are the instrument — the mismatch was invisible until the oracle pinned both numbers.
+- The catch chain: V3's earlier failure (B_min vs deposit scale) and V4's failure (cap vs B_min scale) are the SAME class — parameter tables written prose-first, not relation-first.
