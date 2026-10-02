@@ -9,7 +9,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1134 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1179 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -21,3 +21,21 @@
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
+[peer] new connection (fd=6)
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=0
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=0 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 0)
+[mssc] round 1: pref=B conf=0 kind=2
+[peer] new connection (fd=7)
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=0
+[voted] members=3
+[voted] member 1 verify=1
+[agg-batch] join: round=0 count->1
+[stake] EQUIVOCATION DETECTED: member 1 round 0 signed two preferences - SLASHING
+[stake] SLASHED member 1: 50000 burned (100 pct, equivocation)
+[vote] VERIFIED from member 1 (epoch 0, round 0)
+[mssc] round 2: pref=B conf=0 kind=2

@@ -15,8 +15,13 @@ using namespace hsma;
 
 int main(int argc, char** argv) {
     const char* host = argc > 1 ? argv[1] : "127.0.0.1";
+    const char* pref_str = "prefA";
     int port = argc > 2 ? atoi(argv[2]) : 31233;
-    bool tamper = argc > 3 && std::strcmp(argv[3], "--tamper") == 0;
+    bool tamper = false;
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--tamper") == 0) tamper = true;
+        if (std::strcmp(argv[i], "--pref") == 0 && i + 1 < argc) pref_str = argv[i + 1];
+    }
     unsigned member = 1;
     for (int i = 1; i < argc; ++i)
         if (std::strcmp(argv[i], "--member") == 0 && i + 1 < argc) member = (unsigned)atoi(argv[i + 1]);
@@ -31,7 +36,7 @@ int main(int argc, char** argv) {
 
     auto wr = consensus::sha256d((const std::uint8_t*)"wr", 2);
     auto cf = consensus::sha256d((const std::uint8_t*)"cf", 2);
-    auto pr = consensus::sha256d((const std::uint8_t*)"prefA", 5);
+    auto pr = consensus::sha256d((const std::uint8_t*)pref_str, std::strlen(pref_str)); // P5-B: selectable pref
     auto pre = msscvote::vote_preimage(0, wr, cf, 0, pr);  // epoch=0 (match the node)
     if (tamper) pre[4] ^= 0xFF;
     auto sig = msscvote::sign_vote(S1, pre);

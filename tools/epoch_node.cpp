@@ -19,6 +19,7 @@
 #include <hsma/threshold/beacon.hpp>
 #include <hsma/threshold/dkg.hpp>
 #include <hsma/threshold/dkg_vss.hpp>
+#include <hsma/econ/stake.hpp>
 #include <map>
 #include <chrono>
 #include <hsma/threshold/dkg.hpp>
@@ -64,6 +65,13 @@ static threshold::Fr g_env_secret;   // P4-3b: the poly secret for the envelope 
 static std::chrono::steady_clock::time_point g_last_tick;
 // ---- P5-D (DEF-226 closure): component liveness ----
 static std::atomic<std::uint64_t> g_hb_consensus{0};
+// ---- P5-E: economic enforcement on the vote path ----
+static econ::Params g_stake_params{};
+static econ::StakeRegistry g_stake_reg(g_stake_params);
+static std::map<std::pair<std::uint64_t, std::uint64_t>, std::string> g_signed_prefs;
+static std::map<std::uint64_t, bool> g_adversarial;
+static bool g_stake_seeded = false;
+
 static const std::chrono::steady_clock::time_point g_boot = std::chrono::steady_clock::now();
 static void hb_watchdog() {
     for (;;) {
@@ -534,6 +542,15 @@ int main(int argc, char* argv[]) {
                     std::vector<consensus::Digest> pp;
                     for (const auto& [id, pref] : g_peer_prefs) pp.push_back(pref);
                     auto rr = msscloop::tick(g_mssc, g_cfg, pp);
+                    // P5-E: adversarial bound at every tally — f >= 20% HALTs
+                    {
+                        std::uint64_t adv_w = 0;
+                        for (const auto& [am, fl] : g_adversarial)
+                            if (fl) adv_w += g_stake_reg.active_weight(am);
+                        if (g_stake_reg.adversarial_check(g_stake_reg.total_active(), adv_w)
+                            == econ::StakeRegistry::AdversarialVerdict::HALT)
+                            std::printf("[stake] ADVERSARIAL HALT - f >= 20 pct\n");
+                    }
                     std::printf("[mssc] round %u: pref=%s conf=%u kind=%d\n",
                         g_mssc.rounds,
                         g_mssc.preference == consensus::sha256d((const std::uint8_t*)"decreeA",7) ? "A" : "B",
@@ -692,6 +709,28 @@ int main(int argc, char* argv[]) {
                         }
                         if (accepted) {
                             g_peer_prefs[member] = dv.preference;
+                            // P5-E: equivocation detection (double-sign -> 100% slash)
+                            {
+                                const std::uint8_t* pb2 = (const std::uint8_t*)&dv.preference;
+                                char hex[65];
+                                for (int qi = 0; qi < 32; ++qi) std::snprintf(hex + qi*2, 3, "%02x", pb2[qi]);
+                                hex[64] = 0;
+                                const auto key = std::make_pair((std::uint64_t)member, (std::uint64_t)dv.round);
+                                auto sit = g_signed_prefs.find(key);
+                                if (sit != g_signed_prefs.end() && sit->second != hex) {
+                                    std::printf("[stake] EQUIVOCATION DETECTED: member %llu round %llu signed two preferences - SLASHING\n",
+                                        (unsigned long long)member, (unsigned long long)dv.round);
+                                    (void)g_stake_reg.slash_equivocation((std::uint64_t)member);
+                                    g_adversarial[(std::uint64_t)member] = true;
+                                } else if (sit == g_signed_prefs.end()) {
+                                    g_signed_prefs[key] = hex;
+                                }
+                                if (!g_stake_seeded) {
+                                    (void)g_stake_reg.deposit((std::uint64_t)member, g_stake_params.min_bond, 0, 0);
+                                    g_stake_reg.tick_epoch(10); g_stake_reg.tick_epoch(11); // E+2 satisfied
+                                    g_stake_seeded = true;
+                                }
+                            }
                             std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
                         } else
                             std::printf("[vote] REJECT (bad signature or unknown member)\n");
