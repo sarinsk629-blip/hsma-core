@@ -481,10 +481,10 @@ int main(int argc, char* argv[]) {
     {   fp::fe dc = fp::fe_to_canonical(accumulator.z[0]);
         char hex[128]; hex[0] = 0;
         for (int k = 3; k >= 0; --k) { char tmp[20]; snprintf(tmp, sizeof(tmp), "%016llx", (unsigned long long)dc.l[k]); strcat(hex, tmp); }
-        ns.state_root_hex = hex; }
+        g_ns_shared.state_root_hex = hex; }   // P5-C: the missed write (DEF-247 final)
     g_ns_shared.pi_e_status = ok ? "ACCEPT" : "PENDING";
     g_ns_shared.pi_e_size = 1600;
-    ns.total_rows = (unsigned)A.row.size();
+    g_ns_shared.total_rows = (unsigned)A.row.size();   // P5-C: the missed write
     g_ns_shared.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
     g_ns_shared.peer_count = peer_fds.size();
     g_ns_shared.port = my_port;
