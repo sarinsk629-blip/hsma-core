@@ -281,3 +281,8 @@ add_test(NAME step36_conformance COMMAND test_step36)
 add_executable(test_step37 conformance/test_step37.cpp)
 target_include_directories(test_step37 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step37_conformance COMMAND test_step37)
+
+# ---- P5-F phase-2: LogUp multiset argument (step38) ----
+add_executable(test_step38 conformance/test_step38.cpp)
+target_include_directories(test_step38 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+add_test(NAME step38_conformance COMMAND test_step38)

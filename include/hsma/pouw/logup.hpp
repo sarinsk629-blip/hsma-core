@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <map>
 #include <vector>
 
 namespace hsma::pouw::logup {
@@ -60,7 +61,6 @@ CertReport certify(const std::vector<int>& table, Fn ref) {
     for (unsigned i = 0; i < N_ENTRIES; ++i) {
         const int expect = to_q7(ref(idx_to_x(i)));
         const int err = table[i] - expect;
-        if (err < 0) err_check: ;
         const int aerr = (err < 0) ? -err : err;
         if (aerr > rep.worst_err) { rep.worst_err = aerr; rep.worst_index = i; }
         if (aerr > 1) { rep.ok = false; }             // THE GATE: 1 LSB
@@ -104,5 +104,62 @@ inline unsigned x_to_idx(double x) {
     return (i >= N_ENTRIES) ? N_ENTRIES - 1 : i;
 }
 inline int lookup(const std::vector<int>& t, double x) { return t[x_to_idx(x)]; }
+
+// ---- P5-F phase-2: the LogUp multiset argument ----
+// Field: 2^61 - 1 (Mersenne-61; testnet proof-prime. Production: Pallas F_p.)
+static constexpr std::uint64_t LP = (1ull << 61) - 1;
+inline std::uint64_t lp_add(std::uint64_t a, std::uint64_t b){ std::uint64_t r = a + b; if (r >= LP) r -= LP; return r; }
+inline std::uint64_t lp_sub(std::uint64_t a, std::uint64_t b){ return lp_add(a, LP - b); }
+inline std::uint64_t lp_mul(std::uint64_t a, std::uint64_t b){
+    __uint128_t r = (__uint128_t)a * b; return (std::uint64_t)(r % LP);
+}
+inline std::uint64_t lp_inv(std::uint64_t a){
+    std::uint64_t r = 1; std::uint64_t e = LP - 2; std::uint64_t base = a % LP;  // Fermat
+    while (e) { if (e & 1) r = lp_mul(r, base); base = lp_mul(base, base); e >>= 1; }
+    return r;
+}
+
+// denominator: (alpha + idx - alpha*val)  — the LogUp log-derivative term shape
+inline std::uint64_t lp_denom(std::uint64_t alpha, std::uint64_t idx, std::uint64_t val) {
+    std::uint64_t t = lp_add(alpha % LP, LP - lp_mul(alpha % LP, val % LP)); // alpha - alpha*val
+    return lp_add(t, idx % LP);                                              // + idx
+}
+
+// The accumulator. Lookups add +1/denom; the table adds -m_i/denom.
+// BALANCED <=> every lookup provably hit a real table row.
+struct LogUpBatch {
+    std::uint64_t alpha = 0;
+    std::uint64_t lookup_sum = 0;
+    std::map<std::uint64_t, std::uint64_t> multiplicity;  // idx -> count
+    unsigned n_lookups = 0;
+
+    explicit LogUpBatch(std::uint64_t alpha_) : alpha(alpha_ ? alpha_ : 7) {}
+
+    void add_lookup(unsigned idx, int val_q7) {
+        const std::uint64_t d = lp_denom(alpha, idx, (std::uint64_t)(val_q7 < 0 ? (std::uint64_t)(-val_q7) : (std::uint64_t)val_q7));
+        lookup_sum = lp_add(lookup_sum, lp_inv(d));
+        multiplicity[idx]++;
+        n_lookups++;
+    }
+};
+
+// Build the table-side sum from a table + the batch's multiplicities.
+template <typename TableFn>   // TableFn: idx -> q7 value (re-derives, doesn't trust)
+std::uint64_t table_side_sum(const LogUpBatch& b, TableFn val_at) {
+    std::uint64_t s = 0;
+    for (const auto& [idx, m] : b.multiplicity) {
+        const int v = val_at((unsigned)idx);
+        const std::uint64_t uv = (std::uint64_t)(v < 0 ? (std::uint64_t)(-v) : (std::uint64_t)v);
+        const std::uint64_t d = lp_denom(b.alpha, idx, uv);
+        s = lp_add(s, lp_mul(m % LP, lp_inv(d)));
+    }
+    return s;
+}
+
+// THE CHECK: balanced iff lookup_sum == table_side_sum. Forged lookups unbalance.
+inline bool balanced(const LogUpBatch& b, std::uint64_t table_sum) {
+    return b.lookup_sum == table_sum;
+}
+
 
 } // namespace hsma::pouw::logup
