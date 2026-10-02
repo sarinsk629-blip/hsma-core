@@ -4179,3 +4179,10 @@ Readiness COMPLETE.
 - Field note: Mersenne-61 is the TESTNET proof-prime (cheap Fermat inverses); production binds the same argument to Pallas F_p — the argument is field-agnostic, the CCS integration formalizes the constraint side (phase-3, registered).
 - The AI stack now: L1 GEMM (proven, live) + L2 external submission (proven, live) + L3 activations — tables certified 0-LSB AND lookups provable (tonight). Layer 4 (ModelCommit binding) remains.
 - The negative test is the theorem: an argument that only passes honest provers proves nothing. The forged-lookup unbalance IS the security claim, demonstrated.
+
+## DEC-296 — P5-G CLOSED: ModelCommit binding proven; the AI stack is COMPLETE
+- The last unverified link: "correct computation" per WHOSE model? ModelCommit closes it: C = Com(digest(weights); r) registered once; every workload carries an opening that must recompute C. Binding without disclosure — weights stay proprietary, the commitment does the trusting.
+- The receipt set: digest deterministic AND tamper-sensitive to a single bit; honest workload ADMITTED; three forgery classes REJECTED (wrong weights / wrong opening / unknown model); commitment r-dependent (hiding, structural).
+- The four-layer AI stack, all receipted: L1 GEMM sum-check (proven, live) -> L2 external submission (proven) -> L3 activations (0 LSB + LogUp adversarial) -> L4 model binding (tonight). "Verified AI inference" is now a complete architecture, not a claim.
+- Conform note: Digest opaque-conform (memcpy, per P5-A precedent) and the opens() struct-pass — both named by the compiler before any test ran. The gate order held: syntax -> include -> build -> verdict.
+- Register: ModelCommit row added PROVEN. The AI stack joins the proven wall.
