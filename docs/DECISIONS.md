@@ -4200,3 +4200,10 @@ Readiness COMPLETE.
 - The four-layer AI stack, all receipted: L1 GEMM sum-check (proven, live) -> L2 external submission (proven) -> L3 activations (0 LSB + LogUp adversarial) -> L4 model binding (tonight). "Verified AI inference" is now a complete architecture, not a claim.
 - Conform note: Digest opaque-conform (memcpy, per P5-A precedent) and the opens() struct-pass — both named by the compiler before any test ran. The gate order held: syntax -> include -> build -> verdict.
 - Register: ModelCommit row added PROVEN. The AI stack joins the proven wall.
+
+## DEF-247 — the orphaned status: DEF-243's fix moved two fields, left ten behind
+- Evidence: AWS /api full read — uptime_s 30 + hb 30 climbing (new machinery perfect) while decree_count 0, pi_e_status "" (EMPTY, not PENDING), pouw_weight 0, p2p_port 0. The status population still wrote the dead local ns; g_ns_shared served two live fields and ten defaults.
+- Root cause: DEF-243's fix scope was "the fields I was adding" instead of "the object the reader holds." The full-surface curl (CA-R228) exposed it in one read; the two-field greps of every prior verification structurally could not.
+- Law (CA-R228): test the WHOLE surface after any refactor of a served object — the new fields prove the new plumbing; only the full read proves the rest of the house didn't go dark.
+- Also noted: AWS uptime was 30s pre-check — confirm NRestarts to distinguish cron-fire from manual; the daemon-reload warning may have left a stale unit until tonight's reload.
+- The save: the heartbeat's public pulse is what made the anomaly VISIBLE as an anomaly — an empty /api on a dead node looks like nothing; an empty /api with a climbing heartbeat is a contradiction that demands explanation.
