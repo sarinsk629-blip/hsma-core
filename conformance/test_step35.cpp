@@ -16,6 +16,8 @@ inline constexpr int UNB_STATES[] = {2,2,4};
 }
 using namespace econ_golden;
 #include <cstdio>
+#include <cstring>
+#include <string>
 using namespace hsma;
 using econ::BondState;
 static const char* BS(BondState s){ switch(s){case BondState::BONDING:return"BONDING";case BondState::ACTIVE:return"ACTIVE";case BondState::UNBONDING:return"UNBONDING";case BondState::SLASHED:return"SLASHED";default:return"WITHDRAWN";} }
@@ -27,7 +29,7 @@ int main(){
     C(R.deposit(1, 50000, 5, 0), "V1 deposit");
     for (int i = 0; i < 3; ++i) { R.tick_epoch(5 + (unsigned)i);
         C(R.primary_state(1) == (econ::BondState)econ_golden::ACTIVATE_E2_STATES[i], "V1 state"); }
-    C(std::string(BS(R.primary_state(1))) == "ACTIVE", "V1 final ACTIVE");
+    C(std::strcmp(BS(R.primary_state(1)), "ACTIVE") == 0, "V1 final ACTIVE");
 
     // V2: B_min
     econ::StakeRegistry R2(P);
