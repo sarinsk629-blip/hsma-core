@@ -4165,3 +4165,10 @@ Readiness COMPLETE.
 - The full P5-E stack, now live: equivocation detection (wire) + 100% slash (ledger) + adversarial flagging (consensus) + f<20% HALT check (every tally) + 7 golden vectors (dual-stdlib). PROPERTY_REGISTER: Slashing PROVEN, Anti-Sybil PROVEN, Adversarial Bound PROVEN.
 - Testnet scaffolding honestly noted: the auto-deposit (B_min bond at first sight) is scaffolding — real bonds bind to the community-designed token. The ENFORCEMENT machinery is the deliverable; the funding source is a parameter.
 - Law (CA-R226): the wire receipt > the test receipt. test_step35 proved the mechanism against golden vectors; tonight proved it against a live Byzantine actor. Both are required — the first without the second is a lab, the second without the first is luck.
+
+## DEC-294 — P5-H CLOSED: eclipse containment proven; the register flips to near-proven
+- The matrix: M5 silence-inert (no input moves nothing), M4 partition-turbulent-but-heals (40-weight adversary feeds B; honest 60-weight majority restores A), M4b sustained-pressure-loses, M1-M3 wire-banked (forged=REJECT, double-sign=100% slash, replay=one-shot).
+- The honest catch en route: the FIRST test draft used a zero-weight victim and failed — a test bug that taught the right lesson: containment is only meaningful against a REAL victim (self_weight 40, honest-majority peers). The fixed test is the stronger proof.
+- The automaton read gave the containment its shape: FloorAbort guards low-sampled rounds; alpha checks are integer-exact (bp arithmetic); confidence only rises on >= alpha of sampled weight; the heal is just... honest weight returning. No special eclipse code — the properties ARE the design.
+- Register after this flip: 7 of 9 PROVEN. Remaining: Committee Collusion (config flip at production scale) + System Soundness (external audit — the right outsider validation).
+- Law (CA-R227): a containment test against a zero-state victim tests nothing — adversarial-proof tests must construct the victim as the adversary will find it: weighted, connected, mid-opinion.
