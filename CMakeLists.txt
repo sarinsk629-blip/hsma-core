@@ -276,3 +276,8 @@ add_test(NAME step35_conformance COMMAND test_step35)
 add_executable(test_step36 conformance/test_step36.cpp)
 target_include_directories(test_step36 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step36_conformance COMMAND test_step36)
+
+# ---- P5-F: activation lookup certification (step37) ----
+add_executable(test_step37 conformance/test_step37.cpp)
+target_include_directories(test_step37 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+add_test(NAME step37_conformance COMMAND test_step37)
