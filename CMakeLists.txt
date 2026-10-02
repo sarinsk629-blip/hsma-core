@@ -271,3 +271,8 @@ add_test(NAME step34_conformance COMMAND test_step34)
 add_executable(test_step35 conformance/test_step35.cpp)
 target_include_directories(test_step35 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step35_conformance COMMAND test_step35)
+
+# ---- P5-H: eclipse containment matrix (step36) ----
+add_executable(test_step36 conformance/test_step36.cpp)
+target_include_directories(test_step36 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+add_test(NAME step36_conformance COMMAND test_step36)
