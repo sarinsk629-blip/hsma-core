@@ -70,7 +70,7 @@ static econ::Params g_stake_params{};
 static econ::StakeRegistry g_stake_reg(g_stake_params);
 static std::map<std::pair<std::uint64_t, std::uint64_t>, std::string> g_signed_prefs;
 static std::map<std::uint64_t, bool> g_adversarial;
-static bool g_stake_seeded = false;
+static std::map<std::uint64_t, bool> g_stake_seeded; // per-member auto-bond (one each)
 
 static const std::chrono::steady_clock::time_point g_boot = std::chrono::steady_clock::now();
 static void hb_watchdog() {
@@ -722,13 +722,27 @@ int main(int argc, char* argv[]) {
                                         (unsigned long long)member, (unsigned long long)dv.round);
                                     (void)g_stake_reg.slash_equivocation((std::uint64_t)member);
                                     g_adversarial[(std::uint64_t)member] = true;
+                                    // P5-E final integration: excise the consensus voice.
+                                    // FloorAbort trap: zeroing peer weight WITHOUT contracting
+                                    // total_weight drops sampled below phi_floor -> node suspension.
+                                    // Correct semantics: the adversary leaves numerator AND denominator.
+                                    const std::uint16_t mport = (member == 1) ? 31233 : 31234;
+                                    for (auto& pr : g_mssc.peers)
+                                        if (pr.port == mport && pr.weight > 0) {
+                                            g_mssc.total_weight -= pr.weight;
+                                            std::printf("[stake] member %llu consensus voice REMOVED: weight %llu -> 0, network total %llu -> %llu\n",
+                                                (unsigned long long)member, (unsigned long long)pr.weight,
+                                                (unsigned long long)(g_mssc.total_weight + pr.weight),
+                                                (unsigned long long)g_mssc.total_weight);
+                                            pr.weight = 0;
+                                        }
                                 } else if (sit == g_signed_prefs.end()) {
                                     g_signed_prefs[key] = hex;
                                 }
-                                if (!g_stake_seeded) {
+                                if (!g_stake_seeded[(std::uint64_t)member]) {
                                     (void)g_stake_reg.deposit((std::uint64_t)member, g_stake_params.min_bond, 0, 0);
                                     g_stake_reg.tick_epoch(10); g_stake_reg.tick_epoch(11); // E+2 satisfied
-                                    g_stake_seeded = true;
+                                    g_stake_seeded[(std::uint64_t)member] = true;
                                 }
                             }
                             std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
