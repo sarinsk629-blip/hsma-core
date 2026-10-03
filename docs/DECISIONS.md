@@ -4236,3 +4236,11 @@ Readiness COMPLETE.
 - The recruitment conversion: "how do I join" now has a file-shaped answer — a member block + a running endpoint. First external claim = first Genesis Infrastructure ledger entry.
 - DEF-247 (scope cascade) closed same-session: file-scope config state, seam-audited, all consumers conformed.
 - Watchdog incident closed: contention-class, NRestarts 0 since, pulse continuous. Soak criterion refined (unexplained restarts only).
+
+## DEC-303 — UPTIME PROOF LIVE: the participation ledger fills on both continents
+- The receipts: phone logged AWS's uptime (member 1, 900s+ accumulating, rounds advancing); AWS logged phone's uptime (member 2, 600s+, rounds advancing). Both sides of the ocean tracking each other's participation — mutual verification.
+- Anti-replay proven: rounds advancing (0 -> 28 -> 58), no replay accepted. The ledger only grows forward.
+- The genesis allocation mechanism is operational: whoever runs a node, their uptime accumulates in signed receipts on the anchor. At genesis, the ledger IS the allocation evidence. No trust in screenshots or self-reports — the protocol measured it.
+- The test cadence (30s) proved the mechanism; production reverts to 300s (5-minute receipts — 576 receipts/day/node = granular uptime evidence).
+- The full participation model: identity = BLS key (not IP), bond = per-member (not per-IP), uptime = signed receipts (not claims), slashing = per-member equivocation (not blanket), cluster caps = weight limits (not identity limits). Every Sybil vector addressed.
+- The system now answers the community's question "how do we distribute rewards fairly" with the same answer Bitcoin gives: the protocol measures, the ledger proves, the community verifies.
