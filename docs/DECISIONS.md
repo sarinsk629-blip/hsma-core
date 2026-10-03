@@ -4215,3 +4215,10 @@ Readiness COMPLETE.
 - The complete economic narrative, one log: VERIFIED (sig valid) -> EQUIVOCATION DETECTED -> SLASHED 50000 -> voice REMOVED 60->0, total 100->40 -> node keeps ticking at 40/40. Cryptography rejects, economics burns, consensus forgets.
 - Production form registered: peer weights DERIVED from the registry each tick (dynamic), not excised per event. The excision is the testnet-honest step; dynamic derivation is the config-flip-era form.
 - Law (CA-R228): closing a loop between two subsystems requires auditing BOTH invariants at the seam — removing weight from one side (sampled) obligates the other (total). A loop closed halfway punishes the victim.
+
+## DEC-300 — THE TRANSATLANTIC SLASH: distributed economic enforcement proven
+- The receipt: member 1 (AWS) equivocated; the votes crossed the ocean from the phone's faucets; AWS detected, burned 50,000 (100%), and excised its OWN consensus voice — the pre-flagged self-excision edge case, executed live. Fingerprint triple verified pre-ceremony (244704 / 8f41e5e / 4284a9d2).
+- The economic layer is now closed at FOUR levels: mechanism (goldens), wire-local (DEC-293), integration (DEC-299), distributed (tonight). A Byzantine validator is punished wherever the proof lands — judgment follows evidence.
+- The design principle proven: detection fires where the evidence lives. The phone witnessing nothing is not a gap — it is correct jurisdiction. A network that punishes where the proof is does not need a global policeman.
+- P5-E: CLOSED at every scale. The register's Slashing row now carries mechanism + wire + integration + distributed evidence.
+- Law (CA-229): distributed enforcement requires only that SOME honest node hold the evidence — punishment is local, the deterrence is global. Every participant now knows: whichever continent sees your double-sign, the burn follows.
