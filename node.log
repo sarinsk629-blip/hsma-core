@@ -1,3 +1,4 @@
+[committee] DEFAULT: n=3 t=2 (testnet fallback)
 [dkg] epoch=0 n=3 t=2 - 3/3 shares Feldman-VERIFIED (beacon-seeded, no trusted dealer)
 [vote] test committee registered: 3 members
 [mssc] member 2: weight 40, initial pref decreeB
@@ -9,7 +10,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1126 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1238 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -25,19 +26,4 @@
 [recv] type=6 size=204
 [voted] ok=1 epoch=0 round=0
 [voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=0 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 1: pref=B conf=0 kind=2
-[peer] new connection (fd=7)
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=3
-[voted] member 1 verify=1
-[agg-batch] join: round=0 count->1
-[stake] EQUIVOCATION DETECTED: member 1 round 0 signed two preferences - SLASHING
-[stake] SLASHED member 1: 50000 burned (100 pct, equivocation)
-[stake] member 1 consensus voice REMOVED: weight 60 -> 0, network total 100 -> 40
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 2: pref=B conf=1 kind=1
-[mssc] round 3: pref=B conf=2 kind=1
+[voted] member 1 verify=0

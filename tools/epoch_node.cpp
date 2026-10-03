@@ -21,6 +21,8 @@
 #include <hsma/threshold/dkg_vss.hpp>
 #include <hsma/econ/stake.hpp>
 #include <map>
+#include <string>
+#include <cstdlib>
 #include <chrono>
 #include <hsma/threshold/dkg.hpp>
 #include <hsma/threshold/g2.hpp>
@@ -73,6 +75,56 @@ static std::map<std::uint64_t, bool> g_adversarial;
 static std::map<std::uint64_t, bool> g_stake_seeded; // per-member auto-bond (one each)
 
 static const std::chrono::steady_clock::time_point g_boot = std::chrono::steady_clock::now();
+
+// ---- P5-E+/Gate-3: committee config loader (minimal TOML subset, zero deps) ----
+struct CfgMember { std::uint64_t id=0, weight=0; std::string endpoint, op; };
+static std::vector<CfgMember> load_committee_config(const char* path, std::uint64_t& t_out) {
+    std::vector<CfgMember> out; t_out = 0;
+    FILE* f = std::fopen(path, "r");
+    if (!f) return out;                       // no file -> caller keeps defaults
+    char line[512];
+    CfgMember cur{}; bool in_member = false;
+    while (std::fgets(line, sizeof line, f)) {
+        std::string L(line);
+        // strip comments + whitespace
+        auto hash = L.find('#'); if (hash != std::string::npos) L = L.substr(0, hash);
+        // trim
+        const auto b = L.find_first_not_of(" \t\r\n");
+        if (b == std::string::npos) continue;
+        L = L.substr(b, L.find_last_not_of(" \t\r\n") + 1);
+        auto kv = [&](const std::string& key)->std::string{
+            auto e = L.find(key + " ="); if (e == std::string::npos || e != 0) return "";
+            auto v = L.substr(e + key.size() + 2);
+            auto q1 = v.find('"');
+            if (q1 != std::string::npos) { auto q2 = v.find('"', q1+1); return v.substr(q1+1, q2-q1-1); }
+            auto h = v.find('#'); if (h != std::string::npos) v = v.substr(0, h);
+            while (!v.empty() && (v.back()==' '||v.back()=='\r')) v.pop_back();
+            return v;
+        };
+        if (L.rfind("[[member]]", 0) == 0) {
+            if (in_member && cur.id) out.push_back(cur);
+            cur = CfgMember{}; in_member = true; continue;
+        }
+        if (L.rfind("threshold_t", 0) == 0) t_out = std::strtoull(kv("threshold_t").c_str(), nullptr, 10);
+        if (!in_member) continue;
+        if (L.rfind("id", 0) == 0)       cur.id = std::strtoull(kv("id").c_str(), nullptr, 10);
+        if (L.rfind("weight", 0) == 0)   cur.weight = std::strtoull(kv("weight").c_str(), nullptr, 10);
+        if (L.rfind("endpoint", 0) == 0) cur.endpoint = kv("endpoint");
+        if (L.rfind("operator", 0) == 0) cur.op = kv("operator");
+    }
+    if (in_member && cur.id) out.push_back(cur);
+    std::fclose(f);
+    return out;
+}
+
+// Gate-3: config state at FILE SCOPE — the committee block and the mssc peers
+// block both read these (block-local versions broke scope: the committee block
+// closes before the peers site — DEF-247).
+static std::vector<CfgMember> g_cfg_members;
+static std::uint64_t g_cfg_t_raw = 0;
+static std::uint64_t g_cfg_n = 3, g_cfg_t_eff = 2;
+static bool g_from_config = false;
+
 static void hb_watchdog() {
     for (;;) {
         std::this_thread::sleep_for(std::chrono::seconds(30));
@@ -307,12 +359,21 @@ int main(int argc, char* argv[]) {
     {   threshold::Fr c1{}, c2{}, c3{};
         if (!threshold::fr_from_u64(c1, 0x11) || !threshold::fr_from_u64(c2, 0x22)
             || !threshold::fr_from_u64(c3, 0x33)) { std::fprintf(stderr, "FATAL: fr init\n"); return 1; }
-        if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/3, /*t=*/2)) { std::fprintf(stderr, "FATAL: dkg deal\n"); return 1; }
+        // ---- Gate-3: committee from config (fallback: hardcoded testnet committee) ----
+    g_cfg_members = load_committee_config("committee.toml", g_cfg_t_raw);
+    g_from_config = g_cfg_members.size() >= 2;
+    g_cfg_n = g_from_config ? g_cfg_members.size() : 3;
+    g_cfg_t_eff = (g_from_config && g_cfg_t_raw) ? g_cfg_t_raw : 2;
+    std::printf("[committee] %s: n=%llu t=%llu (%s)\n",
+        g_from_config ? "FROM CONFIG" : "DEFAULT", (unsigned long long)g_cfg_n,
+        (unsigned long long)g_cfg_t_eff, g_from_config ? "Gate-3 fleet" : "testnet fallback");
+
+if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg_t_eff)) { std::fprintf(stderr, "FATAL: dkg deal\n"); return 1; }
         for (std::uint64_t j = 1; j <= g_dkg_T.n; ++j)
           if (!hsma::threshold::vss::verify_share(g_dkg_T, j, g_dkg_T.Y[j])) { std::fprintf(stderr, "FATAL: Feldman share %llu\n", (unsigned long long)j); return 1; }
         g_test_poly = g_dkg_T.f; // P5-A: the committed polynomial (alias)
         std::printf("[dkg] epoch=0 n=3 t=2 - 3/3 shares Feldman-VERIFIED (beacon-seeded, no trusted dealer)\n");
-        for (std::uint64_t j = 1; j <= 3; ++j) {
+        for (std::uint64_t j = 1; j <= g_cfg_n; ++j) {
             threshold::Fr sj = threshold::dkg::share_for(g_test_poly, j);
             threshold::mont::fe6 k{}; threshold::fr_to_fe6(sj, k);
             g_members.push_back({j, threshold::g2::Pmul(threshold::g2::gen(), k)});
@@ -331,7 +392,26 @@ int main(int argc, char* argv[]) {
         if (g_self_member == 1)
             g_mssc.peers.push_back({0x7F000001, 31234, 40});
         else
-            g_mssc.peers.push_back({0x7F000001, 31233, 60});
+                                        // P5-E+/Gate-3: peers from config when present
+                            if (g_from_config) {
+                                g_mssc.total_weight = 0; g_mssc.peers.clear();
+                                for (const auto& cm : g_cfg_members)
+                                    if (cm.id != g_self_member) {
+                                        // endpoint -> ip/port (first A record)
+                                        std::uint32_t ip = 0; unsigned prt = 31233;
+                                        {   struct in_addr a{}; char ep[128]; std::snprintf(ep, sizeof ep, "%s", cm.endpoint.c_str());
+                                            char* colon = std::strchr(ep, ':'); if (colon) *colon = 0;
+                                            if (inet_pton(AF_INET, ep, &a) == 1) ip = ntohl(a.s_addr);
+                                            if (colon) prt = (unsigned)std::atoi(colon + 1);
+                                        }
+                                        g_mssc.peers.push_back({ip, (std::uint16_t)prt, cm.weight});
+                                        g_mssc.total_weight += cm.weight;
+                                    }
+                                g_mssc.total_weight += g_mssc.self_weight;
+                                std::printf("[committee] peers from config: %zu peers, total %llu\n",
+                                    g_mssc.peers.size(), (unsigned long long)g_mssc.total_weight);
+                            } else
+                            g_mssc.peers.push_back({0x7F000001, 31233, 60});
         g_last_tick = std::chrono::steady_clock::now();
         // P4-3b: X_E = [secret]G2gen (the degree-0 poly's constant term)
         {
