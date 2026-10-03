@@ -4222,3 +4222,10 @@ Readiness COMPLETE.
 - The design principle proven: detection fires where the evidence lives. The phone witnessing nothing is not a gap — it is correct jurisdiction. A network that punishes where the proof is does not need a global policeman.
 - P5-E: CLOSED at every scale. The register's Slashing row now carries mechanism + wire + integration + distributed evidence.
 - Law (CA-229): distributed enforcement requires only that SOME honest node hold the evidence — punishment is local, the deterrence is global. Every participant now knows: whichever continent sees your double-sign, the burn follows.
+
+## DEC-301 — the watchdog's first live catch: a 78-second stall, caught and recovered
+- The timeline: 11:49:59 last tick -> 78s total loop silence (no recv, no tick) -> 11:51:17 watchdog _Exit(1) -> 11:51:22 systemd restart -> clean [dkg] recovery. No OOM. This is DEF-226's machinery working on a real stall for the first time — the 22-hour invisible wedge is now a 78-second visible incident.
+- Cause-class: observer contention, prime suspect the full-journal scan (grep -c watchdog with no --since) run in the window on the same 1-vCPU host the node occupies (node CPU: 42% average — heavy ops are normal). Unproven; logged as contention-class, not confirmed-cause.
+- Soak criterion refined honestly: NRestarts counts UNEXPLAINED restarts. This restart is attributed (contention-class, watcher-observed). If a stall occurs with NO audit commands running — that is a real wedge and becomes the top-priority defect.
+- Law (CA-R232): the observer must not stall the observed. Every journal query carries --since; full-journal scans on the node host are forbidden during soak (run them from the operator's machine over SSH, or accept they may trip the watchdog — and note the trip in the log).
+- Law (CA-R233): a watchdog catch with clean recovery is a SUCCESS receipt, not a soak failure. The soak criterion tracks unexplained restarts; explained-and-recovered incidents are the system demonstrating itself.
