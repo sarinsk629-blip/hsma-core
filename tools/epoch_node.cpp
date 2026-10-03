@@ -626,7 +626,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
                 // Gate-3: uptime proof broadcast — every 300 ticks (5 minutes), if peers exist
                 static std::uint64_t uptime_tick_counter = 0;
-                if (++uptime_tick_counter >= 30 && !peer_fds.empty()) {
+                if (++uptime_tick_counter >= 300 && !peer_fds.empty()) {
                     uptime_tick_counter = 0;
                     std::vector<std::uint8_t> up(28, 0);
                     const std::uint64_t mid = g_self_member;
@@ -748,7 +748,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 g_uptime_ledger[mid] += 300;   // 5-minute granularity
                                 g_receipt_count[mid]++;
                                 g_last_receipt[mid] = rd;
-                                std::printf("[uptime] member %llu: +30s (total %llu s, %llu receipts, round %llu)\n",
+                                std::printf("[uptime] member %llu: +300s (total %llu s, %llu receipts, round %llu)\n",
                                     (unsigned long long)mid, (unsigned long long)g_uptime_ledger[mid],
                                     (unsigned long long)g_receipt_count[mid], (unsigned long long)rd);
                             }
