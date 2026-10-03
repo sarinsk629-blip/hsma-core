@@ -4207,3 +4207,11 @@ Readiness COMPLETE.
 - Law (CA-R228): test the WHOLE surface after any refactor of a served object — the new fields prove the new plumbing; only the full read proves the rest of the house didn't go dark.
 - Also noted: AWS uptime was 30s pre-check — confirm NRestarts to distinguish cron-fire from manual; the daemon-reload warning may have left a stale unit until tonight's reload.
 - The save: the heartbeat's public pulse is what made the anomaly VISIBLE as an anomaly — an empty /api on a dead node looks like nothing; an empty /api with a climbing heartbeat is a contradiction that demands explanation.
+
+## DEC-299 — P5-E final integration: the economic loop closes into consensus
+- The gap the first slash exposed: bond burned, but the slashed member still carried weight 60 in MSSC sampling — betrayal was expensive but not voice-removing. The loop was open.
+- The FloorAbort trap: zeroing peer weight without contracting total_weight drops sampled below phi_floor (40x10000 < 5000x100) -> node suspension. The victim would have been punished for the adversary's excision. Correct semantics: the adversary leaves numerator AND denominator (total 100 -> 40).
+- Also fixed en route: the auto-seed scaffolding deposited only the FIRST member ever (static bool) — per-member map now.
+- The complete economic narrative, one log: VERIFIED (sig valid) -> EQUIVOCATION DETECTED -> SLASHED 50000 -> voice REMOVED 60->0, total 100->40 -> node keeps ticking at 40/40. Cryptography rejects, economics burns, consensus forgets.
+- Production form registered: peer weights DERIVED from the registry each tick (dynamic), not excised per event. The excision is the testnet-honest step; dynamic derivation is the config-flip-era form.
+- Law (CA-R228): closing a loop between two subsystems requires auditing BOTH invariants at the seam — removing weight from one side (sampled) obligates the other (total). A loop closed halfway punishes the victim.
