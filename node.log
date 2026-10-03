@@ -1,6 +1,7 @@
-[committee] DEFAULT: n=3 t=2 (testnet fallback)
+[committee] FROM CONFIG: n=2 t=2 (Gate-3 fleet)
 [dkg] epoch=0 n=3 t=2 - 3/3 shares Feldman-VERIFIED (beacon-seeded, no trusted dealer)
 [vote] test committee registered: 3 members
+[committee] peers from config: 1 peers, total 100
 [mssc] member 2: weight 40, initial pref decreeB
 ═══════════════════════════════════════
   HSMA EPOCH NODE — P2-02
@@ -10,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1238 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1236 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -25,5 +26,5 @@
 [peer] new connection (fd=6)
 [recv] type=6 size=204
 [voted] ok=1 epoch=0 round=0
-[voted] members=3
+[voted] members=2
 [voted] member 1 verify=0

@@ -1,0 +1,14 @@
+network = "hsma-testnet"
+threshold_t = 2
+
+[[member]]
+id = 1
+endpoint = "3.237.91.235:31233"
+weight = 60
+operator = "hsma-founder"
+
+[[member]]
+id = 2
+endpoint = "YOUR.PUBLIC.IP:31234"
+weight = 40
+operator = "OPEN"
