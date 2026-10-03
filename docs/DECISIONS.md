@@ -4229,3 +4229,10 @@ Readiness COMPLETE.
 - Soak criterion refined honestly: NRestarts counts UNEXPLAINED restarts. This restart is attributed (contention-class, watcher-observed). If a stall occurs with NO audit commands running — that is a real wedge and becomes the top-priority defect.
 - Law (CA-R232): the observer must not stall the observed. Every journal query carries --since; full-journal scans on the node host are forbidden during soak (run them from the operator's machine over SSH, or accept they may trip the watchdog — and note the trip in the log).
 - Law (CA-R233): a watchdog catch with clean recovery is a SUCCESS receipt, not a soak failure. The soak criterion tracks unexplained restarts; explained-and-recovered incidents are the system demonstrating itself.
+
+## DEC-302 — Gate 3 mechanically live: the fleet is a file
+- committee.toml + zero-dependency loader shipped; committee size, threshold, member endpoints, weights, and operator handles now load from config; hardcoded committee demoted to fallback (verified live: DEFAULT path taken without file, correct DKG + votes).
+- AWS synced (250688 / 0f4c05e / 069907a7); file placed; WorkingDirectory check queued as the final arming step.
+- The recruitment conversion: "how do I join" now has a file-shaped answer — a member block + a running endpoint. First external claim = first Genesis Infrastructure ledger entry.
+- DEF-247 (scope cascade) closed same-session: file-scope config state, seam-audited, all consumers conformed.
+- Watchdog incident closed: contention-class, NRestarts 0 since, pulse continuous. Soak criterion refined (unexplained restarts only).
