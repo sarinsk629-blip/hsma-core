@@ -574,7 +574,6 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     g_ns_shared.pi_e_size = 1600;
     g_ns_shared.total_rows = (unsigned)A.row.size();   // P5-C: the missed write
     g_ns_shared.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
-    g_ns_shared.peer_count = peer_fds.size();
     g_ns_shared.port = my_port;
     g_ns_shared.pouw_inner = pouw_inner;
     g_ns_shared.pouw_weight = pouw_weight;
@@ -630,8 +629,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 }
                 // P5-D: the main-loop pulse — time-based, NOT peer-gated (a solo node is alive).
                 // DEF-244: the peer-gated heartbeat froze on fresh nodes -> watchdog restart loop.
-                g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
-                g_ns_shared.uptime_s = (unsigned long long)std::chrono::duration_cast<std::chrono::seconds>(now - g_boot).count();
+
                 g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
                 {
                     auto pre = msscvote::vote_preimage(0,

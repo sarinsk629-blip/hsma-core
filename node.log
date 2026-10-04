@@ -13,7 +13,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1129 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1189 ms
 [gossip] epoch header sent to 1 peers
 
 ═══════════════════════════════════════
@@ -26,35 +26,71 @@
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
 [recv] type=10 size=28
-[uptime] member 1: +300s (total 300 s, 1 receipts, round 559)
+[uptime] member 1: +300s (total 300 s, 1 receipts, round 0)
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=559
+[voted] ok=1 epoch=0 round=0
 [voted] members=2
 [voted] member 1 verify=1
-[agg-batch] join: round=559 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 559)
+[agg-batch] join: round=0 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 0)
 [mssc] round 1: pref=B conf=1 kind=1
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=560
+[voted] ok=1 epoch=0 round=0
 [voted] members=2
 [voted] member 1 verify=1
-[agg-batch] join: round=560 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 560)
+[agg-batch] join: round=0 count->2
+[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1489.5 ms
+[vote] VERIFIED from member 1 (epoch 0, round 0)
 [mssc] round 2: pref=B conf=2 kind=1
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=561
+[voted] ok=1 epoch=0 round=1
 [voted] members=2
 [voted] member 1 verify=1
-[agg-batch] join: round=561 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 561)
+[agg-batch] join: round=1 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 1)
 [mssc] round 3: pref=B conf=3 kind=1
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=562
+[voted] ok=1 epoch=0 round=2
 [voted] members=2
 [voted] member 1 verify=1
-[agg-batch] join: round=562 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 562)
+[agg-batch] join: round=2 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 2)
 [mssc] round 4: pref=B conf=4 kind=1
 [recv] type=6 size=204
-[voted] ok=1 epoch=0 round=563
+[voted] ok=1 epoch=0 round=3
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=3 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 3)
+[mssc] round 5: pref=B conf=5 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=4
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=4 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 4)
+[mssc] round 6: pref=B conf=6 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=5
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=5 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 5)
+[mssc] round 7: pref=B conf=7 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=6
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=6 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 6)
+[mssc] round 8: pref=B conf=8 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=7
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=7 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 7)
+[mssc] round 9: pref=B conf=9 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=8
 [voted] members=2
