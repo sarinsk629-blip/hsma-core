@@ -179,6 +179,10 @@ inline void run_explorer(unsigned port, const NodeState& ns) noexcept {
         struct sockaddr_in client{};
         socklen_t clen = sizeof(client);
         int cfd = accept(fd, (struct sockaddr*)&client, &clen);
+        // P5-D: read timeout — a client that connects but never sends
+        // a complete request must not freeze the explorer thread forever
+        struct timeval rcv_tv{.tv_sec = 5, .tv_usec = 0};
+        setsockopt(cfd, SOL_SOCKET, SO_RCVTIMEO, &rcv_tv, sizeof(rcv_tv));
         if (cfd < 0) continue;
         serve_request(cfd, ns);
         close(cfd);
