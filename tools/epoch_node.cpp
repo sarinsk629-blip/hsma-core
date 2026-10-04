@@ -86,7 +86,8 @@ static std::map<std::uint64_t, std::uint64_t> g_last_receipt;    // member -> la
 // ---- Gate-3: peer discovery (fleet self-organization) ----
 struct DiscPeer { std::uint32_t ip; std::uint16_t port; };
 static std::vector<DiscPeer> g_discovered;
-static std::uint32_t g_my_public_ip = 0;  // set via --public-ip or committee.toml
+static std::uint32_t g_my_public_ip = 0;
+static std::vector<msscloop::NodeState::Peer> g_seed_addrs; // for auto-reconnect  // set via --public-ip or committee.toml
 static std::map<std::uint64_t, bool> g_stake_seeded; // per-member auto-bond (one each)
 
 static const std::chrono::steady_clock::time_point g_boot = std::chrono::steady_clock::now();
@@ -473,6 +474,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             }
             if (ip && port) {
                 seed_peers.push_back({ip, (std::uint16_t)port});
+                g_seed_addrs.push_back({ip, (std::uint16_t)port});
                 std::printf("[seed] %u.%u.%u.%u:%u\n",
                     (ip >> 24) & 0xFF, (ip >> 16) & 0xFF,
                     (ip >> 8) & 0xFF, ip & 0xFF, port);
@@ -607,6 +609,25 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             if (std::chrono::duration<double>(now - g_last_tick).count() >= 1.0) {
                 g_last_tick = now;
                 g_ns_shared.peer_count = peer_fds.size(); // P5-D: live fleet size
+                // Gate-3: auto-reconnect — if we have no peers but have a seed
+                // address, reconnect every 30 seconds. The fleet self-heals.
+                static unsigned reconnect_timer = 0;
+                if (peer_fds.empty() && !g_seed_addrs.empty()) {
+                    if (++reconnect_timer >= 30) {
+                        reconnect_timer = 0;
+                        std::printf("[reconnect] no peers — attempting reconnect to seed...\n");
+                        for (const auto& sa : g_seed_addrs) {
+                            int fd = p2p::connect_peer(sa.ip, sa.port);
+                            if (fd >= 0) {
+                                peer_fds.push_back(fd);
+                                g_mssc.peers.push_back({sa.ip, sa.port, 30});
+                                g_mssc.total_weight += 30;
+                                std::printf("[reconnect] SUCCESS — reconnected to seed\n");
+                                break;
+                            }
+                        }
+                    }
+                }
                 // P5-D: the main-loop pulse — time-based, NOT peer-gated (a solo node is alive).
                 // DEF-244: the peer-gated heartbeat froze on fresh nodes -> watchdog restart loop.
                 g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
