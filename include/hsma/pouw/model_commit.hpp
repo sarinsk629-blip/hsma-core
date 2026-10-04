@@ -26,7 +26,7 @@ inline std::uint64_t weight_digest(const std::uint8_t* weights, std::size_t n) {
     std::uint64_t h = 0;
     // hash-in-blocks of 32, folding via sha256d, domain-separated per block index
     for (std::size_t off = 0; off < n; off += 32) {
-        std::uint8_t buf[40];
+        std::uint8_t buf[50];   // 18 header + 32 max data = 50 (DEF-248: was 40, overflow)
         for (int i = 0; i < 10; ++i) buf[i] = "HSM_MDL_v1"[i] == 0 ? 0 : (std::uint8_t)"HSM_MDL_v1"[i];
         std::memcpy(buf, "HSM_MDL_v1", 10);
         const std::uint64_t blk = (std::uint64_t)(off / 32);
