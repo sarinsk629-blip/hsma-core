@@ -607,6 +607,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration<double>(now - g_last_tick).count() >= 1.0) {
                 g_last_tick = now;
+                g_ns_shared.peer_count = peer_fds.size(); // P5-D: live fleet size
                 // P5-D: the main-loop pulse — time-based, NOT peer-gated (a solo node is alive).
                 // DEF-244: the peer-gated heartbeat froze on fresh nodes -> watchdog restart loop.
                 g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
