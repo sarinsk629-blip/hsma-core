@@ -123,7 +123,9 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
 // serve one HTTP request (blocking)
 inline void serve_request(int fd, const NodeState& ns) noexcept {
     char req[4096] = {};
-    recv(fd, req, sizeof(req) - 1, 0);
+    ssize_t rlen = recv(fd, req, sizeof(req) - 1, 0);
+    if (rlen <= 0) { close(fd); return; }   // recv failed or connection closed
+    req[rlen] = '\0';   // null-terminate at the actual read length
     
     std::string path;
     {   // extract the path from "GET /path HTTP/1.1"
