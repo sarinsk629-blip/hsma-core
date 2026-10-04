@@ -4288,3 +4288,9 @@ Readiness COMPLETE.
 - The founder correctly stated: token creation and economics are deferred (remaining tasks: audit, production soak, P5-F/G phase-3). But the ENFORCEMENT of the commitment starts now — the registry is public, append-only, and the principle is ledgered.
 - Law (CA-R241): genesis recognition is EARNED by verifiable contribution, not claimed by registration. The evidence chain (gate output + node log + anchor confirmation + defect reports) is the currency. A name without a receipt is a claim; a name with receipts is a right.
 - The 21 other Discord members who haven't run the gate: the door is open. The registry has space. The mechanism is the same three commands. The question is whether they'll run it before the seats fill.
+
+## DEF-250 — double heartbeat + stale peer_count: the pulse was lying in two ways
+- Evidence: hb_consensus = 2x uptime_s (double fetch_add from P5-D + DEF-244 both adding to the time gate); peers = 0 while a peer was connected (stale peer_count write at the epoch-completion site overwriting the pulse-gate value).
+- Fix: removed the duplicate heartbeat (keep one at the time gate); removed the stale peer_count write from the epoch-completion path (the pulse gate is the ONLY writer).
+- Law (CA-R247): every shared-state field has exactly ONE writer site. Two writers = race or overwrite. The writer must be at the site with the freshest data, at the highest frequency, unconditionally. One field, one writer, one frequency.
+- The /api is now a truthful dashboard: uptime climbs, heartbeat = uptime, peers = live connection count. Anyone can curl it and see the truth.
