@@ -291,3 +291,14 @@ add_test(NAME step38_conformance COMMAND test_step38)
 add_executable(test_step39 conformance/test_step39.cpp)
 target_include_directories(test_step39 PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
 add_test(NAME step39_conformance COMMAND test_step39)
+
+# ---- P5-D+/Gate-3: the shipped binaries (epoch_node + tools) ----
+add_executable(epoch_node tools/epoch_node.cpp)
+target_include_directories(epoch_node PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+target_link_libraries(epoch_node PRIVATE pthread)
+
+add_executable(votecast tools/votecast.cpp)
+target_include_directories(votecast PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+
+add_executable(envfaucet tools/envfaucet.cpp)
+target_include_directories(envfaucet PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
