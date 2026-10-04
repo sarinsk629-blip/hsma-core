@@ -37,7 +37,9 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 </div>
 
 ### 📲 Connect to the public seed node (running 24/7 on AWS us-east-1):
+
  git clone https://github.com/sarinsk629-blip/hsma-core.git
+ 
     cd hsma-core
     
     cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
