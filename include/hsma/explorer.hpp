@@ -22,6 +22,7 @@ namespace hsma::explorer {
 
 // the epoch node's state (filled by the caller)
 struct NodeState {
+    std::uint64_t explorer_hb = 0;   // P5-D: explorer heartbeat
     unsigned epoch{};
     unsigned decree_count{};
     unsigned k_entries{};

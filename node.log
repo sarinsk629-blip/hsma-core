@@ -13,7 +13,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1191 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1158 ms
 [gossip] epoch header sent to 1 peers
 
 ═══════════════════════════════════════
@@ -37,7 +37,7 @@
 [voted] members=2
 [voted] member 1 verify=1
 [agg-batch] join: round=0 count->2
-[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1492.0 ms
+[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1507.0 ms
 [vote] VERIFIED from member 1 (epoch 0, round 0)
 [mssc] round 2: pref=B conf=2 kind=1
 [recv] type=6 size=204
@@ -49,4 +49,1806 @@
 [mssc] round 3: pref=B conf=3 kind=1
 [recv] type=6 size=204
 [voted] ok=1 epoch=0 round=2
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=2 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 2)
+[mssc] round 4: pref=B conf=4 kind=1
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=3
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=3 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 3)
+[mssc] round 5: pref=B conf=5 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=4
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=4 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 4)
+[mssc] round 6: pref=B conf=6 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=5
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=5 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 5)
+[mssc] round 7: pref=B conf=7 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=6
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=6 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 6)
+[mssc] round 8: pref=B conf=8 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=7
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=7 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 7)
+[mssc] round 9: pref=B conf=9 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=8
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=8 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 8)
+[mssc] round 10: pref=B conf=10 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=9
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=9 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 9)
+[mssc] round 11: pref=B conf=11 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=10
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=10 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 10)
+[mssc] round 12: pref=B conf=12 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=11
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=11 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 11)
+[mssc] round 13: pref=B conf=13 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=12
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=12 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 12)
+[mssc] round 14: pref=B conf=14 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=13
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=13 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 13)
+[mssc] round 15: pref=B conf=15 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=14
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=14 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 14)
+[mssc] round 16: pref=B conf=16 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=15
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=15 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 15)
+[mssc] round 17: pref=B conf=17 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=16
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=16 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 16)
+[mssc] round 18: pref=B conf=18 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=17
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=17 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 17)
+[mssc] round 19: pref=B conf=19 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=18
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=18 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 18)
+[mssc] round 20: pref=B conf=20 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=19
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=19 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 19)
+[mssc] round 21: pref=B conf=21 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=20
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=20 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 20)
+[mssc] round 22: pref=B conf=22 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=21
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=21 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 21)
+[mssc] round 23: pref=B conf=23 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=22
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=22 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 22)
+[mssc] round 24: pref=B conf=24 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=23
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=23 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 23)
+[mssc] round 25: pref=B conf=25 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=24
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=24 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 24)
+[mssc] round 26: pref=B conf=26 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=25
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=25 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 25)
+[mssc] round 27: pref=B conf=27 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=26
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=26 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 26)
+[mssc] round 28: pref=B conf=28 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=27
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=27 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 27)
+[mssc] round 29: pref=B conf=29 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=28
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=28 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 28)
+[mssc] round 30: pref=B conf=30 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=29
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=29 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 29)
+[mssc] round 31: pref=B conf=31 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=30
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=30 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 30)
+[mssc] round 32: pref=B conf=32 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=31
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=31 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 31)
+[mssc] round 33: pref=B conf=33 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=32
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=32 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 32)
+[mssc] round 34: pref=B conf=34 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=33
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=33 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 33)
+[mssc] round 35: pref=B conf=35 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=34
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=34 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 34)
+[mssc] round 36: pref=B conf=36 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=35
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=35 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 35)
+[mssc] round 37: pref=B conf=37 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=36
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=36 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 36)
+[mssc] round 38: pref=B conf=38 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=37
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=37 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 37)
+[mssc] round 39: pref=B conf=39 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=38
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=38 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 38)
+[mssc] round 40: pref=B conf=40 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=39
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=39 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 39)
+[mssc] round 41: pref=B conf=41 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=40
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=40 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 40)
+[mssc] round 42: pref=B conf=42 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=41
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=41 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 41)
+[mssc] round 43: pref=B conf=43 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=42
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=42 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 42)
+[mssc] round 44: pref=B conf=44 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=43
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=43 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 43)
+[mssc] round 45: pref=B conf=45 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=44
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=44 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 44)
+[mssc] round 46: pref=B conf=46 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=45
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=45 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 45)
+[mssc] round 47: pref=B conf=47 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=46
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=46 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 46)
+[mssc] round 48: pref=B conf=48 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=47
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=47 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 47)
+[mssc] round 49: pref=B conf=49 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=48
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=48 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 48)
+[mssc] round 50: pref=B conf=50 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=49
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=49 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 49)
+[mssc] round 51: pref=B conf=51 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=50
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=50 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 50)
+[mssc] round 52: pref=B conf=52 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=51
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=51 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 51)
+[mssc] round 53: pref=B conf=53 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=52
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=52 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 52)
+[mssc] round 54: pref=B conf=54 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=53
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=53 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 53)
+[mssc] round 55: pref=B conf=55 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=54
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=54 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 54)
+[mssc] round 56: pref=B conf=56 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=55
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=55 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 55)
+[mssc] round 57: pref=B conf=57 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=56
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=56 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 56)
+[mssc] round 58: pref=B conf=58 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=57
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=57 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 57)
+[mssc] round 59: pref=B conf=59 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=58
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=58 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 58)
+[mssc] round 60: pref=B conf=60 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=59
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=59 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 59)
+[mssc] round 61: pref=B conf=61 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=60
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=60 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 60)
+[mssc] round 62: pref=B conf=62 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=61
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=61 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 61)
+[mssc] round 63: pref=B conf=63 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=62
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=62 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 62)
+[mssc] round 64: pref=B conf=64 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=63
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=63 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 63)
+[mssc] round 65: pref=B conf=65 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=64
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=64 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 64)
+[mssc] round 66: pref=B conf=66 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=65
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=65 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 65)
+[mssc] round 67: pref=B conf=67 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=66
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=66 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 66)
+[mssc] round 68: pref=B conf=68 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=67
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=67 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 67)
+[mssc] round 69: pref=B conf=69 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=68
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=68 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 68)
+[mssc] round 70: pref=B conf=70 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=69
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=69 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 69)
+[mssc] round 71: pref=B conf=71 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=70
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=70 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 70)
+[mssc] round 72: pref=B conf=72 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=71
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=71 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 71)
+[mssc] round 73: pref=B conf=73 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=72
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=72 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 72)
+[mssc] round 74: pref=B conf=74 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=73
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=73 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 73)
+[mssc] round 75: pref=B conf=75 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=74
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=74 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 74)
+[mssc] round 76: pref=B conf=76 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=75
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=75 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 75)
+[mssc] round 77: pref=B conf=77 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=76
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=76 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 76)
+[mssc] round 78: pref=B conf=78 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=77
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=77 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 77)
+[mssc] round 79: pref=B conf=79 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=78
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=78 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 78)
+[mssc] round 80: pref=B conf=80 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=79
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=79 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 79)
+[mssc] round 81: pref=B conf=81 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=80
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=80 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 80)
+[mssc] round 82: pref=B conf=82 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=81
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=81 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 81)
+[mssc] round 83: pref=B conf=83 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=82
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=82 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 82)
+[mssc] round 84: pref=B conf=84 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=83
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=83 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 83)
+[mssc] round 85: pref=B conf=85 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=84
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=84 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 84)
+[mssc] round 86: pref=B conf=86 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=85
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=85 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 85)
+[mssc] round 87: pref=B conf=87 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=86
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=86 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 86)
+[mssc] round 88: pref=B conf=88 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=87
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=87 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 87)
+[mssc] round 89: pref=B conf=89 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=88
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=88 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 88)
+[mssc] round 90: pref=B conf=90 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=89
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=89 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 89)
+[mssc] round 91: pref=B conf=91 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=90
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=90 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 90)
+[mssc] round 92: pref=B conf=92 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=91
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=91 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 91)
+[mssc] round 93: pref=B conf=93 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=92
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=92 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 92)
+[mssc] round 94: pref=B conf=94 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=93
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=93 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 93)
+[mssc] round 95: pref=B conf=95 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=94
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=94 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 94)
+[mssc] round 96: pref=B conf=96 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=95
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=95 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 95)
+[mssc] round 97: pref=B conf=97 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=96
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=96 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 96)
+[mssc] round 98: pref=B conf=98 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=97
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=97 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 97)
+[mssc] round 99: pref=B conf=99 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=98
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=98 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 98)
+[mssc] round 100: pref=B conf=100 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=99
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=99 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 99)
+[mssc] round 101: pref=B conf=101 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=100
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=100 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 100)
+[mssc] round 102: pref=B conf=102 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=101
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=101 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 101)
+[mssc] round 103: pref=B conf=103 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=102
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=102 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 102)
+[mssc] round 104: pref=B conf=104 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=103
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=103 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 103)
+[mssc] round 105: pref=B conf=105 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=104
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=104 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 104)
+[mssc] round 106: pref=B conf=106 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=105
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=105 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 105)
+[mssc] round 107: pref=B conf=107 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=106
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=106 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 106)
+[mssc] round 108: pref=B conf=108 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=107
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=107 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 107)
+[mssc] round 109: pref=B conf=109 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=108
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=108 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 108)
+[mssc] round 110: pref=B conf=110 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=109
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=109 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 109)
+[mssc] round 111: pref=B conf=111 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=110
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=110 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 110)
+[mssc] round 112: pref=B conf=112 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=111
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=111 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 111)
+[mssc] round 113: pref=B conf=113 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=112
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=112 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 112)
+[mssc] round 114: pref=B conf=114 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=113
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=113 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 113)
+[mssc] round 115: pref=B conf=115 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=114
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=114 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 114)
+[mssc] round 116: pref=B conf=116 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=115
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=115 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 115)
+[mssc] round 117: pref=B conf=117 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=116
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=116 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 116)
+[mssc] round 118: pref=B conf=118 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=117
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=117 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 117)
+[mssc] round 119: pref=B conf=119 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=118
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=118 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 118)
+[mssc] round 120: pref=B conf=120 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=119
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=119 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 119)
+[mssc] round 121: pref=B conf=121 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=120
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=120 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 120)
+[mssc] round 122: pref=B conf=122 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=121
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=121 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 121)
+[mssc] round 123: pref=B conf=123 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=122
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=122 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 122)
+[mssc] round 124: pref=B conf=124 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=123
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=123 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 123)
+[mssc] round 125: pref=B conf=125 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=124
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=124 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 124)
+[mssc] round 126: pref=B conf=126 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=125
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=125 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 125)
+[mssc] round 127: pref=B conf=127 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=126
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=126 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 126)
+[mssc] round 128: pref=B conf=128 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=127
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=127 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 127)
+[mssc] round 129: pref=B conf=129 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=128
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=128 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 128)
+[mssc] round 130: pref=B conf=130 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=129
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=129 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 129)
+[mssc] round 131: pref=B conf=131 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=130
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=130 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 130)
+[mssc] round 132: pref=B conf=132 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=131
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=131 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 131)
+[mssc] round 133: pref=B conf=133 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=132
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=132 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 132)
+[mssc] round 134: pref=B conf=134 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=133
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=133 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 133)
+[mssc] round 135: pref=B conf=135 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=134
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=134 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 134)
+[mssc] round 136: pref=B conf=136 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=135
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=135 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 135)
+[mssc] round 137: pref=B conf=137 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=136
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=136 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 136)
+[mssc] round 138: pref=B conf=138 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=137
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=137 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 137)
+[mssc] round 139: pref=B conf=139 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=138
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=138 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 138)
+[mssc] round 140: pref=B conf=140 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=139
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=139 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 139)
+[mssc] round 141: pref=B conf=141 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=140
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=140 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 140)
+[mssc] round 142: pref=B conf=142 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=141
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=141 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 141)
+[mssc] round 143: pref=B conf=143 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=142
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=142 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 142)
+[mssc] round 144: pref=B conf=144 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=143
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=143 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 143)
+[mssc] round 145: pref=B conf=145 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=144
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=144 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 144)
+[mssc] round 146: pref=B conf=146 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=145
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=145 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 145)
+[mssc] round 147: pref=B conf=147 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=146
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=146 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 146)
+[mssc] round 148: pref=B conf=148 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=147
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=147 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 147)
+[mssc] round 149: pref=B conf=149 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=148
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=148 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 148)
+[mssc] round 150: pref=B conf=150 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=149
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=149 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 149)
+[mssc] round 151: pref=B conf=151 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=150
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=150 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 150)
+[mssc] round 152: pref=B conf=152 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=151
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=151 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 151)
+[mssc] round 153: pref=B conf=153 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=152
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=152 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 152)
+[mssc] round 154: pref=B conf=154 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=153
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=153 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 153)
+[mssc] round 155: pref=B conf=155 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=154
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=154 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 154)
+[mssc] round 156: pref=B conf=156 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=155
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=155 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 155)
+[mssc] round 157: pref=B conf=157 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=156
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=156 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 156)
+[mssc] round 158: pref=B conf=158 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=157
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=157 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 157)
+[mssc] round 159: pref=B conf=159 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=158
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=158 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 158)
+[mssc] round 160: pref=B conf=160 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=159
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=159 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 159)
+[mssc] round 161: pref=B conf=161 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=160
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=160 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 160)
+[mssc] round 162: pref=B conf=162 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=161
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=161 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 161)
+[mssc] round 163: pref=B conf=163 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=162
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=162 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 162)
+[mssc] round 164: pref=B conf=164 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=163
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=163 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 163)
+[mssc] round 165: pref=B conf=165 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=164
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=164 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 164)
+[mssc] round 166: pref=B conf=166 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=165
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=165 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 165)
+[mssc] round 167: pref=B conf=167 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=166
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=166 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 166)
+[mssc] round 168: pref=B conf=168 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=167
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=167 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 167)
+[mssc] round 169: pref=B conf=169 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=168
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=168 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 168)
+[mssc] round 170: pref=B conf=170 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=169
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=169 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 169)
+[mssc] round 171: pref=B conf=171 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=170
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=170 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 170)
+[mssc] round 172: pref=B conf=172 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=171
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=171 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 171)
+[mssc] round 173: pref=B conf=173 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=172
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=172 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 172)
+[mssc] round 174: pref=B conf=174 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=173
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=173 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 173)
+[mssc] round 175: pref=B conf=175 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=174
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=174 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 174)
+[mssc] round 176: pref=B conf=176 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=175
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=175 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 175)
+[mssc] round 177: pref=B conf=177 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=176
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=176 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 176)
+[mssc] round 178: pref=B conf=178 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=177
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=177 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 177)
+[mssc] round 179: pref=B conf=179 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=178
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=178 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 178)
+[mssc] round 180: pref=B conf=180 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=179
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=179 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 179)
+[mssc] round 181: pref=B conf=181 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=180
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=180 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 180)
+[mssc] round 182: pref=B conf=182 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=181
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=181 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 181)
+[mssc] round 183: pref=B conf=183 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=182
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=182 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 182)
+[mssc] round 184: pref=B conf=184 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=183
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=183 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 183)
+[mssc] round 185: pref=B conf=185 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=184
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=184 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 184)
+[mssc] round 186: pref=B conf=186 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=185
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=185 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 185)
+[mssc] round 187: pref=B conf=187 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=186
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=186 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 186)
+[mssc] round 188: pref=B conf=188 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=187
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=187 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 187)
+[mssc] round 189: pref=B conf=189 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=188
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=188 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 188)
+[mssc] round 190: pref=B conf=190 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=189
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=189 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 189)
+[mssc] round 191: pref=B conf=191 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=190
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=190 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 190)
+[mssc] round 192: pref=B conf=192 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=191
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=191 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 191)
+[mssc] round 193: pref=B conf=193 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=192
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=192 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 192)
+[mssc] round 194: pref=B conf=194 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=193
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=193 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 193)
+[mssc] round 195: pref=B conf=195 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=194
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=194 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 194)
+[mssc] round 196: pref=B conf=196 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=195
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=195 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 195)
+[mssc] round 197: pref=B conf=197 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=196
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=196 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 196)
+[mssc] round 198: pref=B conf=198 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=197
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=197 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 197)
+[mssc] round 199: pref=B conf=199 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=198
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=198 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 198)
+[mssc] round 200: pref=B conf=200 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=199
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=199 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 199)
+[mssc] round 201: pref=B conf=201 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=200
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=200 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 200)
+[mssc] round 202: pref=B conf=202 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=201
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=201 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 201)
+[mssc] round 203: pref=B conf=203 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=202
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=202 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 202)
+[mssc] round 204: pref=B conf=204 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=203
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=203 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 203)
+[mssc] round 205: pref=B conf=205 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=204
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=204 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 204)
+[mssc] round 206: pref=B conf=206 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=205
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=205 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 205)
+[mssc] round 207: pref=B conf=207 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=206
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=206 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 206)
+[mssc] round 208: pref=B conf=208 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=207
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=207 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 207)
+[mssc] round 209: pref=B conf=209 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=208
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=208 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 208)
+[mssc] round 210: pref=B conf=210 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=209
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=209 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 209)
+[mssc] round 211: pref=B conf=211 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=210
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=210 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 210)
+[mssc] round 212: pref=B conf=212 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=211
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=211 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 211)
+[mssc] round 213: pref=B conf=213 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=212
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=212 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 212)
+[mssc] round 214: pref=B conf=214 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=213
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=213 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 213)
+[mssc] round 215: pref=B conf=215 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=214
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=214 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 214)
+[mssc] round 216: pref=B conf=216 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=215
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=215 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 215)
+[mssc] round 217: pref=B conf=217 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=216
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=216 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 216)
+[mssc] round 218: pref=B conf=218 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=217
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=217 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 217)
+[mssc] round 219: pref=B conf=219 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=218
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=218 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 218)
+[mssc] round 220: pref=B conf=220 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=219
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=219 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 219)
+[mssc] round 221: pref=B conf=221 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=220
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=220 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 220)
+[mssc] round 222: pref=B conf=222 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=221
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=221 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 221)
+[mssc] round 223: pref=B conf=223 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=222
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=222 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 222)
+[mssc] round 224: pref=B conf=224 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=223
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=223 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 223)
+[mssc] round 225: pref=B conf=225 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=224
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=224 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 224)
+[mssc] round 226: pref=B conf=226 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=225
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=225 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 225)
+[mssc] round 227: pref=B conf=227 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=226
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=226 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 226)
+[mssc] round 228: pref=B conf=228 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=227
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=227 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 227)
+[mssc] round 229: pref=B conf=229 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=228
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=228 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 228)
+[mssc] round 230: pref=B conf=230 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=229
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=229 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 229)
+[mssc] round 231: pref=B conf=231 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=230
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=230 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 230)
+[mssc] round 232: pref=B conf=232 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=231
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=231 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 231)
+[mssc] round 233: pref=B conf=233 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=232
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=232 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 232)
+[mssc] round 234: pref=B conf=234 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=233
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=233 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 233)
+[mssc] round 235: pref=B conf=235 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=234
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=234 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 234)
+[mssc] round 236: pref=B conf=236 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=235
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=235 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 235)
+[mssc] round 237: pref=B conf=237 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=236
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=236 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 236)
+[mssc] round 238: pref=B conf=238 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=237
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=237 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 237)
+[mssc] round 239: pref=B conf=239 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=238
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=238 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 238)
+[mssc] round 240: pref=B conf=240 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=239
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=239 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 239)
+[mssc] round 241: pref=B conf=241 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=240
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=240 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 240)
+[mssc] round 242: pref=B conf=242 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=241
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=241 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 241)
+[mssc] round 243: pref=B conf=243 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=242
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=242 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 242)
+[mssc] round 244: pref=B conf=244 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=243
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=243 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 243)
+[mssc] round 245: pref=B conf=245 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=244
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=244 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 244)
+[mssc] round 246: pref=B conf=246 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=245
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=245 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 245)
+[mssc] round 247: pref=B conf=247 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=246
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=246 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 246)
+[mssc] round 248: pref=B conf=248 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=247
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=247 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 247)
+[mssc] round 249: pref=B conf=249 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=248
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=248 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 248)
+[mssc] round 250: pref=B conf=250 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=249
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=249 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 249)
+[mssc] round 251: pref=B conf=251 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=250
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=250 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 250)
+[mssc] round 252: pref=B conf=252 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=251
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=251 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 251)
+[mssc] round 253: pref=B conf=253 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=252
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=252 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 252)
+[mssc] round 254: pref=B conf=254 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=253
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=253 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 253)
+[mssc] round 255: pref=B conf=255 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=254
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=254 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 254)
+[mssc] round 256: pref=B conf=256 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=255
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=255 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 255)
+[mssc] round 257: pref=B conf=257 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=256
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=256 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 256)
+[mssc] round 258: pref=B conf=258 kind=3
+[mssc] round 259: pref=B conf=259 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=257
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=257 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 257)
+[mssc] round 260: pref=B conf=260 kind=3
+[mssc] round 261: pref=B conf=261 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=258
+[voted] members=2
+[voted] member 1 verify=1
+[agg-batch] join: round=258 count->1
+[vote] VERIFIED from member 1 (epoch 0, round 258)
+[mssc] round 262: pref=B conf=262 kind=3
+[mssc] round 263: pref=B conf=263 kind=3
+[recv] type=6 size=204
+[voted] ok=1 epoch=0 round=259
 [voted] members=2

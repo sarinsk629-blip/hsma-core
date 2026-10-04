@@ -146,7 +146,18 @@ static void hb_watchdog() {
         std::this_thread::sleep_for(std::chrono::seconds(30));
         const std::uint64_t c0 = g_hb_consensus.load(std::memory_order_relaxed);
         std::this_thread::sleep_for(std::chrono::seconds(60));
-        if (g_hb_consensus.load(std::memory_order_relaxed) == c0) {
+        // P5-D+: also check the explorer's liveness
+        if (g_ns_shared.explorer_hb > 0) {
+            static std::uint64_t last_expl_hb = 0;
+            if (g_ns_shared.explorer_hb == last_expl_hb) {
+                // explorer hasn't served any request in 90+ seconds
+                // (it should serve at least the cron's 1-min probe)
+                std::fprintf(stderr, "[watchdog] explorer stalled — _Exit(1)\n");
+                std::_Exit(1);
+            }
+            last_expl_hb = g_ns_shared.explorer_hb;
+        }
+                if (g_hb_consensus.load(std::memory_order_relaxed) == c0) {
             std::fprintf(stderr, "[watchdog] consensus heartbeat stalled >60s - _Exit(1), supervisor restarts\n");
             std::fflush(stderr);
             std::_Exit(1);
