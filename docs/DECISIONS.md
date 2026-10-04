@@ -4265,3 +4265,11 @@ Readiness COMPLETE.
 - Genesis Infrastructure: Mitarasi is the first external entry. His uptime is accumulating on the anchor's ledger. His genesis allocation starts NOW.
 - CA-R238 in action: his gate found DEF-247/248, he fixed them, he ran the node, the node works on his hardware. The open-source verification loop completed its first full cycle: clone → build → gate → fail → fix → green → run → join.
 - The performance curve (GEMM 64³ self-verify): AWS 600ms | Mitarasi desktop 274ms | Phone ARM64 1131ms. Three datapoints, three architectures — the determinism holds across all of them.
+
+## DEC-305 — GATE-3 v2 COMPLETE: the fleet self-organizes
+- The receipt: AWS anchor-only TOML (n=1) -> phone connects via --seed -> AWS prints "peer JOINED: fd=6 weight=30, fleet total=130". Dynamic peer management: join on connect, remove on disconnect, excise on slash. The TOML defines only the anchor's self-identity.
+- The architecture the founder designed is now the architecture that runs: no TOML for fleet members, no static IPs, no config files, no port forwarding. One command to join: ./build/epoch_node 31234 --seed <anchor>.
+- The trigger for this redesign: the founder's criticism — "why public IPs when they change every reconnect?" and "users will struggle with the TOML file." Both correct. Both fixed.
+- The peer-discovery system (0x09) + dynamic MSSC peers + uptime ledger (0x0A) together form the network's self-organization layer: the fleet knows who's present, who's participating, and who's betraying — all without configuration.
+- The remaining production items: (1) real weights from bonds (not default 30), (2) BLS-signed uptime receipts, (3) the 224/112 production config flip. All registered, none blocking the testnet's friction-free joining.
+- Law (CA-241): the network's membership should never be a configuration file — it should be the live set of connected, participating, non-slashed nodes. TOML is for the anchor; the fleet is for the protocol.
