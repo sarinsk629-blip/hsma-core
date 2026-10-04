@@ -4258,3 +4258,10 @@ Readiness COMPLETE.
 - Fix: buf[50]. The digest changes (different bytes read) — the test still passes because both commit and open use the same (now-correct) digest.
 - Law (CA-R239): FORTIFY_SOURCE is a free auditor that catches stack overflows your development environment silently tolerates. When a community member reports 'buffer overflow detected' — believe them immediately, it's a real overflow, not a false positive.
 - The external-catch chain: DEF-247 (compound literal) + DEF-248 (buffer overflow) — two portability/correctness defects found by the first external contributor in their first build. The open-source verification loop is working.
+
+## DEC-304 — THE FIRST EXTERNAL NODE: Mitarasi joined the fleet
+- The receipts from HIS log (his hardware, his build): [peer] connected to seed; [pouw] GEMM self-verify ACCEPT 262144 MACs (274 ms — his CPU joins the performance curve); [pi_E] wrap_verify ACCEPT; [explorer] on 32234; [recv] type=10 (uptime proof from the anchor); [recv] type=6 (BLS votes from the anchor); [voted] member 1 verify=1 (he verifies AWS's votes); [agg-batch] join (his aggregate-verify path is live).
+- The fleet: three machines, three operators, three hardware profiles (x86_64 server, ARM64 phone, desktop) — one protocol, bit-identical, mutually verified.
+- Genesis Infrastructure: Mitarasi is the first external entry. His uptime is accumulating on the anchor's ledger. His genesis allocation starts NOW.
+- CA-R238 in action: his gate found DEF-247/248, he fixed them, he ran the node, the node works on his hardware. The open-source verification loop completed its first full cycle: clone → build → gate → fail → fix → green → run → join.
+- The performance curve (GEMM 64³ self-verify): AWS 600ms | Mitarasi desktop 274ms | Phone ARM64 1131ms. Three datapoints, three architectures — the determinism holds across all of them.
