@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
             || !threshold::fr_from_u64(c3, 0x33)) { std::fprintf(stderr, "FATAL: fr init\n"); return 1; }
         // ---- Gate-3: committee from config (fallback: hardcoded testnet committee) ----
     g_cfg_members = load_committee_config("committee.toml", g_cfg_t_raw);
-    g_from_config = g_cfg_members.size() >= 2;
+    g_from_config = g_cfg_members.size() >= 1;
     g_cfg_n = g_from_config ? g_cfg_members.size() : 3;
     g_cfg_t_eff = (g_from_config && g_cfg_t_raw) ? g_cfg_t_raw : 2;
     std::printf("[committee] %s: n=%llu t=%llu (%s)\n",
@@ -408,25 +408,13 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             g_mssc.peers.push_back({0x7F000001, 31234, 40});
         else
                                         // P5-E+/Gate-3: peers from config when present
-                            if (g_from_config) {
-                                g_mssc.total_weight = 0; g_mssc.peers.clear();
-                                for (const auto& cm : g_cfg_members)
-                                    if (cm.id != g_self_member) {
-                                        // endpoint -> ip/port (first A record)
-                                        std::uint32_t ip = 0; unsigned prt = 31233;
-                                        {   struct in_addr a{}; char ep[128]; std::snprintf(ep, sizeof ep, "%s", cm.endpoint.c_str());
-                                            char* colon = std::strchr(ep, ':'); if (colon) *colon = 0;
-                                            if (inet_pton(AF_INET, ep, &a) == 1) ip = ntohl(a.s_addr);
-                                            if (colon) prt = (unsigned)std::atoi(colon + 1);
-                                        }
-                                        g_mssc.peers.push_back({ip, (std::uint16_t)prt, cm.weight});
-                                        g_mssc.total_weight += cm.weight;
-                                    }
-                                g_mssc.total_weight += g_mssc.self_weight;
-                                std::printf("[committee] peers from config: %zu peers, total %llu\n",
-                                    g_mssc.peers.size(), (unsigned long long)g_mssc.total_weight);
-                            } else
-                            g_mssc.peers.push_back({0x7F000001, 31233, 60});
+                            // P5-H+/Gate-3 v2: peers are DYNAMIC — rebuilt from active
+                            // connections each startup. The TOML only defines the anchor's
+                            // self-identity. Fleet members join via --seed (outbound) and
+                            // get added here as they connect. No static peer list.
+                            g_mssc.total_weight = g_mssc.self_weight;  // start with just self
+                            std::printf("[committee] dynamic fleet: self_weight=%llu, peers join via --seed\n",
+                                (unsigned long long)g_mssc.self_weight);
         g_last_tick = std::chrono::steady_clock::now();
         // P4-3b: X_E = [secret]G2gen (the degree-0 poly's constant term)
         {
@@ -708,6 +696,17 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         }
                         if (!g_dec_shares.empty())
                             std::printf("[thr] rebroadcast %zu stored shares to new peer\n", g_dec_shares.size());
+
+                        // Gate-3 v2: DYNAMIC peer addition — the new connection joins
+                        // the MSSC sampling list immediately with a default weight.
+                        // Their stake-derived weight replaces this when the economic
+                        // layer is bound to real bonds (P5-E production).
+                        {   std::uint64_t default_w = 30;  // testnet default peer weight
+                            g_mssc.peers.push_back({0, (std::uint16_t)new_fd, default_w});  // ip=0: discovered via 0x09
+                            g_mssc.total_weight += default_w;
+                            std::printf("[committee] peer JOINED: fd=%d weight=%llu, fleet total=%llu\n",
+                                new_fd, (unsigned long long)default_w, (unsigned long long)g_mssc.total_weight);
+                        }
 
                         // Gate-3: announce OUR address to the new peer (peer exchange)
                         if (g_my_public_ip != 0) {
@@ -1144,7 +1143,15 @@ else
                         p2p::send_message(peer_fds[i], pong);
                     }
                 } else {
-                    close(peer_fds[i]);
+                    // Gate-3: remove from MSSC peers on disconnect
+                            {   std::uint64_t lost_w = 0;
+                                for (auto pit = g_mssc.peers.begin(); pit != g_mssc.peers.end(); ++pit)
+                                    if (pit->port == peer_fds[i]) { lost_w = pit->weight; g_mssc.peers.erase(pit); break; }
+                                if (lost_w > 0) { g_mssc.total_weight -= lost_w;
+                                    std::printf("[committee] peer LEFT: weight %llu removed, fleet total=%llu\n",
+                                        (unsigned long long)lost_w, (unsigned long long)g_mssc.total_weight); }
+                            }
+                            close(peer_fds[i]);
                     peer_fds.erase(peer_fds.begin() + i);
                     --i;
                 }
