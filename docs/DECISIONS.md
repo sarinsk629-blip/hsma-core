@@ -4251,3 +4251,10 @@ Readiness COMPLETE.
 - Fix: compound literals extracted to named stack arrays. The pattern: declare before use, pass the named variable.
 - Law (CA-R238): when a community member's gate fails, their compiler is a NEW AUDITOR — the failure is a portability defect, not a user error. The response is: fix the code to conform to the strictest compiler that encounters it, thank the reporter, credit them in the ledger.
 - This is the first EXTERNAL gate failure — the project's portability is now being tested by people we don't control. That's the moment the open-source model starts working.
+
+## DEF-248 — buffer overflow in weight_digest: FORTIFY_SOURCE caught what Termux corrupted silently
+- Evidence: test_step39 crashes with 'buffer overflow detected' on the community member's Ubuntu (glibc _FORTIFY_SOURCE enabled) but passes silently on Termux (no fortify) — the last block writes 18+32=50 bytes into a 40-byte buffer, reading past the weight array AND past the stack frame.
+- Root cause: buf[40] was sized for the 10-byte tag + 8-byte block-index = 18 header, but the 32-byte data chunk makes the total 50. An off-by-ten that produced WRONG digests on every machine (the stack corruption was deterministic but non-crashing locally).
+- Fix: buf[50]. The digest changes (different bytes read) — the test still passes because both commit and open use the same (now-correct) digest.
+- Law (CA-R239): FORTIFY_SOURCE is a free auditor that catches stack overflows your development environment silently tolerates. When a community member reports 'buffer overflow detected' — believe them immediately, it's a real overflow, not a false positive.
+- The external-catch chain: DEF-247 (compound literal) + DEF-248 (buffer overflow) — two portability/correctness defects found by the first external contributor in their first build. The open-source verification loop is working.
