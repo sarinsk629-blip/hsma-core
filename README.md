@@ -37,16 +37,14 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 </div>
 
 ### 📲 Connect to the public seed node (running 24/7 on AWS us-east-1):
-git clone https://github.com/sarinsk629-blip/hsma-core.git
-cd hsma-core
-./scripts/gate.sh
- 34/34 tests passed, GATE GREEN
+ git clone https://github.com/sarinsk629-blip/hsma-core.git
+    cd hsma-core
+    cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+    cmake --build build --parallel 1
+    ./scripts/gate.sh                → GATE GREEN (39/39)
 
- Start your node:
-./build/epoch_node 31233
-or
-connect to our AWS node:
-./build/epoch_node 31234 --seed 3.237.91.235:31233
+    # Start your node and join the network:
+    ./build/epoch_node 31234 --seed 3.237.91.235:31233
 
 #### then watch the live peers counter: 
 http://3.237.91.235:32233/api
