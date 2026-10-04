@@ -4280,3 +4280,11 @@ Readiness COMPLETE.
 - The aggregate-verify batcher is running on his node too ([agg-batch] join in his log) — the O(1) tally path is fleet-wide.
 - This property is essential for mainnet: every new node that joins must adopt the network's existing state, not create a fork. The late-joiner convergence is the proof that the metastable consensus handles network growth correctly.
 - Law (CA-R240): two convergence properties must both hold — (1) conflicting nodes converge (proven earlier), (2) late joiners adopt existing consensus (proven tonight). A consensus protocol that can't absorb new nodes is a testnet, not a network.
+
+## DEC-307 — kamiyama confirmed as the first Genesis Infrastructure contributor
+- Identity: handle "kamiyama" (Mitarasi). First external node to connect, verify votes, contribute uptime, and find defects.
+- Contributions: (1) DEF-247 — compound literal portability defect found by their compiler; (2) DEF-248 — buffer overflow caught by their FORTIFY_SOURCE; (3) late-joiner convergence proven on their machine (1000+ rounds, conf=1001); (4) fleet participation confirmed cross-machine (their log + AWS journal).
+- Commitment: Genesis Infrastructure status — first-class recognition at genesis allocation. The exact mechanism is community-designed at Gate 5; the PRINCIPLE is committed here: testnet contribution significantly affects mainnet allocation.
+- The founder correctly stated: token creation and economics are deferred (remaining tasks: audit, production soak, P5-F/G phase-3). But the ENFORCEMENT of the commitment starts now — the registry is public, append-only, and the principle is ledgered.
+- Law (CA-R241): genesis recognition is EARNED by verifiable contribution, not claimed by registration. The evidence chain (gate output + node log + anchor confirmation + defect reports) is the currency. A name without a receipt is a claim; a name with receipts is a right.
+- The 21 other Discord members who haven't run the gate: the door is open. The registry has space. The mechanism is the same three commands. The question is whether they'll run it before the seats fill.
