@@ -4273,3 +4273,10 @@ Readiness COMPLETE.
 - The peer-discovery system (0x09) + dynamic MSSC peers + uptime ledger (0x0A) together form the network's self-organization layer: the fleet knows who's present, who's participating, and who's betraying — all without configuration.
 - The remaining production items: (1) real weights from bonds (not default 30), (2) BLS-signed uptime receipts, (3) the 224/112 production config flip. All registered, none blocking the testnet's friction-free joining.
 - Law (CA-241): the network's membership should never be a configuration file — it should be the live set of connected, participating, non-slashed nodes. TOML is for the anchor; the fleet is for the protocol.
+
+## DEC-306 — Late-joiner convergence: Mitarasi's node absorbed the network's consensus
+- The receipt from HIS log: 1000+ MSSC rounds, confidence 1001, pref=A, kind=3 (Confirmed) — a node that joined AFTER the network finalized has converged to the same state and is confirming continuously.
+- The class distinction from previous convergence proofs: earlier tests showed CONFLICT resolution (two nodes starting with different preferences converge). Tonight's proof shows LATE JOIN — a node starting with NO opinion joining an already-finalized network and adopting the existing consensus through the sampling loop alone.
+- The aggregate-verify batcher is running on his node too ([agg-batch] join in his log) — the O(1) tally path is fleet-wide.
+- This property is essential for mainnet: every new node that joins must adopt the network's existing state, not create a fork. The late-joiner convergence is the proof that the metastable consensus handles network growth correctly.
+- Law (CA-R240): two convergence properties must both hold — (1) conflicting nodes converge (proven earlier), (2) late joiners adopt existing consensus (proven tonight). A consensus protocol that can't absorb new nodes is a testnet, not a network.
