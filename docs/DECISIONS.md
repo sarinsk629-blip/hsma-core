@@ -4244,3 +4244,10 @@ Readiness COMPLETE.
 - The test cadence (30s) proved the mechanism; production reverts to 300s (5-minute receipts — 576 receipts/day/node = granular uptime evidence).
 - The full participation model: identity = BLS key (not IP), bond = per-member (not per-IP), uptime = signed receipts (not claims), slashing = per-member equivocation (not blanket), cluster caps = weight limits (not identity limits). Every Sybil vector addressed.
 - The system now answers the community's question "how do we distribute rewards fairly" with the same answer Bitcoin gives: the protocol measures, the ledger proves, the community verifies.
+
+## DEF-247 — compound literals: the community member's compiler is the new strictest toolchain
+- Evidence: test_step10.cpp:51 uses (uint64_t[6]){...} compound literals — a C99 extension that Termux clang and CI clang++ accept but the community member's g++ rejects ('taking address of temporary array'). The gate was green on our machines and red on theirs.
+- Class: DEF-225 lineage — the strictest toolchain in the fleet defines the conform. The fleet just grew: it now includes every community member who clones and builds.
+- Fix: compound literals extracted to named stack arrays. The pattern: declare before use, pass the named variable.
+- Law (CA-R238): when a community member's gate fails, their compiler is a NEW AUDITOR — the failure is a portability defect, not a user error. The response is: fix the code to conform to the strictest compiler that encounters it, thank the reporter, credit them in the ledger.
+- This is the first EXTERNAL gate failure — the project's portability is now being tested by people we don't control. That's the moment the open-source model starts working.

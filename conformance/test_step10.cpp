@@ -47,8 +47,9 @@ int main() {
         Fq2 inv = fq2_inv(Q, A, beta);
         Fq2 prod = fq2_mul(Q, inv, A, beta);
         // Check prod == (1, 0) — Montgomery-one in c0, zero in c1
+        const std::uint64_t inv_rnd[6] = {1,0,0,0,0,0};
         CHECK(mont::bn_cmp(mont::mto(Q, prod.c0).data(),
-                          (std::uint64_t[6]){1,0,0,0,0,0}, 6) == 0, "G10 inv roundtrip");
+                                            inv_rnd, 6) == 0, "G10 inv roundtrip");
     }
 
     // 2. E' curve: addition / doubling / scalar triples (affine oracle)
