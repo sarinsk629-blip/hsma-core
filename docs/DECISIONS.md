@@ -4294,3 +4294,10 @@ Readiness COMPLETE.
 - Fix: removed the duplicate heartbeat (keep one at the time gate); removed the stale peer_count write from the epoch-completion path (the pulse gate is the ONLY writer).
 - Law (CA-R247): every shared-state field has exactly ONE writer site. Two writers = race or overwrite. The writer must be at the site with the freshest data, at the highest frequency, unconditionally. One field, one writer, one frequency.
 - The /api is now a truthful dashboard: uptime climbs, heartbeat = uptime, peers = live connection count. Anyone can curl it and see the truth.
+
+## DEC-308 — kamiyama reaches 5.5+ hours: the first Genesis Infrastructure contributor confirmed at full participation
+- The complete record: 5.5+ hours continuous, 16,617+ MSSC rounds (conf=16,616, Confirmed state), 2 defects found (DEF-247/248), PoUW 262,144 MACs @ 437ms, late-joiner convergence proven, reconnected after anchor restart, fleet dashboard Connected Peers: 2.
+- The significance: this is the first time a person outside the project has run the protocol continuously on their own hardware, verified it independently, found bugs the founder's environment couldn't catch, proven the convergence property, and become a tracked participant in the fleet — all without any help, any payment, or any incentive beyond the technology itself.
+- The Genesis Registry is updated: docs/GENESIS_REGISTRY.md now shows the full 5.5-hour record with every receipt. This is the model for all future contributors — the registry records what the protocol measures, not what anyone claims.
+- The fleet dashboard shows Connected Peers: 2 — the anchor + kamiyama, publicly visible via curl. The growth metric is live.
+- Law (CA-R248): a Genesis Infrastructure contributor is defined by their RECEIPT CHAIN, not their claims. The chain: gate green → node running → votes verified → uptime accumulated → defects found → reconnection proven → dashboard confirmed. Each link is independently verifiable.
