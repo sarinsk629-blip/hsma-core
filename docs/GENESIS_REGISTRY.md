@@ -9,7 +9,7 @@
 | # | Handle | First Connected | Uptime Contributed | Participation Receipts | Defects Found | Status |
 |---|--------|-----------------|-------------------|----------------------|---------------|--------|
 | 1 | **kamiyama** (Mitarasi) | **Oct 4, 2026 10:30 AM UTC** | **32+ hours total (running since Oct 4, still active)** | 16,617+ MSSC rounds, BLS votes, uptime proofs, aggregate-batch, PoUW 262,144 MACs | DEF-247, DEF-248 | 🟢 **ACTIVE — running since Oct 4, 10:30 AM** |
-| 2 | hamburger_slices | **Oct 5, 2026 10:12 PM UTC** | pending (not started yet) | — | — | 🟡 **INTERESTED — announced, hasn't started yet** |
+| 2 | **AFE** | **Oct 5, 2026 10:12 PM UTC** | pending (not started yet) | — | — | 🟡 **INTERESTED — announced, hasn't started yet** |
 
 ## Genesis Infrastructure — Pending Contributors
 
