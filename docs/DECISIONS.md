@@ -4382,3 +4382,10 @@ Readiness COMPLETE.
 - Fix: compiler auto-detection — check clang++ first (preferred for cross-architecture determinism), fall back to g++. Replace all hardcoded clang++ references with .
 - Law (CA-R254): the gate is the project's front door. It must work on every machine that could possibly run the protocol. Hardcoding a specific compiler in the gate is the same class as hardcoding a specific IP in the tools (DEF-231). The gate must be compiler-agnostic.
 - The pattern: DEF-231 (hardcoded IP) → DEF-247 (hardcoded clang) → the same class: assuming YOUR environment is THE environment. Every assumption about the environment must be detected, not hardcoded.
+
+## DEC-319 — peers count clarified: connections ≠ operators
+- The fleet dashboard shows  but only 2 external operators are running (kamiyama + AFE). The third connection is either (1) a zombie socket from a disconnected node that wasn't swept yet, or (2) a mesh relay connection created by the gossip protocol.
+- The  field counts TCP connections to the node, not unique operators. One operator can have multiple connections (reconnect before the old one is swept). This is normal mesh topology.
+- The Genesis Registry tracks OPERATORS (people with handles), not connections. kamiyama = contributor #1. AFE = contributor #2. The founder = the anchor operator.
+- The peer discovery system (0x09) and the dead-peer sweep (DEF-251) work together to keep the connection count honest — but there's a window between a peer dying and the next sweep where the count is inflated.
+- Law (CA-R255): the peers field in /api is a CONNECTION count, not a PARTICIPANT count. For the Genesis Registry, the uptime ledger (g_uptime_ledger) is the authoritative source — it tracks by member_id, not by socket. A peer that disconnects stops sending uptime proofs, and their ledger entry freezes (doesn't grow), which is the correct signal.
