@@ -4369,3 +4369,10 @@ Readiness COMPLETE.
 - The approach: extended the existing explorer's serve_request with method parsing (GET vs POST), body extraction (\r\n\r\n separator), and new route handlers. No new process, no IPC. The explorer thread handles both the dashboard and the API.
 - Law (CA-R252 applied): the simplest API is the one built into what already works. The explorer thread already accepted connections and served responses; adding POST routes is an extension of the existing HTTP infrastructure, not a new system.
 - The protocol is no longer self-referential. Anyone with an HTTP client can now submit computation to the network and receive a cryptographic proof of correctness. The wall between the protocol and the world has a door.
+
+## DEC-318 — the deployment pipeline is fully automated: push = deploy
+- The auto-deploy cron detected the new commit, rebuilt, and restarted the node — all without SSH. The /fleet route returns JSON (not HTML). The full pipeline is: code → commit → push → auto-deploy (5 min) → fleet reconnects (30s) → dashboard updates (instant).
+- The safe.directory fix unblocked git fetch from the cron. The dubious-ownership check was blocking all automated git operations.
+- The fleet dashboard is now publicly accessible: curl http://3.237.91.235:32233/fleet returns live JSON. Anyone can see the fleet size, uptime, heartbeat, and PoUW weight.
+- The complete automation stack: (1) auto-deploy every 5 min, (2) auto-reconnect every 30s, (3) dead-peer sweep every broadcast, (4) watchdog every 60s, (5) cron health probe every 60s, (6) CI every push. The network is self-managing.
+- Law (CA-R253): the deployment pipeline is: git push → cron detects → auto-build → auto-restart → fleet auto-reconnect → dashboard auto-updates. Every step is automated. No SSH. No manual restart. No stale binary. The founder's workflow is: write code, push, done.
