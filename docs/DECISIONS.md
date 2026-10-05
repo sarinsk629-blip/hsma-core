@@ -4342,3 +4342,11 @@ Readiness COMPLETE.
 - The register: 9/11 PROVEN. The remaining 2: a config flip and an external audit. No new code required.
 - The infrastructure self-runs: systemd restarts on crash, watchdog catches stalls, cron probes health, auto-deploy ships updates, auto-reconnect restores fleet, dead-peer sweep cleans zombies. The founder pushes code. The machine does everything else.
 - This is what "build → publish → verify → wait" looks like when the build is real, the verification is cryptographic, and the wait is productive.
+
+## DEC-315 — The honest gap: our nodes compute random matrices, not AI workloads
+- The honest assessment: the PoUW computation currently running on all nodes uses RANDOM matrices derived from the epoch hash. No AI company submitted this workload. The result is meaningless outside the consensus mechanism. The node is NOT helping any AI company right now.
+- What exists: (1) GEMM computation with sum-check proofs, (2) activation lookup tables certified to 0 LSB, (3) ModelCommit binding schema, (4) the consensus mechanism that rewards verified computation, (5) a 3-node fleet across 2 continents.
+- What's missing: (1) a submission API for external workloads, (2) real model support beyond GEMM (activations wired into circuits), (3) a marketplace connecting companies to validators, (4) a payment system, (5) an API for programmatic access, (6) SLA guarantees and billing.
+- The roadmap to close the gap: Phase 1 (now): self-referential consensus. Phase 2 (1-3mo): submission API + first real workload. Phase 3 (3-6mo): activation circuit wiring. Phase 4 (6-12mo): full model verification. Phase 5 (12+mo): marketplace with payment.
+- The testnet's value is NOT that it's currently useful to AI companies — it's that it PROVES the infrastructure works so that when the application layer is built, it has a battle-tested foundation.
+- Law (CA-R252): the gap between "infrastructure works" and "infrastructure is useful" is the product gap. Closing it requires: API, payment, marketplace, model support — in that order. Never claim the product exists before the API exists.
