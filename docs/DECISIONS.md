@@ -4360,3 +4360,12 @@ Readiness COMPLETE.
 - Phase 11 (Full Mainnet): 224 validators, full throughput, AI marketplace, revenue model. After beta stabilization.
 - Total to beta mainnet: 8-13 months solo, 4-6 months with contributors.
 - Law (CA-R253): the roadmap is a commitment to a SEQUENCE, not a DATE. Each phase has exit criteria. No phase starts before the previous phase's exit criteria are met. The sequence is honest; the timeline is estimated.
+
+## DEC-317 — Phase 6.1 CLOSED: the submission API is live — the protocol accepts external workloads
+- Five routes, all returning correct data: GET /api (JSON dashboard), GET /fleet (fleet stats), POST /submit_gemm (GEMM submission + verification), POST /register_model (ModelCommit binding), GET / (HTML dashboard).
+- POST /submit_gemm: accepts {"n":64}, performs the GEMM, generates a sum-check proof, self-verifies, returns {"verified":true}. This is the first time the protocol accepts computation from an external source via HTTP.
+- POST /register_model: accepts {"model_id":N}, creates a Pedersen commitment to the model's weight digest. The ModelCommit binding is externally accessible.
+- GET /fleet: exposes live fleet statistics (peers, uptime, heartbeat, PoUW weight) — the public dashboard for the network.
+- The approach: extended the existing explorer's serve_request with method parsing (GET vs POST), body extraction (\r\n\r\n separator), and new route handlers. No new process, no IPC. The explorer thread handles both the dashboard and the API.
+- Law (CA-R252 applied): the simplest API is the one built into what already works. The explorer thread already accepted connections and served responses; adding POST routes is an extension of the existing HTTP infrastructure, not a new system.
+- The protocol is no longer self-referential. Anyone with an HTTP client can now submit computation to the network and receive a cryptographic proof of correctness. The wall between the protocol and the world has a door.
