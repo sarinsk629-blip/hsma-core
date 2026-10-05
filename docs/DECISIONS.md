@@ -4322,3 +4322,8 @@ Readiness COMPLETE.
 - The fleet: three machines, three operators, three hardware profiles — all running the same protocol, all tracking each other's participation, all proven by mutual cryptographic verification.
 - The new contributor (hamburger_slices): asked "does it require NVIDIA?" — the answer is no, any device works. The founder runs it on a phone. The anchor runs on a /month VPS. The barrier to entry is a laptop and an internet connection.
 - Law (CA-R250): 24 hours of external uptime is the threshold where a testnet stops being a demo and starts being a network. Below 24 hours, it could be luck. Above 24 hours, with restarts survived and auto-reconnect working, it's infrastructure.
+
+## DEC-312 — SOAK COMPLETE: Component Liveness PROVEN
+- Duration: 72+ hours. Restarts: only explained (our own deployments). Watchdog: caught 1 real stall (contention-class, CA-R232), auto-recovered in 5s. Pulse: continuous, drift within 1%.
+- DEF-226 CLOSED. Component Liveness: PROVEN. The register advances to 9/11.
+- The remaining: Committee Collusion (config flip) + System Soundness (external audit).
