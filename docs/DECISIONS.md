@@ -4350,3 +4350,13 @@ Readiness COMPLETE.
 - The roadmap to close the gap: Phase 1 (now): self-referential consensus. Phase 2 (1-3mo): submission API + first real workload. Phase 3 (3-6mo): activation circuit wiring. Phase 4 (6-12mo): full model verification. Phase 5 (12+mo): marketplace with payment.
 - The testnet's value is NOT that it's currently useful to AI companies — it's that it PROVES the infrastructure works so that when the application layer is built, it has a battle-tested foundation.
 - Law (CA-R252): the gap between "infrastructure works" and "infrastructure is useful" is the product gap. Closing it requires: API, payment, marketplace, model support — in that order. Never claim the product exists before the API exists.
+
+## DEC-316 — THE MASTER ROADMAP: testnet to mainnet in 6 phases
+- Phase 6 (Production Hardening): submission API, workload queue, auth, 224/112 flip, GPU GEMM, LogUp-in-CCS, folding optimization, NAT traversal, DoS protection, production soak. 3-5 months solo.
+- Phase 7 (Security Audit): evidence package, external audit, bug bounty, pentest. 2-3 months. Can start in parallel with Phase 6.
+- Phase 8 (Community Growth): docs, SDK, onboarding, governance framework, ambassador program. Ongoing.
+- Phase 9 (Tokenomics): supply model, validator rewards, fee structure, genesis allocation formula, governance mechanics. 2-3 months.
+- Phase 10 (Beta Mainnet): genesis block, fair launch, limited validators, real transactions. 1-2 months.
+- Phase 11 (Full Mainnet): 224 validators, full throughput, AI marketplace, revenue model. After beta stabilization.
+- Total to beta mainnet: 8-13 months solo, 4-6 months with contributors.
+- Law (CA-R253): the roadmap is a commitment to a SEQUENCE, not a DATE. Each phase has exit criteria. No phase starts before the previous phase's exit criteria are met. The sequence is honest; the timeline is estimated.
