@@ -4333,3 +4333,12 @@ Readiness COMPLETE.
 - The effect: the founder pushes from the phone. Within 5 minutes, AWS runs the new code. No SSH. No manual restart. No forgotten steps.
 - The impact on fleet members: a brief 30s reconnection gap during deploy. Auto-reconnect handles it. The Genesis Registry tracks total uptime across sessions — restarts don't reduce the total.
 - Law (CA-R251): deployment is not a manual process — it is a cron job. The founder pushes; the infrastructure deploys. A deploy that requires SSH is a deploy that will be forgotten.
+
+## DEC-314 — THE WEEK: every work package closed, the infrastructure self-running, the fleet alive
+- Work packages: P5-A (threshold committee), P5-B (aggregate verify), P5-C (threshold decrypt), P5-D (liveness), P5-E (economics), P5-F (LogUp activations), P5-G (ModelCommit), P5-H (eclipse containment), P5-I (binding matrix) — ALL CLOSED.
+- Soak: 72+ hours PASSED. NRestarts 0 (unexplained). Watchdog caught 1 real stall (CA-R232), auto-recovered. Pulse continuous. Component Liveness PROVEN.
+- Fleet: 3 machines, 3 operators, dynamic joining, self-healing, auto-deploying. kamiyama: 24+ hours total, 2 defects, Genesis Infrastructure confirmed.
+- Defects: DEF-231→252 (22 owned). Laws: CA-R205→R251 (47 earned). Every failure produced a mechanism; every mechanism produced a law; every law prevents a class.
+- The register: 9/11 PROVEN. The remaining 2: a config flip and an external audit. No new code required.
+- The infrastructure self-runs: systemd restarts on crash, watchdog catches stalls, cron probes health, auto-deploy ships updates, auto-reconnect restores fleet, dead-peer sweep cleans zombies. The founder pushes code. The machine does everything else.
+- This is what "build → publish → verify → wait" looks like when the build is real, the verification is cryptographic, and the wait is productive.
