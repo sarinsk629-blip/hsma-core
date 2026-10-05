@@ -4327,3 +4327,9 @@ Readiness COMPLETE.
 - Duration: 72+ hours. Restarts: only explained (our own deployments). Watchdog: caught 1 real stall (contention-class, CA-R232), auto-recovered in 5s. Pulse: continuous, drift within 1%.
 - DEF-226 CLOSED. Component Liveness: PROVEN. The register advances to 9/11.
 - The remaining: Committee Collusion (config flip) + System Soundness (external audit).
+
+## DEC-313 — auto-deploy on AWS: updates ship without manual SSH
+- The mechanism: cron checks GitHub every 5 min. If a new commit exists: pull → rebuild → restart (only if build passes). If build fails: old binary stays running (no bad deploy).
+- The effect: the founder pushes from the phone. Within 5 minutes, AWS runs the new code. No SSH. No manual restart. No forgotten steps.
+- The impact on fleet members: a brief 30s reconnection gap during deploy. Auto-reconnect handles it. The Genesis Registry tracks total uptime across sessions — restarts don't reduce the total.
+- Law (CA-R251): deployment is not a manual process — it is a cron job. The founder pushes; the infrastructure deploys. A deploy that requires SSH is a deploy that will be forgotten.
