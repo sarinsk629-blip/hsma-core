@@ -1,23 +1,21 @@
-#!/usr/bin/env bash
-# HSMA VERIFICATION GATE v6 (DEC-131/132/140/154):
-#   configure → CLEAN-FIRST build → generated-header presence assert →
-#   diagnostic sentinels (all layers) → conformance.
-# CA-R91: the presence assert enumerates ALL generated headers (was 9 of 29)
-# + a count cross-check both directions (missing AND unregistered emissions).
-# clean-first kills the two historical masquerades: partial-output deletion
-# (ninja multi-output trap) and stale binaries surviving failed compiles.
+#!/bin/bash
+# HSMA VERIFICATION GATE v6
+# CA-R91: presence assert enumerates ALL generated headers
+# CA-R253: compiler-agnostic detection
+# # CA-R91: the presence assert enumerates ALL generated headers (was 9 of 29) | # clean-first kills the two historical masquerades: partial-output deletion | # CA-R253 v2: compiler detection
 set -euo pipefail
 
-# CA-R253: compiler-agnostic — detect $CXX or g++
-KEEP_THIS $CXX &>/dev/null; then
-    CXX=$CXX
-elif command -v g++ &>/dev/null; then
+# Compiler detection — clang++ preferred, g++ fallback
+if command -v clang++ >/dev/null 2>&1; then
+    CXX=clang++
+elif command -v g++ >/dev/null 2>&1; then
     CXX=g++
 else
-    echo "FATAL: no C++ compiler found (need $CXX or g++)"
+    echo "FATAL: no C++ compiler found"
     exit 1
 fi
 echo "[gate] compiler: $CXX"
+
 
 cd "$(dirname "$0")/.."
 cfg=$(mktemp); dg5=$(mktemp); dg6=$(mktemp)

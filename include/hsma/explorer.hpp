@@ -112,6 +112,28 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
 <div class="card"><div class="label">PoUW Weight</div><div class="value">%llu <span style="font-size:0.55em;color:#888;">= %u&#179; verified MACs, %s</span></div></div>
 <div class="card"><div class="label">Version</div><div class="value">%s</div></div>
 </div>
+</div>
+
+<div class="card" style="margin-top:20px; border-left:4px solid #00aaff;">
+<div class="label" style="color:#00aaff;">🚀 SUBMISSION API — Submit AI workloads</div>
+<div style="margin-top:10px; font-size:0.85em; color:#aaa;">
+<p><b>POST /submit_gemm</b> — Submit a GEMM verification workload</p>
+<pre style="background:#0d0d1a; padding:8px; border-radius:4px; overflow-x:auto;">curl -X POST http://HOST:PORT/submit_gemm -d '{"n":64}'</pre>
+<p><b>POST /register_model</b> — Register an AI model for verified inference</p>
+<pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl -X POST http://HOST:PORT/register_model -d '{"model_id":1}'</pre>
+<p><b>GET /fleet</b> — Fleet statistics</p>
+<pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/fleet</pre>
+<p><b>GET /api</b> — Full JSON status</p>
+</div>
+</div>
+
+<div class="card" style="border-left:4px solid #ffaa00;">
+<div class="label" style="color:#ffaa00;">🏗️ MORE ENDPOINTS COMING</div>
+<div style="margin-top:5px; font-size:0.85em; color:#888;">
+Workload queue · Model inference · Result verification · Payment integration
+</div>
+</div>
+
 <p style="color:#666; margin-top:20px;">HSMA Testnet — Holographic Spin-Manifold Architecture</p>
 </body>
 </html>)html",
