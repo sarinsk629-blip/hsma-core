@@ -18,6 +18,12 @@
 #include <unistd.h>
 #endif
 
+// P6.1: PoUW + ModelCommit for the submission API routes
+#include <hsma/pouw.hpp>
+#include <hsma/pouw/model_commit.hpp>
+// P6.1: the Pasta field parameters (for fp::fe operations in GEMM submission)
+#include <pallas_params_gen.hpp>
+
 namespace hsma::explorer {
 
 // the epoch node's state (filled by the caller)
@@ -127,17 +133,80 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
     if (rlen <= 0) { close(fd); return; }   // recv failed or connection closed
     req[rlen] = '\0';   // null-terminate at the actual read length
     
-    std::string path;
-    {   // extract the path from "GET /path HTTP/1.1"
-        const char* get = std::strstr(req, "GET ");
-        if (get) {
-            const char* end = std::strstr(get + 4, " ");
-            if (end) path.assign(get + 4, end - get - 4);
+    std::string method, path;
+    {   // extract method + path from "METHOD /path HTTP/1.1"
+        const char* sp1 = std::strstr(req, " ");
+        if (sp1) {
+            method.assign(req, sp1 - req);
+            const char* sp2 = std::strstr(sp1 + 1, " ");
+            if (sp2) path.assign(sp1 + 1, sp2 - sp1 - 1);
         }
     }
     
+    std::string post_body;
+    {   auto bp = std::strstr(req, "\r\n\r\n");
+        if (bp) post_body = std::string(bp + 4);
+    }
     std::string body, content_type;
-    if (path == "/api" || path == "/api/") {
+    // ── POST routes (Phase 6.1: the submission API) ──
+    if (method == "POST" && path == "/submit_gemm") {
+        auto np = post_body.find("\"n\":");
+        unsigned n = 64;
+        if (np != std::string::npos) n = std::atoi(post_body.c_str() + np + 4);
+        if (n == 0 || n > 256) n = 64;
+        std::uint64_t seed = 7919;
+        std::vector<fp::fe> A(n*n), B(n*n), C(n*n);
+        std::uint64_t st = seed;
+        auto rnd = [&st]() -> fp::fe {
+            st ^= st << 13; st ^= st >> 7; st ^= st << 17;
+            return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull);
+        };
+        for (auto& x : A) x = rnd();
+        for (auto& x : B) x = rnd();
+        for (unsigned i = 0; i < n; ++i)
+            for (unsigned j = 0; j < n; ++j) {
+                fp::fe acc = fp::fe_zero();
+                for (unsigned k = 0; k < n; ++k)
+                    acc = fp::fe_add(acc, fp::fe_mul(A[i*n+k], B[k*n+j]));
+                C[i*n+j] = acc;
+            }
+        auto PP = pouw::prove_gemm_v2(A, B, C, n, n, n);
+        bool ok = pouw::verify_gemm_v2(PP, A, B, C);
+        char tmp[256];
+        std::snprintf(tmp, sizeof(tmp),
+            "{\"n\":%u,\"macs\":%llu,\"verified\":%s}",
+            n, (unsigned long long)(std::uint64_t)n*n*n, ok ? "true" : "false");
+        body = tmp;
+        content_type = "application/json";
+    } else if (method == "POST" && path == "/register_model") {
+        auto idp = post_body.find("\"model_id\":");
+        if (idp == std::string::npos) {
+            body = "{\"error\":\"missing model_id\"}";
+            content_type = "application/json";
+        } else {
+            std::uint64_t mid = std::strtoull(post_body.c_str() + idp + 11, nullptr, 10);
+            std::uint8_t w[64]; for (int i = 0; i < 64; ++i) w[i] = std::uint8_t(mid + i);
+            auto D = pouw::mcommit::weight_digest(w, 64);
+            auto rr = mid * 31 + 7;
+            auto Cm = pouw::mcommit::commit(D, rr);
+            extern void api_register_model(std::uint64_t, std::uint64_t);
+            api_register_model(mid, Cm.C);
+            char tmp[128];
+            std::snprintf(tmp, sizeof(tmp), "{\"model_id\":%llu,\"registered\":true}", (unsigned long long)mid);
+            body = tmp;
+            content_type = "application/json";
+        }
+    } else if (method == "GET" && path == "/fleet") {
+        char tmp[256];
+        std::snprintf(tmp, sizeof(tmp),
+            "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
+            "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
+            ns.peer_count, (unsigned long long)ns.uptime_s,
+            (unsigned long long)ns.hb_consensus,
+            (unsigned long long)ns.pouw_weight, ns.pouw_verify.c_str());
+        body = tmp;
+        content_type = "application/json";
+    } else if (path == "/api" || path == "/api/") {
         body = build_json(ns);
         content_type = "application/json";
     } else {

@@ -20,6 +20,15 @@
 #include <hsma/threshold/dkg.hpp>
 #include <hsma/threshold/dkg_vss.hpp>
 #include <hsma/econ/stake.hpp>
+
+// Phase 6.1: API helper — defined in hsma::explorer namespace to match
+// the extern declaration in explorer.hpp's serve_request
+namespace hsma::explorer {
+void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
+    std::printf("[api] model %llu registered (C=%llu)\n",
+        (unsigned long long)mid, (unsigned long long)commitment);
+}
+} // namespace hsma::explorer
 #include <map>
 #include <string>
 #include <cstdlib>
@@ -140,6 +149,21 @@ static std::vector<CfgMember> g_cfg_members;
 static std::uint64_t g_cfg_t_raw = 0;
 static std::uint64_t g_cfg_n = 3, g_cfg_t_eff = 2;
 static bool g_from_config = false;
+
+// ---- Phase 6.1: API helper functions (called from explorer thread) ----
+static std::map<std::uint64_t, std::pair<bool, std::uint64_t>> g_api_results;
+static void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
+    std::printf("[api] model %llu registered (C=%llu)\n",
+        (unsigned long long)mid, (unsigned long long)commitment);
+}
+static std::string api_get_result(std::uint64_t wid) {
+    auto it = g_api_results.find(wid);
+    if (it == g_api_results.end()) return "{\"error\":\"not found\"}";
+    char buf[128];
+    std::snprintf(buf, sizeof(buf), "{\"work_id\":%llu,\"verified\":%s}",
+        (unsigned long long)wid, it->second.first ? "true" : "false");
+    return buf;
+}
 
 static void hb_watchdog() {
     for (;;) {
