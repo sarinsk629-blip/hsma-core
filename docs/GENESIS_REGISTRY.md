@@ -8,7 +8,8 @@
 
 | # | Handle | First Connected | Uptime Contributed | Participation Receipts | Defects Found | Status |
 |---|--------|-----------------|-------------------|----------------------|---------------|--------|
-| 1 | **kamiyama** (Mitarasi) | Oct 4, 2026 | **5.5+ hours (confirmed)** | 16,617+ MSSC rounds (conf=16,616, Confirmed), BLS votes verified, uptime proofs broadcast, aggregate-batch live, PoUW 262,144 MACs (437ms), late-joiner convergence proven, reconnected after anchor restart | **DEF-247 (compound literal), DEF-248 (buffer overflow)** — 2 defects found by his compiler | 🟢 **ACTIVE — 5.5+ hours confirmed, fleet dashboard shows Connected Peers: 2** |
+| 1 | **kamiyama** (Mitarasi) | **Oct 4, 2026 10:30 AM UTC** | **32+ hours total (running since Oct 4, still active)** | 16,617+ MSSC rounds, BLS votes, uptime proofs, aggregate-batch, PoUW 262,144 MACs | DEF-247, DEF-248 | 🟢 **ACTIVE — running since Oct 4, 10:30 AM** |
+| 2 | hamburger_slices | **Oct 5, 2026 10:12 PM UTC** | pending (not started yet) | — | — | 🟡 **INTERESTED — announced, hasn't started yet** |
 
 ## Genesis Infrastructure — Pending Contributors
 
