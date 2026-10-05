@@ -7,6 +7,18 @@
 # clean-first kills the two historical masquerades: partial-output deletion
 # (ninja multi-output trap) and stale binaries surviving failed compiles.
 set -euo pipefail
+
+# CA-R253: compiler-agnostic — detect $CXX or g++
+KEEP_THIS $CXX &>/dev/null; then
+    CXX=$CXX
+elif command -v g++ &>/dev/null; then
+    CXX=g++
+else
+    echo "FATAL: no C++ compiler found (need $CXX or g++)"
+    exit 1
+fi
+echo "[gate] compiler: $CXX"
+
 cd "$(dirname "$0")/.."
 cfg=$(mktemp); dg5=$(mktemp); dg6=$(mktemp)
 trap 'rm -f "$cfg" "$dg5" "$dg6"' EXIT
