@@ -4376,3 +4376,9 @@ Readiness COMPLETE.
 - The fleet dashboard is now publicly accessible: curl http://3.237.91.235:32233/fleet returns live JSON. Anyone can see the fleet size, uptime, heartbeat, and PoUW weight.
 - The complete automation stack: (1) auto-deploy every 5 min, (2) auto-reconnect every 30s, (3) dead-peer sweep every broadcast, (4) watchdog every 60s, (5) cron health probe every 60s, (6) CI every push. The network is self-managing.
 - Law (CA-R253): the deployment pipeline is: git push → cron detects → auto-build → auto-restart → fleet auto-reconnect → dashboard auto-updates. Every step is automated. No SSH. No manual restart. No stale binary. The founder's workflow is: write code, push, done.
+
+## DEF-253 — gate.sh hardcodes clang++: the gate fails on machines without clang
+- Evidence: community member's machine has g++ but not clang++ → gate fails at step 0 with 'clang++: not found'. The gate should work on ANY machine with ANY C++20 compiler.
+- Fix: compiler auto-detection — check clang++ first (preferred for cross-architecture determinism), fall back to g++. Replace all hardcoded clang++ references with .
+- Law (CA-R254): the gate is the project's front door. It must work on every machine that could possibly run the protocol. Hardcoding a specific compiler in the gate is the same class as hardcoding a specific IP in the tools (DEF-231). The gate must be compiler-agnostic.
+- The pattern: DEF-231 (hardcoded IP) → DEF-247 (hardcoded clang) → the same class: assuming YOUR environment is THE environment. Every assumption about the environment must be detected, not hardcoded.
