@@ -4389,3 +4389,9 @@ Readiness COMPLETE.
 - The Genesis Registry tracks OPERATORS (people with handles), not connections. kamiyama = contributor #1. AFE = contributor #2. The founder = the anchor operator.
 - The peer discovery system (0x09) and the dead-peer sweep (DEF-251) work together to keep the connection count honest — but there's a window between a peer dying and the next sweep where the count is inflated.
 - Law (CA-R255): the peers field in /api is a CONNECTION count, not a PARTICIPANT count. For the Genesis Registry, the uptime ledger (g_uptime_ledger) is the authoritative source — it tracks by member_id, not by socket. A peer that disconnects stops sending uptime proofs, and their ledger entry freezes (doesn't grow), which is the correct signal.
+
+## DEC-320 — DEF-255 CONFIRMED: disconnect cleanup works on the wire
+- The receipt: [committee] peer LEFT: weight 30 removed, fleet total=100 — the weight is properly subtracted from the fleet total when a peer leaves. The zombie peer problem is dead.
+- The full disconnect lifecycle: connect → JOIN (weight added) → participate → disconnect → LEFT (weight removed) → total contracted → auto-reconnect → JOIN again → fleet restored. The complete cycle works.
+- The soak can now close cleanly because the peer tracking is correct at every stage: join, participate, disconnect, reconnect.
+- Law (CA-R255 confirmed): the removal path must match the insertion path. What goes in must come out. What gets added must get removed. The fleet self-corrects because the cleanup is symmetric with the setup.
