@@ -8,6 +8,9 @@
 #include <vector>
 #include <cstdio>
 #include <cstdint>
+#include <ctime>
+#include <cstring>
+#include <map>
 
 #ifdef _WIN32
 #include <winsock2.h>
