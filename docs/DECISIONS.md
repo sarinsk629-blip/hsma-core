@@ -4403,3 +4403,11 @@ Readiness COMPLETE.
 - The design: WorkStatus enum (QUEUED→PROCESSING→DONE/FAILED), mutex-protected queue, result map for completed work. Simple, correct, extensible.
 - Law (CA-R262): an async API needs three endpoints minimum: (1) submit, (2) poll, (3) collect. Any service that blocks on computation is a demo. The queue is the simplest async pattern — priority scheduling and multi-node distribution come later.
 - The AI company integration path is now: POST /submit_gemm → get work_id → poll GET /result/{id} → receive verified result. Three HTTP calls. Any language. Any platform.
+
+## DEC-322 — The token economics question: no token now, no exchange listing needed yet
+- The honest assessment: nobody will buy HSMA tokens right now because the network has 3 nodes and no real users. Launching a token now would be the #1 mistake in crypto (pre-utility token launch).
+- The correct model: build the infrastructure first (Phase 6), get real users (Phase 7-8), design the economics (Phase 9), then launch (Phase 10). The token follows the utility, not the other way around.
+- The exchange listing path: DEX first (free, ~0 gas), CEX by demand (free when volume exists). The community creates the volume; exchanges follow the volume.
+- The validator sustainability: epoch rewards (protocol-minted tokens) sustain validators at launch, transitioning to AI compute payments + transaction fees as the network matures. Same model as Bitcoin: block rewards → fees over time.
+- Law (CA-R262): launch the token when there are users who NEED it, not when you want money. A token without utility is a liability, not an asset. The best time to launch a token is when people are asking "how do I get tokens to use this network" — not before.
+- The 92% infrastructure completion is real. The 35-40% production readiness is real. The token is deliberately 0% because launching it now would destroy everything else that was built.
