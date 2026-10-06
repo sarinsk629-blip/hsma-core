@@ -4395,3 +4395,11 @@ Readiness COMPLETE.
 - The full disconnect lifecycle: connect → JOIN (weight added) → participate → disconnect → LEFT (weight removed) → total contracted → auto-reconnect → JOIN again → fleet restored. The complete cycle works.
 - The soak can now close cleanly because the peer tracking is correct at every stage: join, participate, disconnect, reconnect.
 - Law (CA-R255 confirmed): the removal path must match the insertion path. What goes in must come out. What gets added must get removed. The fleet self-corrects because the cleanup is symmetric with the setup.
+
+## DEC-321 — Phase 6.2 CLOSED: async workload queue — submit, poll, collect
+- The receipt: POST /submit_gemm returns work_id instantly (no blocking). GET /result/{work_id} returns the result when processing completes. The submit-poll-collect pattern is live.
+- The API now has: GET /api, GET /fleet, GET /result/{id}, POST /submit_gemm, POST /register_model. Five routes covering the complete AI verification workflow.
+- The processing model: queued work is processed in the main loop pulse gate (one GEMM per tick). The explorer thread only queues and serves results — no heavy computation on the API thread.
+- The design: WorkStatus enum (QUEUED→PROCESSING→DONE/FAILED), mutex-protected queue, result map for completed work. Simple, correct, extensible.
+- Law (CA-R262): an async API needs three endpoints minimum: (1) submit, (2) poll, (3) collect. Any service that blocks on computation is a demo. The queue is the simplest async pattern — priority scheduling and multi-node distribution come later.
+- The AI company integration path is now: POST /submit_gemm → get work_id → poll GET /result/{id} → receive verified result. Three HTTP calls. Any language. Any platform.
