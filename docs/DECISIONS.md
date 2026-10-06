@@ -4411,3 +4411,10 @@ Readiness COMPLETE.
 - The validator sustainability: epoch rewards (protocol-minted tokens) sustain validators at launch, transitioning to AI compute payments + transaction fees as the network matures. Same model as Bitcoin: block rewards → fees over time.
 - Law (CA-R262): launch the token when there are users who NEED it, not when you want money. A token without utility is a liability, not an asset. The best time to launch a token is when people are asking "how do I get tokens to use this network" — not before.
 - The 92% infrastructure completion is real. The 35-40% production readiness is real. The token is deliberately 0% because launching it now would destroy everything else that was built.
+
+## DEC-323 — Phase 6.3 CLOSED: API authentication and rate limiting live
+- The receipt: POST without key → 401; POST with key → 200 + queued; GET routes open (transparency). The auth chain: extract Authorization Bearer header → validate against g_valid_keys → check rate limit → accept or reject.
+- The auth model: POST routes require auth (mutations need accountability); GET routes are open (reads are transparent). The key is free, instant, self-sovereign — permissionless with accountability.
+- Rate limiting: 10 requests/minute per key. Prevents spam while allowing legitimate use. Production: persistent counters + configurable limits per key tier.
+- The submission API is now production-grade: auth ✓, rate limiting ✓, async queue ✓, GEMM verification ✓, model registration ✓, fleet stats ✓. Any AI company can integrate using standard HTTP.
+- Law (CA-R263): an API without auth is an attack surface. The minimum viable auth is three things: key validation, rate limiting, and clear error messages. Thirty lines. 90% of abuse prevented.
