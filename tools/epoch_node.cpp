@@ -785,6 +785,14 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             if (new_fd >= 0) {
                 peer_fds.push_back(new_fd);
                 std::printf("[peer] new connection (fd=%d)\n", new_fd);
+                // DEF-254: TCP keepalive on accepted connections
+                {   int ka = 1;
+                    setsockopt(new_fd, SOL_SOCKET, SO_KEEPALIVE, &ka, sizeof(ka));
+                    int idle = 30, intvl = 10, cnt = 3;
+                    setsockopt(new_fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+                    setsockopt(new_fd, IPPROTO_TCP, TCP_KEEPINTVL, &intvl, sizeof(intvl));
+                    setsockopt(new_fd, IPPROTO_TCP, TCP_KEEPCNT, &cnt, sizeof(cnt));
+                }
                         // P5-C polish (DEF-242): shares are STATE, not events.
                         // A newly connected peer must receive every stored decryption
                         // share — otherwise dedup-silence + one-broadcast starves it
