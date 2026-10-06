@@ -8,45 +8,19 @@
   port: 31234 | k_entries: 10 | epoch: 0
 ═══════════════════════════════════════
 [node] listening on port 31234
-[seed] 3.237.91.235:31233
-[peer] connected to seed
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1135 ms
-[gossip] epoch header sent to 1 peers
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1180 ms
+[gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
   EPOCH 0 COMPLETE — π_E PRODUCED
   decree entries: 10
   verify: ACCEPT
-  peers: 1
+  peers: 0
   entering gossip loop (listening for new decrees)...
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=2
-[voted] member 1 verify=1
-[agg-batch] join: round=0 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 1: pref=B conf=1 kind=1
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=0
-[voted] members=2
-[voted] member 1 verify=1
-[agg-batch] join: round=0 count->2
-[agg] batch of 2 same-pref sigs -> ACCEPT | 1 pairing | 1423.0 ms
-[vote] VERIFIED from member 1 (epoch 0, round 0)
-[mssc] round 2: pref=B conf=2 kind=1
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=1
-[voted] members=2
-[voted] member 1 verify=1
-[agg-batch] join: round=1 count->1
-[vote] VERIFIED from member 1 (epoch 0, round 1)
-[mssc] round 3: pref=B conf=3 kind=1
-[recv] type=6 size=204
-[voted] ok=1 epoch=0 round=2
-[voted] members=2
+[work] work_id 1: VERIFIED (n=64)

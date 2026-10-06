@@ -47,6 +47,23 @@ struct NodeState {
     unsigned long long hb_consensus = 0; // P5-D: consensus heartbeat counter (node-written)
 };
 
+// ---- Phase 6.2: workload queue ----
+enum class WorkStatus : std::uint8_t { QUEUED, PROCESSING, DONE, FAILED };
+struct WorkItem {
+    std::uint64_t id;
+    std::uint64_t n;
+    WorkStatus status;
+    std::uint64_t submitted_at;
+    std::uint64_t completed_at;
+    bool verified;
+    bool operator==(const WorkItem& o) const { return id == o.id; }
+};
+inline std::vector<WorkItem> g_work_queue;
+inline std::map<std::uint64_t, WorkItem> g_work_done;
+inline std::atomic<std::uint64_t> g_next_work_id{1};
+inline std::mutex g_work_mutex;
+
+
 // build the JSON API response
 inline std::string build_json(const NodeState& ns) noexcept {
     char buf[4096];
@@ -176,30 +193,19 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         unsigned n = 64;
         if (np != std::string::npos) n = std::atoi(post_body.c_str() + np + 4);
         if (n == 0 || n > 256) n = 64;
-        std::uint64_t seed = 7919;
-        std::vector<fp::fe> A(n*n), B(n*n), C(n*n);
-        std::uint64_t st = seed;
-        auto rnd = [&st]() -> fp::fe {
-            st ^= st << 13; st ^= st >> 7; st ^= st << 17;
-            return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull);
-        };
-        for (auto& x : A) x = rnd();
-        for (auto& x : B) x = rnd();
-        for (unsigned i = 0; i < n; ++i)
-            for (unsigned j = 0; j < n; ++j) {
-                fp::fe acc = fp::fe_zero();
-                for (unsigned k = 0; k < n; ++k)
-                    acc = fp::fe_add(acc, fp::fe_mul(A[i*n+k], B[k*n+j]));
-                C[i*n+j] = acc;
+                    // Phase 6.2: queue the work
+            std::uint64_t wid = g_next_work_id.fetch_add(1);
+            {
+                std::lock_guard<std::mutex> lk(g_work_mutex);
+                g_work_queue.push_back({wid, (std::uint64_t)64, WorkStatus::QUEUED,
+                    (std::uint64_t)time(nullptr), 0, false});
             }
-        auto PP = pouw::prove_gemm_v2(A, B, C, n, n, n);
-        bool ok = pouw::verify_gemm_v2(PP, A, B, C);
-        char tmp[256];
-        std::snprintf(tmp, sizeof(tmp),
-            "{\"n\":%u,\"macs\":%llu,\"verified\":%s}",
-            n, (unsigned long long)(std::uint64_t)n*n*n, ok ? "true" : "false");
-        body = tmp;
-        content_type = "application/json";
+            char wbuf[128];
+            snprintf(wbuf, sizeof(wbuf),
+                "{\"work_id\":%llu,\"status\":\"queued\",\"n\":64}",
+                (unsigned long long)wid);
+            body = wbuf;
+            content_type = "application/json";
     } else if (method == "POST" && path == "/register_model") {
         auto idp = post_body.find("\"model_id\":");
         if (idp == std::string::npos) {
@@ -218,7 +224,39 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             body = tmp;
             content_type = "application/json";
         }
-    } else if (method == "GET" && path == "/fleet") {
+    } else if (method == "GET" && path.rfind("/result/", 0) == 0) {
+        // Phase 6.2: result lookup
+        std::uint64_t wid = std::strtoull(path.c_str() + 8, nullptr, 10);
+        char rbuf[256];
+        {   std::lock_guard<std::mutex> lk(g_work_mutex);
+            auto it = g_work_done.find(wid);
+            if (it != g_work_done.end()) {
+                std::snprintf(rbuf, sizeof(rbuf),
+                    "{\"work_id\":%llu,\"status\":\"%s\",\"verified\":%s}",
+                    (unsigned long long)wid,
+                    it->second.verified ? "DONE" : "FAILED",
+                    it->second.verified ? "true" : "false");
+                body = rbuf;
+                content_type = "application/json";
+            } else {
+                // check pending queue
+                bool found = false;
+                for (const auto& w : g_work_queue) {
+                    if (w.id == wid) {
+                        std::snprintf(rbuf, sizeof(rbuf),
+                            "{\"work_id\":%llu,\"status\":\"QUEUED\"}", (unsigned long long)wid);
+                        body = rbuf;
+                        content_type = "application/json";
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    body = "{\"error\":\"not found\"}";
+                    content_type = "application/json";
+                }
+            }
+        }    } else if (method == "GET" && path == "/fleet") {
         char tmp[256];
         std::snprintf(tmp, sizeof(tmp),
             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"

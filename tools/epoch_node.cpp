@@ -44,6 +44,12 @@ void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
 #include <chrono>
 
 using namespace hsma;
+using hsma::explorer::WorkStatus;
+using hsma::explorer::WorkItem;
+using hsma::explorer::g_work_queue;
+using hsma::explorer::g_work_done;
+using hsma::explorer::g_next_work_id;
+using hsma::explorer::g_work_mutex;
 
 // the epoch state
 static unsigned current_epoch = 0;
@@ -668,7 +674,48 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 }
                 // P5-D: the main-loop pulse — time-based, NOT peer-gated (a solo node is alive).
                 // DEF-244: the peer-gated heartbeat froze on fresh nodes -> watchdog restart loop.
-                g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
+                g_hb_consensus.fetch_add(1, std::memory_order_relaxed);g_hb_consensus.fetch_add(1, std::memory_order_relaxed);
+
+            // Phase 6.2: process queued work - one GEMM per tick
+            {
+                std::lock_guard<std::mutex> lk(g_work_mutex);
+                for (auto& w : g_work_queue) {
+                    if (w.status == WorkStatus::QUEUED) {
+                        w.status = WorkStatus::PROCESSING;
+                        unsigned gn = (unsigned)w.n;
+                        std::uint64_t gseed = w.id * 7919 + 13;
+                        std::vector<fp::fe> gA(gn*gn), gB(gn*gn), gC(gn*gn);
+                        std::uint64_t gst = gseed;
+                        auto grnd = [&gst]() -> fp::fe {
+                            gst ^= gst << 13; gst ^= gst >> 7; gst ^= gst << 17;
+                            return fp::fe_from_u64(gst * 0x9E3779B97F4A7C15ull);
+                        };
+                        for (auto& x : gA) x = grnd();
+                        for (auto& x : gB) x = grnd();
+                        for (unsigned gi = 0; gi < gn; ++gi)
+                            for (unsigned gj = 0; gj < gn; ++gj) {
+                                fp::fe gacc = fp::fe_zero();
+                                for (unsigned gk = 0; gk < gn; ++gk)
+                                    gacc = fp::fe_add(gacc, fp::fe_mul(gA[gi*gn+gk], gB[gk*gn+gj]));
+                                gC[gi*gn+gj] = gacc;
+                            }
+                        auto GPP = pouw::prove_gemm_v2(gA, gB, gC, gn, gn, gn);
+                        bool gvok = pouw::verify_gemm_v2(GPP, gA, gB, gC);
+                        w.status = gvok ? WorkStatus::DONE : WorkStatus::FAILED;
+                        w.verified = gvok;
+                        w.completed_at = (std::uint64_t)time(nullptr);
+                        g_work_done[w.id] = w;
+                        g_work_queue.erase(std::remove_if(g_work_queue.begin(),
+                            g_work_queue.end(),
+                            [&w](const WorkItem& item) { return item.id == w.id; }),
+                            g_work_queue.end());
+                        printf("[work] work_id %llu: %s (n=%u)\n",
+                            (unsigned long long)w.id,
+                            gvok ? "VERIFIED" : "FAILED", gn);
+                        break;
+                    }
+                }
+            }
                 g_ns_shared.uptime_s = (unsigned long long)std::chrono::duration_cast<std::chrono::seconds>(now - g_boot).count();
                 g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
                 // Gate-3: uptime proof broadcast — every 300 ticks (5 minutes), if peers exist
