@@ -11,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1180 ms
+[pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1183 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -23,4 +23,3 @@
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
-[work] work_id 1: VERIFIED (n=64)

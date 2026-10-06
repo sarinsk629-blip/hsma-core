@@ -63,6 +63,25 @@ inline std::map<std::uint64_t, WorkItem> g_work_done;
 inline std::atomic<std::uint64_t> g_next_work_id{1};
 inline std::mutex g_work_mutex;
 
+// ---- Phase 6.3: API authentication ----
+inline std::map<std::string, bool> g_valid_keys;  // key -> active
+inline std::map<std::string, std::uint64_t> g_rate_limit;  // key -> request count
+inline std::chrono::steady_clock::time_point g_rate_window_start;
+static constexpr unsigned RATE_LIMIT_PER_MIN = 10;
+
+inline bool validate_api_key(const std::string& key) {
+    auto it = g_valid_keys.find(key);
+    return it != g_valid_keys.end() && it->second;
+}
+inline bool check_rate_limit(const std::string& key) {
+    auto now = std::chrono::steady_clock::now();
+    auto it = g_rate_limit.find(key);
+    if (it == g_rate_limit.end()) { g_rate_limit[key] = 1; return true; }
+    if (it->second >= RATE_LIMIT_PER_MIN) return false;
+    it->second++;
+    return true;
+}
+
 
 // build the JSON API response
 inline std::string build_json(const NodeState& ns) noexcept {
@@ -167,6 +186,9 @@ Workload queue · Model inference · Result verification · Payment integration
 
 // serve one HTTP request (blocking)
 inline void serve_request(int fd, const NodeState& ns) noexcept {
+    // Phase 6.3: seed the founder's testnet key (idempotent)
+    g_valid_keys["hsma_founder_testnet_key"] = true;
+
     char req[4096] = {};
     ssize_t rlen = recv(fd, req, sizeof(req) - 1, 0);
     if (rlen <= 0) { close(fd); return; }   // recv failed or connection closed
@@ -187,7 +209,38 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         if (bp) post_body = std::string(bp + 4);
     }
     std::string body, content_type;
-    // ── POST routes (Phase 6.1: the submission API) ──
+
+    // Phase 6.3: extract Authorization header
+    std::string auth_key;
+    {   auto auth_hdr = std::strstr(req, "Authorization: Bearer ");
+        if (auth_hdr) {
+            const char* astart = auth_hdr + strlen("Authorization: Bearer ");
+            const char* aend = std::strstr(astart, "\r\n");
+            if (aend) auth_key.assign(astart, aend - astart);
+        }
+    }
+
+    // Phase 6.3: auth check for POST routes
+    if (method == "POST") {
+        if (auth_key.empty() || !validate_api_key(auth_key)) {
+            std::string err = "{\"error\":\"invalid API key\"}";
+            std::string err_resp = "HTTP/1.1 401 Unauthorized\r\nContent-Type: application/json\r\nContent-Length: "
+                + std::to_string(err.size()) + "\r\nConnection: close\r\n\r\n" + err;
+            send(fd, err_resp.c_str(), err_resp.size(), 0);
+            close(fd);
+            return;
+        }
+        if (!check_rate_limit(auth_key)) {
+            std::string err2 = "{\"error\":\"rate limit exceeded\"}";
+            std::string err_resp2 = "HTTP/1.1 429 Too Many Requests\r\nContent-Type: application/json\r\nContent-Length: "
+                + std::to_string(err2.size()) + "\r\nConnection: close\r\n\r\n" + err2;
+            send(fd, err_resp2.c_str(), err_resp2.size(), 0);
+            close(fd);
+            return;
+        }
+    }
+
+    // ── POST routes (Phase 6.1: the submission API) ── (Phase 6.1: the submission API) ──
     if (method == "POST" && path == "/submit_gemm") {
         auto np = post_body.find("\"n\":");
         unsigned n = 64;
