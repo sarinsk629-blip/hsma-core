@@ -211,6 +211,7 @@ static std::uint32_t g_hash[4] = {0,0,0,0}; // P2-10a (DEFECT-190 fix): last com
 
 // peer connections
 static std::vector<int> peer_fds;
+static std::map<int, std::uint64_t> g_fd_weights; // DEF-255: fd → weight
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -760,6 +761,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         // layer is bound to real bonds (P5-E production).
                         {   std::uint64_t default_w = 30;  // testnet default peer weight
                             g_mssc.peers.push_back({0, (std::uint16_t)new_fd, default_w});  // ip=0: discovered via 0x09
+                            g_fd_weights[new_fd] = default_w;
                             g_mssc.total_weight += default_w;
                             std::printf("[committee] peer JOINED: fd=%d weight=%llu, fleet total=%llu\n",
                                 new_fd, (unsigned long long)default_w, (unsigned long long)g_mssc.total_weight);
@@ -1200,17 +1202,21 @@ else
                         p2p::send_message(peer_fds[i], pong);
                     }
                 } else {
-                    // Gate-3: remove from MSSC peers on disconnect
-                            {   std::uint64_t lost_w = 0;
-                                for (auto pit = g_mssc.peers.begin(); pit != g_mssc.peers.end(); ++pit)
-                                    if (pit->port == peer_fds[i]) { lost_w = pit->weight; g_mssc.peers.erase(pit); break; }
-                                if (lost_w > 0) { g_mssc.total_weight -= lost_w;
-                                    std::printf("[committee] peer LEFT: weight %llu removed, fleet total=%llu\n",
-                                        (unsigned long long)lost_w, (unsigned long long)g_mssc.total_weight); }
-                            }
-                            close(peer_fds[i]);
+                    // DEF-255: proper disconnect — look up weight by fd, clean all structures
+                    std::uint64_t lost_w = 0;
+                    auto fw = g_fd_weights.find(peer_fds[i]);
+                    if (fw != g_fd_weights.end()) {
+                        lost_w = fw->second;
+                        g_fd_weights.erase(fw);
+                        g_mssc.total_weight -= lost_w;
+                        if (g_mssc.total_weight < g_mssc.self_weight)
+                            g_mssc.total_weight = g_mssc.self_weight;
+                    }
+                    close(peer_fds[i]);
                     peer_fds.erase(peer_fds.begin() + i);
                     --i;
+                    std::printf("[committee] peer LEFT: weight %llu removed, fleet total=%llu\n",
+                        (unsigned long long)lost_w, (unsigned long long)g_mssc.total_weight);
                 }
             }
         }
