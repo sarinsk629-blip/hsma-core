@@ -36,6 +36,7 @@
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #ifndef MSG_NOSIGNAL
@@ -191,6 +192,15 @@ inline int connect_peer(std::uint32_t ip, std::uint16_t port) noexcept {
     addr.sin_addr.s_addr = htonl(ip);
     addr.sin_port = htons(port);
     if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) { close(fd); return -1; }
+    // CA-R254: TCP keepalive — WSL2/NAT can silently drop connections.
+    // Without keepalive, the node hangs on a dead socket forever.
+    int keepalive = 1;
+    setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive));
+    // Start probing after 30s of silence, then every 10s
+    int idle = 30, interval = 10, count = 3;
+    setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
+    setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+    setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
     return fd;
 }
 

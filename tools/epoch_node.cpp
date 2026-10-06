@@ -76,6 +76,7 @@ static threshold::Fr g_env_secret;   // P4-3b: the poly secret for the envelope 
 static std::chrono::steady_clock::time_point g_last_tick;
 // ---- P5-D (DEF-226 closure): component liveness ----
 static std::atomic<std::uint64_t> g_hb_consensus{0};
+static std::atomic<bool> g_fleet_active{false};   // true when peer_fds is non-empty
 // ---- P5-E: economic enforcement on the vote path ----
 static econ::Params g_stake_params{};
 static econ::StakeRegistry g_stake_reg(g_stake_params);
@@ -181,7 +182,7 @@ static void hb_watchdog() {
             }
             last_expl_hb = g_ns_shared.explorer_hb;
         }
-                if (g_hb_consensus.load(std::memory_order_relaxed) == c0) {
+                if (g_fleet_active.load() && g_hb_consensus.load(std::memory_order_relaxed) == c0) {
             std::fprintf(stderr, "[watchdog] consensus heartbeat stalled >60s - _Exit(1), supervisor restarts\n");
             std::fflush(stderr);
             std::_Exit(1);
@@ -643,7 +644,8 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             auto now = std::chrono::steady_clock::now();
             if (std::chrono::duration<double>(now - g_last_tick).count() >= 1.0) {
                 g_last_tick = now;
-                g_ns_shared.peer_count = peer_fds.size(); // P5-D: live fleet size
+                g_ns_shared.peer_count = peer_fds.size();
+    g_fleet_active.store(!peer_fds.empty()); // P5-D: live fleet size
                 // Gate-3: auto-reconnect — if we have no peers but have a seed
                 // address, reconnect every 30 seconds. The fleet self-heals.
                 static unsigned reconnect_timer = 0;
