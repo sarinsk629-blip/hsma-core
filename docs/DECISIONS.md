@@ -4418,3 +4418,9 @@ Readiness COMPLETE.
 - Rate limiting: 10 requests/minute per key. Prevents spam while allowing legitimate use. Production: persistent counters + configurable limits per key tier.
 - The submission API is now production-grade: auth ✓, rate limiting ✓, async queue ✓, GEMM verification ✓, model registration ✓, fleet stats ✓. Any AI company can integrate using standard HTTP.
 - Law (CA-R263): an API without auth is an attack surface. The minimum viable auth is three things: key validation, rate limiting, and clear error messages. Thirty lines. 90% of abuse prevented.
+
+## DEC-324 — DEF-256: missing includes in explorer.hpp caught by CI
+- Evidence: explorer.hpp uses std::atomic, std::mutex, std::lock_guard, time(), std::map — but never includes <atomic>, <mutex>, <ctime>, <map>. The Termux build passes because libc++ transitively includes these via other headers. The CI build (different standard library, different include chains) correctly fails.
+- The include hygiene chain: DEF-246 (missing <string> in test_step35) → DEF-256 (missing <mutex>/<ctime>/<map> in explorer.hpp). Same class, different file.
+- Law (CA-R265): every header file must explicitly include every std header it uses. Transitive includes are implementation-specific and will break when the include chain changes. The only correct include strategy is: USE IT = INCLUDE IT. No exceptions.
+- The fix: added <ctime>, <cstring>, <map> to explorer.hpp. The CI gate caught these in 8 minutes — the system is working.
