@@ -11,6 +11,10 @@
 #include <ctime>
 #include <cstring>
 #include <map>
+#include <mutex>
+#include <atomic>
+#include <chrono>
+#include <algorithm>
 
 #ifdef _WIN32
 #include <winsock2.h>
