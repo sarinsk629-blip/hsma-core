@@ -204,7 +204,7 @@ inline int connect_peer(std::uint32_t ip, std::uint16_t port) noexcept {
     // DEF-260: receive timeout — prevents recv from blocking forever
     // when a peer sends partial data then dies mid-transmission
     struct timeval rcv_tv{};
-    rcv_tv.tv_sec = 30;
+    rcv_tv.tv_sec = 5;
     rcv_tv.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &rcv_tv, sizeof(rcv_tv));
     return fd;
