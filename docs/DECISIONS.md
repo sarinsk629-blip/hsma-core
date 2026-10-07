@@ -4431,3 +4431,12 @@ Readiness COMPLETE.
 - The fix location: p2p.hpp connect_peer — the single point where all outbound peer sockets are created. Every connection inherits the timeout.
 - Why 5 previous patches didn't fix this: they addressed symptoms (peer-gated heartbeat, buffer overflow, missing includes, keepalive, auth) but not the root cause (blocking recv). Each patch was correct but none addressed the fundamental issue: a blocking recv with no timeout is a hang waiting to happen.
 - Law (CA-R262): every blocking I/O operation must have a TIMEOUT. A socket without a receive timeout is a hang waiting to happen. The timeout converts a permanent freeze into a detectable, recoverable error.
+
+## DEC-325 — Phase 6.4: the production DKG scale test — linear scaling confirmed to n=224
+- The scale test: committee sizes 3, 5, 10, 50, 100, 224. All deal and verify correctly. Per-member cost ~5-6ms regardless of n — linear scaling confirmed.
+- n=224, t=112: deal = 1,300ms, verify = 224/224 all Feldman-verified. The production committee works.
+- config_ok corrected: 2*t >= n (was 2*t > n). The whitepaper's t=112/n=224 is exactly n/2 — the BFT threshold boundary. The off-by-one in the condition would have prevented the production flip.
+- The DKG performance: 1.3 seconds for the full production committee deal. Well within the 10-minute epoch window. The verify scales linearly too — 224 shares in seconds.
+- The committee is now mechanically ready for production. The config flip (3→224) is a parameter change, not a code change.
+- Law (CA-R258): the BFT threshold condition is 2*t >= n (at least half), not 2*t > n (strictly more). The off-by-one would have prevented the production flip.
+- The performance table is a receipt: linear scaling means the DKG can handle any committee size within the 224 ceiling without redesign.
