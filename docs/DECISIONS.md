@@ -4424,3 +4424,10 @@ Readiness COMPLETE.
 - The include hygiene chain: DEF-246 (missing <string> in test_step35) → DEF-256 (missing <mutex>/<ctime>/<map> in explorer.hpp). Same class, different file.
 - Law (CA-R265): every header file must explicitly include every std header it uses. Transitive includes are implementation-specific and will break when the include chain changes. The only correct include strategy is: USE IT = INCLUDE IT. No exceptions.
 - The fix: added <ctime>, <cstring>, <map> to explorer.hpp. The CI gate caught these in 8 minutes — the system is working.
+
+## DEF-260 — SO_RCVTIMEO on connect_peer: the root cause of every heartbeat freeze
+- The evidence chain: (1) the watchdog fires when the heartbeat stops, (2) the heartbeat stops when the main loop stalls, (3) the main loop stalls inside recv_message(), (4) recv_message blocks on recv() waiting for a complete message from a peer that died mid-transmission, (5) TCP doesn't timeout by default — recv waits for hours.
+- The fix: SO_RCVTIMEO(30s) on every peer socket. recv returns after 30s instead of blocking forever. The main loop continues. Dead peers are detected and cleaned up.
+- The fix location: p2p.hpp connect_peer — the single point where all outbound peer sockets are created. Every connection inherits the timeout.
+- Why 5 previous patches didn't fix this: they addressed symptoms (peer-gated heartbeat, buffer overflow, missing includes, keepalive, auth) but not the root cause (blocking recv). Each patch was correct but none addressed the fundamental issue: a blocking recv with no timeout is a hang waiting to happen.
+- Law (CA-R262): every blocking I/O operation must have a TIMEOUT. A socket without a receive timeout is a hang waiting to happen. The timeout converts a permanent freeze into a detectable, recoverable error.
