@@ -201,6 +201,12 @@ inline int connect_peer(std::uint32_t ip, std::uint16_t port) noexcept {
     setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle, sizeof(idle));
     setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
     setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
+    // DEF-260: receive timeout — prevents recv from blocking forever
+    // when a peer sends partial data then dies mid-transmission
+    struct timeval rcv_tv{};
+    rcv_tv.tv_sec = 30;
+    rcv_tv.tv_usec = 0;
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &rcv_tv, sizeof(rcv_tv));
     return fd;
 }
 
