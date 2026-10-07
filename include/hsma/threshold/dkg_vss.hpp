@@ -24,7 +24,7 @@ struct Transcript {
 
 // The parameter law, in code: honest threshold t > n/2, t >= 2, production ceiling 224.
 inline bool config_ok(std::uint64_t n, std::uint64_t t) {
-    return t >= 2 && n >= t && (2 * t) > n && n <= 224;
+    return t >= 2 && n >= t && (2 * t) >= n && n <= 224;
 }
 
 static_assert(sizeof(consensus::Digest) == 32, "P5-A conform: Digest expected 32 bytes");

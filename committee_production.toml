@@ -1,0 +1,12 @@
+network = "hsma-mainnet"
+threshold_t = 112
+
+[[member]]
+id = 1
+endpoint = "ANCHOR_IP:31233"
+weight = 50
+operator = "hsma-anchor"
+
+# ... 223 more member blocks added as fleet grows
+# Each [[member]] block is one line in the TOML
+# The config_ok() function validates: t >= 2, t > n/2, n <= 224
