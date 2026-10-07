@@ -783,6 +783,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             socklen_t len = sizeof(addr);
             int new_fd = accept(listener, (struct sockaddr*)&addr, &len);
             if (new_fd >= 0) {
+                {   struct timeval atv{.tv_sec = 5, .tv_usec = 0}; setsockopt(new_fd, SOL_SOCKET, SO_RCVTIMEO, &atv, sizeof(atv)); }
                 peer_fds.push_back(new_fd);
                 std::printf("[peer] new connection (fd=%d)\n", new_fd);
                 // DEF-254: TCP keepalive on accepted connections
