@@ -208,6 +208,10 @@ inline int connect_peer(std::uint32_t ip, std::uint16_t port) noexcept {
     rcv_tv.tv_sec = 5;
     rcv_tv.tv_usec = 0;
     setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &rcv_tv, sizeof(rcv_tv));
+    // DEF-263: send timeout — prevents send from blocking forever
+    // when the peer's receive buffer is full
+    struct timeval snd_tv{.tv_sec = 5, .tv_usec = 0};
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &snd_tv, sizeof(snd_tv));
     return fd;
 }
 
