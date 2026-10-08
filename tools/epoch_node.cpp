@@ -759,7 +759,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                     auto rr = msscloop::tick(g_mssc, g_cfg, pp);
                     auto tick_t1 = std::chrono::steady_clock::now();
                     auto tick_ms = std::chrono::duration_cast<std::chrono::milliseconds>(tick_t1 - tick_t0).count();
-                    if (tick_ms.count() > 100) {
+                    if (tick_ms > 100) {
                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
                     }
                     // P5-E: adversarial bound at every tally — f >= 20% HALTs
@@ -787,7 +787,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         auto sel_t1 = std::chrono::steady_clock::now();
         auto sel_ms = std::chrono::duration_cast<std::chrono::milliseconds>(sel_t1 - sel_t0).count();
         if (ready < 0) { std::printf("[DIAG] select ERROR errno=%d\n", errno); break; }
-        if (sel_ms.count() > 2000) {
+        if (sel_ms > 2000) {
             std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
         }
         
@@ -856,7 +856,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 bool recv_ok = p2p::recv_message(peer_fds[i], msg);
                 auto recv_t1 = std::chrono::steady_clock::now();
                 auto recv_ms = std::chrono::duration_cast<std::chrono::milliseconds>(recv_t1 - recv_t0).count();
-                if (recv_ms.count() > 1000) {
+                if (recv_ms > 1000) {
                     std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
                 }
                 if (recv_ok) {
