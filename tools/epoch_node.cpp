@@ -252,7 +252,7 @@ static void run_epoch_pouw() {
         pouw_weight = vok ? pouw::weight(N, 1) : 0;
         auto t1 = std::chrono::steady_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-        std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
+        std::fprintf(stderr, "[pouw-timing]"); std::printf("[pouw] epoch %u: %u^3 GEMM self-verify %s | weight %llu MACs | %.0f ms\n",
             current_epoch, N, pouw_verify, (unsigned long long)pouw_weight, ms);
     }
 
@@ -309,6 +309,7 @@ static bool seen_or_add(const std::vector<std::uint8_t>& p) {
 }
 
 static void handle_decree(const std::vector<std::uint8_t>& payload) {
+    auto decree_t0 = std::chrono::steady_clock::now();
     // P2-08: DEFECT-170 - a re-received decree would DOUBLE-FOLD into the
     // accumulator. Fingerprint dedup, safe direction.
     if (seen_or_add(payload)) { std::printf("[decree] duplicate entry - skipped\n"); return; }
@@ -754,7 +755,13 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 if (!g_peer_prefs.empty()) {
                     std::vector<consensus::Digest> pp;
                     for (const auto& [id, pref] : g_peer_prefs) pp.push_back(pref);
+                                        auto tick_t0 = std::chrono::steady_clock::now();
                     auto rr = msscloop::tick(g_mssc, g_cfg, pp);
+                    auto tick_t1 = std::chrono::steady_clock::now();
+                    auto tick_ms = std::chrono::duration<double, std::milli>(tick_t1 - tick_t0).count();
+                    if (tick_ms > 100) {
+                        std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
+                    }
                     // P5-E: adversarial bound at every tally — f >= 20% HALTs
                     {
                         std::uint64_t adv_w = 0;
@@ -775,8 +782,14 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         
+        auto sel_t0 = std::chrono::steady_clock::now();
         int ready = select(max_fd + 1, &read_set, nullptr, nullptr, &tv);
-        if (ready < 0) break;
+        auto sel_t1 = std::chrono::steady_clock::now();
+        auto sel_ms = std::chrono::duration<double, std::milli>(sel_t1 - sel_t0).count();
+        if (ready < 0) { std::printf("[DIAG] select ERROR errno=%d\n", errno); break; }
+        if (sel_ms > 2000) {
+            std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
+        }
         
         if (FD_ISSET(listener, &read_set)) {
             struct sockaddr_in addr{};
@@ -839,7 +852,14 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         for (std::size_t i = 0; i < peer_fds.size(); ++i) {
             if (FD_ISSET(peer_fds[i], &read_set)) {
                 p2p::Message msg;
-                if (p2p::recv_message(peer_fds[i], msg)) {
+                auto recv_t0 = std::chrono::steady_clock::now();
+                bool recv_ok = p2p::recv_message(peer_fds[i], msg);
+                auto recv_t1 = std::chrono::steady_clock::now();
+                auto recv_ms = std::chrono::duration<double, std::milli>(recv_t1 - recv_t0).count();
+                if (recv_ms > 1000) {
+                    std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
+                }
+                if (recv_ok) {
                         std::printf("[recv] type=%u size=%zu\n", msg.type, msg.payload.size());
                     if (msg.type == 0x0A) {
                         // Gate-3: UPTIME_PROOF — signed heartbeat receipt
