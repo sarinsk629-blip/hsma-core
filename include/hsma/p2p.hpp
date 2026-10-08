@@ -29,6 +29,7 @@
 #include <vector>
 #include <string>
 #include <cstdio>
+#include <chrono>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -224,6 +225,7 @@ inline bool send_message(int fd, const Message& msg) noexcept {
 
 // receive a complete message on a socket (blocking)
 inline bool recv_message(int fd, Message& msg) noexcept {
+    auto t0 = std::chrono::steady_clock::now();
     std::vector<std::uint8_t> header(HEADER_LEN);
     std::size_t got = 0;
     while (got < HEADER_LEN) {
@@ -231,16 +233,28 @@ inline bool recv_message(int fd, Message& msg) noexcept {
         if (n <= 0) return false;
         got += n;
     }
+    auto t1 = std::chrono::steady_clock::now();
+    auto header_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+    if (header_ms > 1000) {
+        std::fprintf(stderr, "[DIAG] recv_message header blocked %.1f ms (fd=%d)\n", header_ms, fd);
+    }
     if (std::memcmp(header.data(), MAGIC, MAGIC_LEN) != 0) return false;
     msg.type = header[MAGIC_LEN];
     std::uint32_t payload_len = get_u32(header.data() + MAGIC_LEN + 1);
     if (payload_len > MAX_PAYLOAD) return false;
     msg.payload.resize(payload_len);
     got = 0;
+    auto t2 = std::chrono::steady_clock::now();
     while (got < payload_len) {
         auto n = recv(fd, msg.payload.data() + got, payload_len - got, 0);
         if (n <= 0) return false;
         got += n;
+    }
+    auto t3 = std::chrono::steady_clock::now();
+    auto payload_ms = std::chrono::duration<double, std::milli>(t3 - t2).count();
+    if (payload_ms > 1000) {
+        std::fprintf(stderr, "[DIAG] recv_message payload blocked %.1f ms (fd=%d payload_len=%zu)\n", 
+            payload_ms, fd, payload_len);
     }
     return true;
 }
