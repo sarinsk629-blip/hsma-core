@@ -4440,3 +4440,10 @@ Readiness COMPLETE.
 - The committee is now mechanically ready for production. The config flip (3→224) is a parameter change, not a code change.
 - Law (CA-R258): the BFT threshold condition is 2*t >= n (at least half), not 2*t > n (strictly more). The off-by-one would have prevented the production flip.
 - The performance table is a receipt: linear scaling means the DKG can handle any committee size within the 224 ceiling without redesign.
+## DEC-$NEXT — the freeze hunt CLOSED: diagnostic merged to main; the anchor's 41h clean run is the receipt
+- The evidence: the AWS journal shows ZERO crashes in 48h — no "Main process exited", no signals, no OOM (dmesg clean), no watchdog fires. The Oct 9 Stop/Start pairs (11:19, 13:38) are manual restarts (NRestarts=0) — our own deploy commands, not crashes. The "uptime reset" skysmile spotted was a restart, not a death.
+- The 41-hour anchor run (Oct 7 18:26 → Oct 9 11:19) with zero watchdog fires is the longest stable run in project history — on the DEF-260/261 timeout stack. Combined with kamiyama's and AFE's stable runs, the freeze class (blocking I/O without timeouts: DEF-254/259/260/261/263) is dead.
+- DEF-267 registered: 203/EXEC — the Sep 28 journal shows systemd failing to spawn a missing binary during an old deploy. The deploy layer CAN kill the fleet when a restart lands mid-build. Fix drafted: atomic deploy (build to .new → mv → restart). Next session.
+- The merge: diagnostic/freeze-hunt (instrumentation + DEF-263 SO_SNDTIMEO) merged to main. The DIAG-SLOW instruments are now PERMANENT production telemetry — integer-only (DEC-090 clean), silent in the healthy case, and they name any future blocking call with its exact duration.
+- Open anomaly: the anchor logs "[voted] member 1 verify=0" repeatedly — one fleet member's votes consistently fail verification (likely an old binary). All members must pull main and rebuild.
+- Law (CA-R271): diagnostic instruments that earn their keep during an incident become permanent telemetry when they are silent in the healthy case. Observability that only speaks when something is wrong IS production code.
