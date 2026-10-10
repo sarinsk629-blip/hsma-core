@@ -47,16 +47,6 @@ if(CMAKE_CUDA_COMPILER)
   enable_language(CUDA)
   add_compile_definitions(HSMA_CUDA=1)
   message(STATUS "[gpu] CUDA toolchain found - GPU GEMM backend enabled")
-  if(EXISTS "${CMAKE_SOURCE_DIR}/gpu/gemm_pallas.cu")
-    target_sources(epoch_node PRIVATE gpu/gemm_pallas.cu)
-    set_target_properties(epoch_node PROPERTIES CUDA_ARCHITECTURES "75;86;89;120")
-    add_executable(test_step40 conformance/test_step40_gpu_cross.cpp)
-    target_sources(test_step40 PRIVATE gpu/gemm_pallas.cu)
-    set_target_properties(test_step40 PROPERTIES CUDA_ARCHITECTURES "75;86;89;120")
-    message(STATUS "[gpu] gemm_pallas.cu attached to epoch_node")
-  else()
-    message(STATUS "[gpu] kernel file not yet present - CPU fallback compiles")
-  endif()
 else()
   message(STATUS "[gpu] no CUDA toolchain - CPU GEMM backend (reference)")
 endif()
@@ -324,3 +314,20 @@ target_include_directories(votecast PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMA
 
 add_executable(envfaucet tools/envfaucet.cpp)
 target_include_directories(envfaucet PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/generated")
+
+# ---- Phase 6.5: GPU attachment (DEF-268: AFTER all targets are defined) ----
+# CMake target_sources/set_target_properties require the target to exist at
+# command time. epoch_node is defined below the check_language block, so the
+# attachment must happen here, at end-of-file.
+add_executable(test_step40 conformance/test_step40_gpu_cross.cpp)
+if(CMAKE_CUDA_COMPILER AND EXISTS "${CMAKE_SOURCE_DIR}/gpu/gemm_pallas.cu")
+  if(TARGET epoch_node)
+    target_sources(epoch_node PRIVATE gpu/gemm_pallas.cu)
+    set_target_properties(epoch_node PROPERTIES CUDA_ARCHITECTURES "75;86;89;120" CUDA_STANDARD 17)
+  endif()
+  if(TARGET test_step40)
+    target_sources(test_step40 PRIVATE gpu/gemm_pallas.cu)
+    set_target_properties(test_step40 PROPERTIES CUDA_ARCHITECTURES "75;86;89;120" CUDA_STANDARD 17)
+  endif()
+  message(STATUS "[gpu] kernel attached: epoch_node + test_step40")
+endif()

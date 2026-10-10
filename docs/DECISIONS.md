@@ -4459,3 +4459,9 @@ Readiness COMPLETE.
 - Fixed: a latent CMake escape bug (${CMAKE_SOURCE_DIR} written as \${...} by an earlier patch — EXISTS tested a literal path forever).
 - Honest status: the .cu cannot be compiled on the phone (no nvcc). It is hand-verified against the fe.hpp bodies line-by-line; the COMPILE + test_step40 PASS must come from a CUDA machine (CI has no GPU; Olden's 5080 / kamiyama's desktop are the designated verifiers).
 - Law (CA-R276): hardware backends ship with their verification test in the same commit. A kernel without a bit-identity gate is a trust assumption, not an optimization.
+## DEF-$NEXT — DEF-268: GPU attachment ran before the epoch_node target existed
+- Evidence: every CUDA-enabled machine (mitarasi: nvcc 13.2.78, skysmile) failed CMake configure with "Cannot specify sources for target epoch_node which is not built by this project", while the phone and CI (no CUDA) passed — the broken branch only executes where a toolchain exists.
+- Root cause: target_sources()/set_target_properties() were placed inside the check_language block (line ~51), but add_executable(epoch_node) is defined much later. CMake requires the target at command time.
+- Fix: the attachment moved to end-of-file (after every target), guarded by CMAKE_CUDA_COMPILER AND EXISTS. test_step40 is now defined UNCONDITIONALLY — CPU-only machines compile it and it SKIPs at runtime, so CI exercises the test binary.
+- Safety note (worth recording): even a buggy GPU kernel cannot corrupt consensus — a wrong C fails verify_gemm_v2 because the sum-check binds every MAC. Work is marked FAILED, never accepted. The bit-identity gate (test_step40) is about making GPU work SUCCEED; the proof system already prevents it from lying.
+- Law (CA-R277): CMake commands that mutate a target must come after the target's definition. Environment-dependent attachment belongs at end-of-file, guarded by both toolchain presence AND file presence.
