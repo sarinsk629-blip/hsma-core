@@ -249,14 +249,20 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
     }
 
     // ── POST routes (Phase 6.1: the submission API) ── (Phase 6.1: the submission API) ──
-    if (n > 64 && !pouw::gpu_available()) {
-            body = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\"}";
-            content_type = "application/json";
-        } else{
+    if (method == "POST" && path == "/submit_gemm") {
         auto np = post_body.find("\"n\":");
         unsigned n = 64;
         if (np != std::string::npos) n = std::atoi(post_body.c_str() + np + 4);
         if (n == 0 || n > 256) n = 64;
+        if (n > 64 && !pouw::gpu_available()) {
+            std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\"}";
+            std::string gr = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                + std::to_string(gb.size()) + "\r\nConnection: close\r\n\r\n" + gb;
+            send(fd, gr.c_str(), gr.size(), 0);
+            close(fd);
+            return;
+        }
+
                     // Phase 6.2: queue the work
             std::uint64_t wid = g_next_work_id.fetch_add(1);
             {
