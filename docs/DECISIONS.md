@@ -4498,3 +4498,7 @@ Readiness COMPLETE.
 - v1 boundaries registered: one table per batch; idx range enforced at quantization (in-circuit range checks = v2); denominator arithmetic as Pallas rows = v2 (full LogUp-in-CCS).
 - Law (CA-R286): when two mechanisms live in different fields, the binding object must be byte-identical on both sides — and position-sensitive. A multiset digest would not catch reordering; a positional one does.
 - Law (CA-R287): a circuit ships with its adversarial cases. An honest-only test decorates; the strong-adversary case (satisfies-but-lying) is the one that proves the binding.
+## DEF-$NEXT — DEF-289 (include hygiene, recurring class): test_step42 used pouw::gemm without including gemm_backend.hpp
+- Evidence: compile failed with 'no member named gemm in namespace hsma::pouw'; the backend lives in gemm_backend.hpp, included by epoch_node.cpp since 6.5 s1 but never by the new test. CA-R265 (use it = include it) fires again — third instance of the class (DEF-256, DEF-269, DEF-289).
+- Note: the gate HELD — nothing was committed on red. The cost of this defect: one turn. The cost without the gate: a broken main, exactly as f315314 was.
+- Law (CA-R265 reaffirmed): new files that consume a symbol include the header that owns it — every time, no exceptions, no transitive reliance.
