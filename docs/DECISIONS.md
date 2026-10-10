@@ -4447,3 +4447,8 @@ Readiness COMPLETE.
 - The merge: diagnostic/freeze-hunt (instrumentation + DEF-263 SO_SNDTIMEO) merged to main. The DIAG-SLOW instruments are now PERMANENT production telemetry — integer-only (DEC-090 clean), silent in the healthy case, and they name any future blocking call with its exact duration.
 - Open anomaly: the anchor logs "[voted] member 1 verify=0" repeatedly — one fleet member's votes consistently fail verification (likely an old binary). All members must pull main and rebuild.
 - Law (CA-R271): diagnostic instruments that earn their keep during an incident become permanent telemetry when they are silent in the healthy case. Observability that only speaks when something is wrong IS production code.
+## DEC-$NEXT — Phase 6.5 s1b: both GEMM loops routed through one backend
+- The first regex assumed loop vars i/j/k; the worker renames everything (gi/gj/gk/gacc/gn, matrices gA/gB/gC). The dump named the second shape; the corrected pattern CAPTURES the variable names instead of assuming them. Both call sites now call pouw::gemm() — one door for all hardware.
+- The fe read (for the CUDA kernel): fp::fe = 4x u64 LE, Montgomery domain, canonical invariant (DEC-105), SOS reduction, MOD/INV/RR from pallas_gen. The kernel needs only MOD+INV (inputs are pre-Montgomery); __umul64hi replaces __int128 for device portability.
+- Receipt: pouw epoch 0 ACCEPT | weight 262144 MACs through the backend — bit-identical to the pre-refactor path.
+- Law (CA-R274): a refactor touching N sites must COUNT N sites before writing — and capture names, not assume them. One is a bug; two is a design.

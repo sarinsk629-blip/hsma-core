@@ -39,6 +39,18 @@ file(MAKE_DIRECTORY ${GEN_DIR})
 
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
+# ---- Phase 6.5: optional CUDA (GPU GEMM backend) ----
+# Never mandatory: the phone and CI build the CPU reference path.
+include(CheckLanguage)
+check_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
+  enable_language(CUDA)
+  add_compile_definitions(HSMA_CUDA=1)
+  message(STATUS "[gpu] CUDA toolchain found - GPU GEMM backend enabled")
+else()
+  message(STATUS "[gpu] no CUDA toolchain - CPU GEMM backend (reference)")
+endif()
+
 set(GEN_OUTPUTS
     ${GEN_DIR}/pallas_params_gen.hpp
     ${GEN_DIR}/vesta_params_gen.hpp

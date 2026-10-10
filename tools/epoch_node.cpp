@@ -12,6 +12,7 @@
 #include <hsma/whir.hpp>
 #include <hsma/explorer.hpp>
 #include <hsma/pouw.hpp>
+#include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
 #include <hsma/m2envelope.hpp>
@@ -239,13 +240,7 @@ static void run_epoch_pouw() {
         std::vector<fp::fe> Am((std::size_t)N*N), Bm((std::size_t)N*N), Cm((std::size_t)N*N);
         for (auto& x : Am) x = rnd();
         for (auto& x : Bm) x = rnd();
-        for (unsigned i = 0; i < N; ++i)
-            for (unsigned j = 0; j < N; ++j) {
-                fp::fe acc = fp::fe_zero();
-                for (unsigned k = 0; k < N; ++k)
-                    acc = fp::fe_add(acc, fp::fe_mul(Am[i*N+k], Bm[k*N+j]));
-                Cm[i*N+j] = acc;
-            }
+        pouw::gemm(Am.data(), Bm.data(), Cm.data(), N);
         pouw::GemmProofV2 PP = pouw::prove_gemm_v2(Am, Bm, Cm, N, N, N);
         const bool vok = pouw::verify_gemm_v2(PP, Am, Bm, Cm);
         pouw_verify = vok ? "ACCEPT" : "REJECT";
@@ -693,13 +688,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         };
                         for (auto& x : gA) x = grnd();
                         for (auto& x : gB) x = grnd();
-                        for (unsigned gi = 0; gi < gn; ++gi)
-                            for (unsigned gj = 0; gj < gn; ++gj) {
-                                fp::fe gacc = fp::fe_zero();
-                                for (unsigned gk = 0; gk < gn; ++gk)
-                                    gacc = fp::fe_add(gacc, fp::fe_mul(gA[gi*gn+gk], gB[gk*gn+gj]));
-                                gC[gi*gn+gj] = gacc;
-                            }
+                        pouw::gemm(gA.data(), gB.data(), gC.data(), gn);
                         auto GPP = pouw::prove_gemm_v2(gA, gB, gC, gn, gn, gn);
                         bool gvok = pouw::verify_gemm_v2(GPP, gA, gB, gC);
                         w.status = gvok ? WorkStatus::DONE : WorkStatus::FAILED;
