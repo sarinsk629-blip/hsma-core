@@ -4480,3 +4480,8 @@ Readiness COMPLETE.
 - The final failure was the TEST HARNESS: the check grepped node.log for the guard's error string, but the early-return guard is client-facing by design (same as 401/429) and writes no log line. Corrected check captures the curl response directly.
 - Four turns on one guard: N270 broke the if-chain head (DEF-271), R271's unbraced else swallowed the wid declaration (DEF-271b), and the verification grepped the wrong artifact. Each caught BEFORE reaching the fleet except the one commit that slipped (f315314) — which is exactly why the raw-exit gate now exists.
 - Law (CA-R283): verify the artifact where the behavior lives. HTTP-level behavior is verified from the client; node-level behavior from the log. A check aimed at the wrong surface fails against correct code.
+## DEF-$NEXT — DEF-272: worker timing added; integer-format warnings closed
+- The fleet receipt: mitarasi's n=256 submission echoed the TRUE n on his GPU machine — DEF-270 proven on hardware; auth + queue fleet-proven in the same curl.
+- The gap: the [work] line carried no timing, so a VERIFIED receipt proves correctness (CA-R273/276) but not speed. The worker now times GEMM+sum-check and prints ms. The p2p.hpp %.1f-vs-integer warnings (DEC-090 legacy) closed in the same commit.
+- Next receipt: mitarasi re-runs n=256 on the new build — [work] ... (n=256, Xms) is the first measured GPU number vs the ~70s CPU equivalent.
+- Law (CA-R284): every performance claim ships with its measurement point built in. A fast path without a printed number is an anecdote.

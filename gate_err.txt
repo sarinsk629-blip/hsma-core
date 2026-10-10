@@ -1,20 +1,3 @@
-In file included from tools/epoch_node.cpp:9:
-include/hsma/p2p.hpp:243:86: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  243 |         std::fprintf(stderr, "[DIAG] recv_message header blocked %.1f ms (fd=%d)\n", header_ms, fd);
-      |                                                                  ~~~~                ^~~~~~~~~
-      |                                                                  %.1lld
-include/hsma/p2p.hpp:261:13: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  260 |         std::fprintf(stderr, "[DIAG] recv_message payload blocked %.1f ms (fd=%d payload_len=%zu)\n", 
-      |                                                                   ~~~~
-      |                                                                   %.1lld
-  261 |             payload_ms, fd, payload_len);
-      |             ^~~~~~~~~~
-include/hsma/p2p.hpp:261:29: warning: format specifies type 'size_t' (aka 'unsigned long') but the argument has type 'std::uint32_t' (aka 'unsigned int') [-Wformat]
-  260 |         std::fprintf(stderr, "[DIAG] recv_message payload blocked %.1f ms (fd=%d payload_len=%zu)\n", 
-      |                                                                                              ~~~
-      |                                                                                              %u
-  261 |             payload_ms, fd, payload_len);
-      |                             ^~~~~~~~~~~
 In file included from tools/epoch_node.cpp:13:
 include/hsma/explorer.hpp:334:13: warning: format specifies type 'unsigned int' but the argument has type 'std::size_t' (aka 'unsigned long') [-Wformat]
   332 |             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
@@ -23,16 +6,16 @@ include/hsma/explorer.hpp:334:13: warning: format specifies type 'unsigned int' 
   333 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
   334 |             ns.peer_count, (unsigned long long)ns.uptime_s,
       |             ^~~~~~~~~~~~~
-tools/epoch_node.cpp:752:89: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  752 |                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
+tools/epoch_node.cpp:755:89: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  755 |                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
       |                                                                             ~~~~        ^~~~~~~
       |                                                                             %.1lld
-tools/epoch_node.cpp:780:91: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  780 |             std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
+tools/epoch_node.cpp:783:91: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  783 |             std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
       |                                                              ~~~~                         ^~~~~~
       |                                                              %.1lld
-tools/epoch_node.cpp:849:96: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  849 |                     std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
+tools/epoch_node.cpp:852:96: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  852 |                     std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
       |                                                                            ~~~~                ^~~~~~~
       |                                                                            %.1lld
-7 warnings generated.
+4 warnings generated.

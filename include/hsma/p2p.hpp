@@ -240,7 +240,7 @@ inline bool recv_message(int fd, Message& msg) noexcept {
     auto t1 = std::chrono::steady_clock::now();
     auto header_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     if (header_ms > 1000) {
-        std::fprintf(stderr, "[DIAG] recv_message header blocked %.1f ms (fd=%d)\n", header_ms, fd);
+        std::fprintf(stderr, "[DIAG] recv_message header blocked %lld ms (fd=%d)\n", header_ms, fd);
     }
     if (std::memcmp(header.data(), MAGIC, MAGIC_LEN) != 0) return false;
     msg.type = header[MAGIC_LEN];
@@ -257,8 +257,8 @@ inline bool recv_message(int fd, Message& msg) noexcept {
     auto t3 = std::chrono::steady_clock::now();
     auto payload_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count();
     if (payload_ms > 1000) {
-        std::fprintf(stderr, "[DIAG] recv_message payload blocked %.1f ms (fd=%d payload_len=%zu)\n", 
-            payload_ms, fd, payload_len);
+        std::fprintf(stderr, "[DIAG] recv_message payload blocked %lld ms (fd=%d payload_len=%u)\n", 
+            payload_ms, fd, (unsigned)payload_len);
     }
     return true;
 }

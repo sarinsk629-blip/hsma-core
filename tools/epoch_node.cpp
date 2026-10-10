@@ -689,6 +689,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         for (auto& x : gA) x = grnd();
                         for (auto& x : gB) x = grnd();
                         pouw::gemm(gA.data(), gB.data(), gC.data(), gn);
+                        const auto wt0 = std::chrono::steady_clock::now();
                         auto GPP = pouw::prove_gemm_v2(gA, gB, gC, gn, gn, gn);
                         bool gvok = pouw::verify_gemm_v2(GPP, gA, gB, gC);
                         w.status = gvok ? WorkStatus::DONE : WorkStatus::FAILED;
@@ -699,9 +700,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             g_work_queue.end(),
                             [&w](const WorkItem& item) { return item.id == w.id; }),
                             g_work_queue.end());
-                        printf("[work] work_id %llu: %s (n=%u)\n",
+                        const auto wt1 = std::chrono::steady_clock::now();
+                        const auto wms = std::chrono::duration_cast<std::chrono::milliseconds>(wt1 - wt0).count();
+                        printf("[work] work_id %llu: %s (n=%u, %lld ms)\n",
                             (unsigned long long)w.id,
-                            gvok ? "VERIFIED" : "FAILED", gn);
+                            gvok ? "VERIFIED" : "FAILED", gn, (long long)wms);
                         break;
                     }
                 }
