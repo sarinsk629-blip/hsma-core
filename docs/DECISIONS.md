@@ -4470,3 +4470,8 @@ Readiness COMPLETE.
 - The layered unmasking: the \${} escape bug had kept the CM40 block dead on every machine; DEF-268 revived the target; the missing includes surfaced one turn later. Defects stacked behind a mask unmask in sequence.
 - Process: two slips owned — (1) $? measured after a pipe (use set -o pipefail now standing), (2) the DEF-268 commit landed past a red gate because the chain was newline-separated. The gate is now an if-block: a red build commits nothing.
 - Law (CA-R278): a target added to a CMake project inherits NOTHING by default — every property the project's convention provides (includes, standard, flags) must be given explicitly, or the target must be added beside its siblings.
+## DEF-$NEXT — DEF-270: the submission route discarded the parsed n (hardcoded 64 in push AND echo)
+- Evidence: skysmile POSTed n=256, got {"n":64}; the read shows the parse (find/atoi/clamp) present but the queue push and HTTP echo both hardcode 64 — dead code above constants.
+- Second finding behind it: 64^3 = 262k MACs ≈ 1.1s phone CPU; 256^3 ≈ 70s — a CPU-only machine computing n>64 would stall its own heartbeat past the 60s watchdog and restart mid-computation. The guard: n>64 submissions require gpu_available(); CPU nodes get a clear 200 error. GPU nodes are the only big-work path — consistent with the weight table.
+- Port decision recorded: hub-and-spoke topology needs port uniqueness per MACHINE, not per operator. Fleet standard: everyone runs 31235/32235 locally; the anchor alone listens as the hub. One node per machine.
+- Law (CA-R280): a parsed parameter must reach the consumer in the same expression chain — parse-then-discard is worse than no parse, because the echo makes the discard look correct.

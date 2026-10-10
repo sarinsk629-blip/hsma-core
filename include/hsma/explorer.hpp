@@ -27,6 +27,7 @@
 
 // P6.1: PoUW + ModelCommit for the submission API routes
 #include <hsma/pouw.hpp>
+#include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/pouw/model_commit.hpp>
 // P6.1: the Pasta field parameters (for fp::fe operations in GEMM submission)
 #include <pallas_params_gen.hpp>
@@ -248,7 +249,10 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
     }
 
     // ── POST routes (Phase 6.1: the submission API) ── (Phase 6.1: the submission API) ──
-    if (method == "POST" && path == "/submit_gemm") {
+    if (n > 64 && !pouw::gpu_available()) {
+            body = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\"}";
+            content_type = "application/json";
+        } else{
         auto np = post_body.find("\"n\":");
         unsigned n = 64;
         if (np != std::string::npos) n = std::atoi(post_body.c_str() + np + 4);
@@ -257,13 +261,13 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             std::uint64_t wid = g_next_work_id.fetch_add(1);
             {
                 std::lock_guard<std::mutex> lk(g_work_mutex);
-                g_work_queue.push_back({wid, (std::uint64_t)64, WorkStatus::QUEUED,
+                g_work_queue.push_back({wid, (std::uint64_t)n, WorkStatus::QUEUED,
                     (std::uint64_t)time(nullptr), 0, false});
             }
             char wbuf[128];
             snprintf(wbuf, sizeof(wbuf),
-                "{\"work_id\":%llu,\"status\":\"queued\",\"n\":64}",
-                (unsigned long long)wid);
+                "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u}",
+                (unsigned long long)wid, n);
             body = wbuf;
             content_type = "application/json";
     } else if (method == "POST" && path == "/register_model") {
