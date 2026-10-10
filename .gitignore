@@ -43,3 +43,7 @@ node*.log
 node_asan.log
 *.log
 *.pre_p5d
+
+# ── session gate logs (never repo artifacts, CA-R281 byproducts) ──
+*_err.txt
+gate_err.txt
