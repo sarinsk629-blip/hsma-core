@@ -320,6 +320,7 @@ target_include_directories(envfaucet PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CM
 # command time. epoch_node is defined below the check_language block, so the
 # attachment must happen here, at end-of-file.
 add_executable(test_step40 conformance/test_step40_gpu_cross.cpp)
+target_include_directories(test_step40 PRIVATE include generated)
 if(CMAKE_CUDA_COMPILER AND EXISTS "${CMAKE_SOURCE_DIR}/gpu/gemm_pallas.cu")
   if(TARGET epoch_node)
     target_sources(epoch_node PRIVATE gpu/gemm_pallas.cu)
