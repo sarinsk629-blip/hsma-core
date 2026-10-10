@@ -25,6 +25,22 @@ inline bool gpu_available() noexcept { return false; }
 inline bool gemm_gpu(const fp::fe*, const fp::fe*, fp::fe*, unsigned) noexcept { return false; }
 #endif
 
+#ifdef HSMA_CUDA
+// CA-R275: the device boundary is a C ABI over raw limbs. gpu/gemm_pallas.cu
+// never includes host-only headers; this header never sees device intrinsics.
+extern "C" int hsma_gpu_probe() noexcept;
+extern "C" int hsma_gemm_pallas(const std::uint64_t* A, const std::uint64_t* B,
+                                std::uint64_t* C, unsigned n,
+                                const std::uint64_t* mod, std::uint64_t inv) noexcept;
+inline bool gpu_available() noexcept { return hsma_gpu_probe() == 1; }
+inline bool gemm_gpu(const fp::fe* A, const fp::fe* B, fp::fe* C, unsigned n) noexcept {
+    return hsma_gemm_pallas(reinterpret_cast<const std::uint64_t*>(A),
+                            reinterpret_cast<const std::uint64_t*>(B),
+                            reinterpret_cast<std::uint64_t*>(C),
+                            n, pallas_gen::MOD.data(), pallas_gen::INV) == 0;
+}
+#endif
+
 // Unified entry: GPU when available and n is large enough to pay the
 // transfer cost, else the CPU reference. Returns true if GPU computed it.
 inline bool gemm(const fp::fe* A, const fp::fe* B, fp::fe* C, unsigned n) noexcept {

@@ -4452,3 +4452,10 @@ Readiness COMPLETE.
 - The fe read (for the CUDA kernel): fp::fe = 4x u64 LE, Montgomery domain, canonical invariant (DEC-105), SOS reduction, MOD/INV/RR from pallas_gen. The kernel needs only MOD+INV (inputs are pre-Montgomery); __umul64hi replaces __int128 for device portability.
 - Receipt: pouw epoch 0 ACCEPT | weight 262144 MACs through the backend — bit-identical to the pre-refactor path.
 - Law (CA-R274): a refactor touching N sites must COUNT N sites before writing — and capture names, not assume them. One is a bug; two is a design.
+## DEC-$NEXT — Phase 6.5 s2: the Pallas CUDA kernel + the determinism gate
+- gpu/gemm_pallas.cu: one thread per C[i][j], device-side SOS Montgomery mul + canonical add mirroring fe.hpp limb-for-limb (__umul64hi + carry chains replace u128; identical semantics in every SOS-reachable state). Inputs pre-Montgomery (DEC-105) — kernel needs MOD+INV only, passed from the same generated header.
+- CA-R275: the device boundary is a C ABI over raw limbs (hsma_gpu_probe / hsma_gemm_pallas). The .cu never includes host-only headers; the host never sees device intrinsics. Any GPU failure returns nonzero -> the backend transparently falls back to the CPU reference.
+- test_step40: same seed -> gemm_cpu vs GPU path -> memcmp==0, then prove/verify sumcheck over the GPU-computed C. THE determinism gate: a GPU result that differs by one limb is a failure, not a speedup.
+- Fixed: a latent CMake escape bug (${CMAKE_SOURCE_DIR} written as \${...} by an earlier patch — EXISTS tested a literal path forever).
+- Honest status: the .cu cannot be compiled on the phone (no nvcc). It is hand-verified against the fe.hpp bodies line-by-line; the COMPILE + test_step40 PASS must come from a CUDA machine (CI has no GPU; Olden's 5080 / kamiyama's desktop are the designated verifiers).
+- Law (CA-R276): hardware backends ship with their verification test in the same commit. A kernel without a bit-identity gate is a trust assumption, not an optimization.
