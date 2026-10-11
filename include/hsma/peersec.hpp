@@ -50,9 +50,17 @@ inline bool peer_banned(std::uint32_t ip) noexcept {
     if (now >= it->second) { bans.erase(it); return false; }
     return true;
 }
-inline void peer_ban(std::uint32_t ip) noexcept {
-    // only via peer_allow(false) -> main loop; map is main-loop-local
-    extern void peer_ban_impl(std::uint32_t);
+// production entry points (map is caller-owned: epoch_node.cpp's g_peer_bans).
+// Self-contained — production must not depend on the test namespace.
+inline bool ip_banned(std::map<std::uint32_t, std::uint64_t>& bans, std::uint32_t ip) noexcept {
+    const std::uint64_t now = now_ms();
+    auto it = bans.find(ip);
+    if (it == bans.end()) return false;
+    if (now >= it->second) { bans.erase(it); return false; }
+    return true;
+}
+inline void ip_ban(std::map<std::uint32_t, std::uint64_t>& bans, std::uint32_t ip) noexcept {
+    bans[ip] = now_ms() + PEER_BAN_SECS * 1000ull;
 }
 
 // ---- in-process test surface (test_step45 drives these directly) ----

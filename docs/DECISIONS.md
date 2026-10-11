@@ -4517,3 +4517,7 @@ Readiness COMPLETE.
 - The increment: peersec.hpp — 20 msg/s per fd (10x healthy-fleet headroom), sliding 1 s window, exceed -> close + 60 s source-IP ban, expiry re-admits. Mirrors the proven API limiter (CA-R263's P2P sibling).
 - test_step45: flood drops exactly at cap (no off-by-one), ban lifecycle (refused mid-window, re-admitted after), honest peers unaffected, boundary proven.
 - Law (CA-R291): every trust boundary carries BOTH an authentication story AND a load story. The API's was 6.3; the P2P boundary's is this.
+## DEF-$NEXT — DEF-293 (CA-R265 sibling, namespace scope): production entry points referenced testutil functions unqualified
+- Evidence: 'use of undeclared identifier ban_check' — ip_banned/ip_ban (in hsma::p2p) called ban_check/ban_set (in hsma::p2p::testutil) without qualification. The gate held: nothing committed.
+- The deeper design flaw: production code depending on a test namespace couples the trust boundary to test scaffolding. The conform makes ip_banned/ip_ban self-contained — the test namespace is optional, a consumer, never a dependency.
+- Law (CA-R293): production entry points are self-contained. Test utilities may call production code; production never calls test code — a boundary the namespace structure should make physically visible.

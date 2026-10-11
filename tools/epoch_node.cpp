@@ -219,7 +219,9 @@ static std::uint32_t g_hash[4] = {0,0,0,0}; // P2-10a (DEFECT-190 fix): last com
 
 // peer connections
 static std::vector<int> peer_fds;
-static std::map<int, std::uint64_t> g_fd_weights; // DEF-255: fd → weight
+static std::map<int, std::uint64_t> g_fd_weights;
+// Phase 6.9: per-peer P2P enforcement — source-IP ban map (accept + recv paths)
+static std::map<std::uint32_t, std::uint64_t> g_peer_bans;  // ip -> banned-until ms // DEF-255: fd → weight
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -788,6 +790,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             struct sockaddr_in addr{};
             socklen_t len = sizeof(addr);
             int new_fd = accept(listener, (struct sockaddr*)&addr, &len);
+            if (new_fd >= 0 && p2p::ip_banned(g_peer_bans, ntohl(addr.sin_addr.s_addr))) {
+                std::printf("[sec] banned peer connection refused (ip=%08x)\n", ntohl(addr.sin_addr.s_addr));
+                close(new_fd);
+                new_fd = -1;   // the existing >= 0 check skips the body — no state created
+            }
             if (new_fd >= 0) {
                 {   struct timeval atv{.tv_sec = 5, .tv_usec = 0}; setsockopt(new_fd, SOL_SOCKET, SO_RCVTIMEO, &atv, sizeof(atv)); }
                 peer_fds.push_back(new_fd);
@@ -844,6 +851,21 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         
         for (std::size_t i = 0; i < peer_fds.size(); ++i) {
             if (FD_ISSET(peer_fds[i], &read_set)) {
+                // Phase 6.9: per-peer rate limit. Exceed -> ban the IP + close;
+                // the close makes recv fail below, and the existing DEF-255
+                // disconnect path performs the FULL cleanup (weight, MSSC, erase).
+                {   struct sockaddr_in pa{}; socklen_t pal = sizeof(pa);
+                    if (!p2p::peer_allow(peer_fds[i])) {
+                        if (getpeername(peer_fds[i], (struct sockaddr*)&pa, &pal) == 0)
+                            p2p::ip_ban(g_peer_bans, ntohl(pa.sin_addr.s_addr));
+                        std::printf("[sec] fd=%d rate exceeded — ip banned, closing\n", peer_fds[i]);
+                        close(peer_fds[i]);
+                    } else if (getpeername(peer_fds[i], (struct sockaddr*)&pa, &pal) == 0
+                               && p2p::ip_banned(g_peer_bans, ntohl(pa.sin_addr.s_addr))) {
+                        std::printf("[sec] fd=%d belongs to a banned ip — closing\n", peer_fds[i]);
+                        close(peer_fds[i]);
+                    }
+                }
                 p2p::Message msg;
                 auto recv_t0 = std::chrono::steady_clock::now();
                 bool recv_ok = p2p::recv_message(peer_fds[i], msg);
