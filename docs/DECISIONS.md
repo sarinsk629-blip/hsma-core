@@ -4502,3 +4502,9 @@ Readiness COMPLETE.
 - Evidence: compile failed with 'no member named gemm in namespace hsma::pouw'; the backend lives in gemm_backend.hpp, included by epoch_node.cpp since 6.5 s1 but never by the new test. CA-R265 (use it = include it) fires again — third instance of the class (DEF-256, DEF-269, DEF-289).
 - Note: the gate HELD — nothing was committed on red. The cost of this defect: one turn. The cost without the gate: a broken main, exactly as f315314 was.
 - Law (CA-R265 reaffirmed): new files that consume a symbol include the header that owns it — every time, no exceptions, no transitive reliance.
+## DEC-$NEXT — Phase 6.6 CLOSED (v1 + e2e): the AI verification stack composes
+- 6/10 of Phase 6 closed (6.1 API, 6.2 queue, 6.3 auth, 6.4 committee scale, 6.5 GPU GEMM, 6.6 activations-in-circuit).
+- The complete receipt stack: test_step41 (activations as CCS rows, digest-bound to LogUp, 4 adversarial classes rejected incl. the strong adversary that SATISFIES) + test_step42 (the e2e forward pass through the REAL multifold: GEMM proof -> integer quantize -> activation rows -> LogUp balanced -> folded SAT; tamper propagates and is rejected by the fold algebra).
+- The whitepaper's central claim is now executable: an AI forward pass is receipted at every layer by one composable proof pipeline.
+- Remaining Phase 6: 6.7 (folding at production k=476), 6.8 (NAT traversal), 6.9 (DoS protection), 6.10 (production soak — gated on the epoch-lifecycle gap being exercised: the fleet has never crossed epoch=0).
+- Law (CA-R289): a verification stack is closed when its layers compose through the REAL drivers — not when its pieces pass in isolation.
