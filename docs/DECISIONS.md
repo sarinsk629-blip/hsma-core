@@ -4508,3 +4508,7 @@ Readiness COMPLETE.
 - The whitepaper's central claim is now executable: an AI forward pass is receipted at every layer by one composable proof pipeline.
 - Remaining Phase 6: 6.7 (folding at production k=476), 6.8 (NAT traversal), 6.9 (DoS protection), 6.10 (production soak — gated on the epoch-lifecycle gap being exercised: the fleet has never crossed epoch=0).
 - Law (CA-R289): a verification stack is closed when its layers compose through the REAL drivers — not when its pieces pass in isolation.
+## DEF-$NEXT — DEF-291 (CA-R265, fourth instance): test_step43 used golden::FX_D0 without including fexec_golden.hpp
+- Evidence: 'no member named FX_D0 in namespace hsma::golden'; the donor (test_step33) includes "fexec_golden.hpp" — the include was dropped when adapting the harness. The gate held: nothing committed on red.
+- The class tally: DEF-256, DEF-269, DEF-289, DEF-291 — every new-file symbol consumed without naming its header. The gate converts each from a broken-main event into a one-turn cost.
+- Law (CA-R265 reaffirmed): when adapting a donor harness, carry its include block — the symbols come from somewhere.
