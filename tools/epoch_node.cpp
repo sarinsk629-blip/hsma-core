@@ -919,6 +919,21 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 g_discovered.push_back({ip, prt});
                                 std::printf("[peers] discovered %u.%u.%u.%u:%u (fleet %zu)\n",
                                     (ip>>24)&255, (ip>>16)&255, (ip>>8)&255, ip&255, prt, g_discovered.size());
+                                // Phase 6.8: announce-dialing — if the announced node is
+                                // publicly reachable, connect DIRECTLY (NAT traversal v1:
+                                // public peers get direct links; NAT'd nodes stay hub-
+                                // connected — full connectivity already exists via the anchor).
+                                if (peer_fds.size() < p2p::MAX_PEERS) {
+                                    int dfd = p2p::connect_peer(ip, prt);
+                                    if (dfd >= 0) {
+                                        peer_fds.push_back(dfd);
+                                        g_fd_weights[dfd] = 30; // DEF-255 symmetry: record by fd
+                                        g_mssc.peers.push_back({ip, prt, 30});
+                                        g_mssc.total_weight += 30;
+                                        std::printf("[peers] dialed announced peer %u.%u.%u.%u:%u (direct link)\n",
+                                            (ip>>24)&255, (ip>>16)&255, (ip>>8)&255, ip&255, prt);
+                                    }
+                                }
                                 // RELAY the announcement to other peers (gossip)
                                 for (int fd : peer_fds) {
                                     if (fd == peer_fds[0]) continue; // dont echo to sender (simplified)
