@@ -6,16 +6,16 @@ include/hsma/explorer.hpp:334:13: warning: format specifies type 'unsigned int' 
   333 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
   334 |             ns.peer_count, (unsigned long long)ns.uptime_s,
       |             ^~~~~~~~~~~~~
-tools/epoch_node.cpp:755:89: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  755 |                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
+tools/epoch_node.cpp:756:89: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  756 |                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);
       |                                                                             ~~~~        ^~~~~~~
       |                                                                             %.1lld
-tools/epoch_node.cpp:783:91: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  783 |             std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
+tools/epoch_node.cpp:784:91: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  784 |             std::fprintf(stderr, "[DIAG-SLOW] select blocked %.1f ms (expected ~1000)\n", sel_ms);
       |                                                              ~~~~                         ^~~~~~
       |                                                              %.1lld
-tools/epoch_node.cpp:852:96: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
-  852 |                     std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
+tools/epoch_node.cpp:853:96: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
+  853 |                     std::fprintf(stderr, "[DIAG-SLOW] recv_message blocked %.1f ms (fd=%d)\n", recv_ms, peer_fds[i]);
       |                                                                            ~~~~                ^~~~~~~
       |                                                                            %.1lld
 4 warnings generated.

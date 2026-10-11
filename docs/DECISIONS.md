@@ -4512,3 +4512,8 @@ Readiness COMPLETE.
 - Evidence: 'no member named FX_D0 in namespace hsma::golden'; the donor (test_step33) includes "fexec_golden.hpp" — the include was dropped when adapting the harness. The gate held: nothing committed on red.
 - The class tally: DEF-256, DEF-269, DEF-289, DEF-291 — every new-file symbol consumed without naming its header. The gate converts each from a broken-main event into a one-turn cost.
 - Law (CA-R265 reaffirmed): when adapting a donor harness, carry its include block — the symbols come from somewhere.
+## DEC-$NEXT — Phase 6.9 CLOSED: per-peer P2P rate limit + ban windows
+- The inventory: API had auth+rate limit (6.3); P2P had caps/dedup/timeouts but NO per-peer behavior limit — one fd could flood 1 MB messages at wire speed, starving the consensus tick.
+- The increment: peersec.hpp — 20 msg/s per fd (10x healthy-fleet headroom), sliding 1 s window, exceed -> close + 60 s source-IP ban, expiry re-admits. Mirrors the proven API limiter (CA-R263's P2P sibling).
+- test_step45: flood drops exactly at cap (no off-by-one), ban lifecycle (refused mid-window, re-admitted after), honest peers unaffected, boundary proven.
+- Law (CA-R291): every trust boundary carries BOTH an authentication story AND a load story. The API's was 6.3; the P2P boundary's is this.

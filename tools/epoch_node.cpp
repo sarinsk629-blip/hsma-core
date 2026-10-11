@@ -13,6 +13,7 @@
 #include <hsma/explorer.hpp>
 #include <hsma/pouw.hpp>
 #include <hsma/pouw/gemm_backend.hpp>
+#include <hsma/peersec.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
 #include <hsma/m2envelope.hpp>
