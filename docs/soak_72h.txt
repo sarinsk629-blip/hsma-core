@@ -1,1 +1,7 @@
 P5-D 72h soak START: 2026-10-01T16:22:23Z commit=e6f38b6
+══ Phase 6.10 soak STARTED: Sun Oct 11 14:54:09 UTC 2026 | commit=acae25e ══
+fleet: AWS anchor + 4 external operators (kamiyama, AFE, skysmile, herowb)
+parameters: testnet (k=10, dynamic committee) — production soak (k=476/224) gated on committee flip
+receipts backing it: freeze class dead (DEF-254..263 timeouts), 41h clean anchor run,
+  k=476 folding 1519ms (394x headroom), epoch transition wired (crossepoch proven)
+daily check: journalctl watchdog count + NRestarts + peers + epoch advancement
