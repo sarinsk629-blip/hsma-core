@@ -71,4 +71,18 @@ inline bool balanced(const LogUpBatch& b, std::uint64_t table_sum) {
     return b.lookup_sum == table_sum;
 }
 
+// ---- Phase 6.15: the reciprocal primitive (integer-domain, q14 out) ----
+// rcp_q14[y] = round(2^14 / y) for y in [1, 1024]. The softmax/LayerNorm
+// denominator (a q7 sum) indexes this directly; consumer: (num_q7 * rcp) >> 14.
+inline constexpr unsigned RCP_MAX = 1024;
+inline std::vector<int> build_rcp_table() {
+    std::vector<int> t(RCP_MAX + 1, 0);
+    for (unsigned y = 1; y <= RCP_MAX; ++y)
+        t[y] = int(((1ull << 14) + y / 2) / y);   // rounded
+    return t;
+}
+inline int rcp_lookup(const std::vector<int>& t, unsigned y) {
+    return (y == 0 || y > RCP_MAX) ? 0 : t[y];
+}
+
 } // namespace hsma::pouw::logup

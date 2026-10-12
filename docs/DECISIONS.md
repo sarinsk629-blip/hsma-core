@@ -4591,3 +4591,9 @@ Readiness COMPLETE.
 - Certification passed 0 LSB (the table matches the oracle at every SAMPLED index); my spot-check demanded exp_shifted(4.0)==128 at index x_to_idx(4.0)=255 — but index 255 SAMPLES x=3.96875 (the clamp), whose value is exp(-0.03125)~0.9692 -> q7 ~124. The exact 1.0 is the domain edge, not a sampled slot.
 - CA-R305 again, from the other side: this time the TABLE was right and the TEST's expectation ignored the sampling convention. The conform tests the clamped-boundary value against the oracle at the sampled x.
 - Law (CA-R329): a table's contract is defined at its SAMPLED points, not its domain edges — spot-checks must query the oracle at idx_to_x(idx), never at the raw input.
+## DEF-$NEXT — Phase 6.15 s1 CLOSED: the reciprocal primitive — division by lookup
+- The softmax assembly, proven: e={17,6,4} -> denom=27 -> rcp[27]=607 -> >>7 -> outputs summing to ~128 (1.0 in q7) and within 0.02 of the float oracle. The rcp table certified exhaustively (q14, division-by-zero guarded).
+- The shift law (CA-R332): every fixed-point shift is a unit claim — e*rcp = 128*soft_q7 because the q7 scales cancel in the ratio; >>14 discarded 7 good bits and truncated 0.63 to 0. The [diag] printout caught it in one run.
+- Session receipts: 6.15 s1 took the RCP15 corruption (DEF-330, repaired), the diag-instrumented shift hunt, and one swallowed semicolon — every one gate-held, zero broken commits.
+- Law (CA-R332): in fixed-point chains, every shift is a unit claim — write the unit next to the shift.
+- Model coverage: GEMM, gelu, sigmoid, tanh, exp_shifted, reciprocal — the elementwise primitives transformers need. s2 (LayerNorm + circuit wiring) registered; 6.16 (1024^3 verifier gate) queued.
