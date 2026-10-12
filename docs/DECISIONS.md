@@ -4597,3 +4597,7 @@ Readiness COMPLETE.
 - Session receipts: 6.15 s1 took the RCP15 corruption (DEF-330, repaired), the diag-instrumented shift hunt, and one swallowed semicolon — every one gate-held, zero broken commits.
 - Law (CA-R332): in fixed-point chains, every shift is a unit claim — write the unit next to the shift.
 - Model coverage: GEMM, gelu, sigmoid, tanh, exp_shifted, reciprocal — the elementwise primitives transformers need. s2 (LayerNorm + circuit wiring) registered; 6.16 (1024^3 verifier gate) queued.
+## DEC-$NEXT — Phase 6.16: the verifier-cost gate — measured (CA-R284)
+- The pending CA-R280 debt collected: verify_gemm_v2 timed at 64/128/256/512/1024. The decision number: verify(n=1024) vs the 250ms budget (25% of the 1s tick).
+- PASS -> the clamp rises to 1024 for GPU nodes (6.17 opens). HOLD -> the clamp stays and the ceiling is named honestly.
+- Law (CA-R334): every clamp has a measurement behind it, or it is an opinion. The verify cost is the fleet-wide recurring price of every GPU claim — it prices the clamp.
