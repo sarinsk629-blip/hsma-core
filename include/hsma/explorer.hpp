@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <ctime>
 #include <cstring>
+#include <array>
 #include <cstdlib>
 #include <map>
 #include <mutex>
@@ -28,6 +29,7 @@
 
 // P6.1: PoUW + ModelCommit for the submission API routes
 #include <hsma/pouw.hpp>
+#include <hsma/sha256.hpp>
 #include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/pouw/model_commit.hpp>
 // P6.1: the Pasta field parameters (for fp::fe operations in GEMM submission)
@@ -73,6 +75,9 @@ struct WorkItem {
     // Phase 6.12: result-data delivery — C serialized canonical LE (32B/fe)
     bool has_result = false;
     std::vector<std::uint8_t> result_bytes;
+    // Phase 6.11b: cryptographic input commitments (SHA-256 over raw hex-decoded bytes)
+    std::array<std::uint8_t, 32> ic{};   // the ingested commitment (carried to the worker)
+    bool commitment_checked = false;          // worker re-verified at pickup
 };
 inline std::vector<WorkItem> g_work_queue;
 inline std::map<std::uint64_t, WorkItem> g_work_done;
@@ -309,6 +314,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             bool has_in = false;
             std::vector<fp::fe> Ain, Bin;
             std::uint64_t tag_a = 0, tag_b = 0;
+            std::array<std::uint8_t, 32> ic{};
             {
                 auto ap = post_body.find("\"a\":\"");
                 auto bp2 = post_body.find("\"b\":\"");
@@ -350,6 +356,15 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                     if (rawA.size() == need && rawB.size() == need && tofes(rawA, Ain) && tofes(rawB, Bin)) {
                         has_in = true;
                         tag_a = fnv(rawA); tag_b = fnv(rawB);
+                        // 6.11b: the cryptographic commitment — SHA256 over the
+                        // EXACT ingested bytes, before any field conversion
+                        std::uint8_t cat[1024 * 1024 * 4];
+                        const std::size_t catn = rawA.size() + rawB.size();
+                        if (catn <= sizeof(cat)) {
+                            std::memcpy(cat, rawA.data(), rawA.size());
+                            std::memcpy(cat + rawA.size(), rawB.data(), rawB.size());
+                            digest::sha256(cat, catn, ic.data());
+                        }
                     } else {
                         const std::string eb = "{\"error\":\"ingestion failed: a/b must be hex of n*n canonical 32-byte field elements\"}";
                         const std::string er = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
@@ -367,18 +382,26 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                 (std::uint64_t)time(nullptr), 0, false,
                 has_in, std::move(Ain), std::move(Bin), tag_a, tag_b});
             }
+                // DEF-306: ic is an array — cannot live in a brace-init against a bool slot; assigned after construction (positional-binding law, CA-R311)
+                if (has_in) g_work_queue.back().ic = ic;
             char wbuf[128];
-            snprintf(wbuf, sizeof(wbuf),
+            std::snprintf(wbuf, sizeof(wbuf),
                 "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u}",
                 (unsigned long long)wid, n);
-            body = wbuf;
             if (has_in) {
-                char tb[320];
+                char ihex[65] = {};
+                for (int k = 0; k < 32; ++k)
+                    std::snprintf(ihex + k * 2, 3, "%02x", ic[k]);
+                char tb[440];
                 std::snprintf(tb, sizeof(tb),
-                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\"}",
-                    (unsigned long long)wid, n, (unsigned long long)tag_a, (unsigned long long)tag_b);
+                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\",\"commitment\":\"%s\"}",
+                    (unsigned long long)wid, n,
+                    (unsigned long long)tag_a, (unsigned long long)tag_b, ihex);
                 body = tb;
+            } else {
+                body = wbuf;
             }
+            content_type = "application/json";
             content_type = "application/json";
     } else if (method == "POST" && path == "/register_model") {
         auto idp = post_body.find("\"model_id\":");

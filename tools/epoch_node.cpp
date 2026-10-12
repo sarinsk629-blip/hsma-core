@@ -13,6 +13,7 @@
 #include <hsma/explorer.hpp>
 #include <hsma/pouw.hpp>
 #include <hsma/pouw/gemm_backend.hpp>
+#include <hsma/sha256.hpp>
 #include <hsma/peersec.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
@@ -688,6 +689,22 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         {   // 6.11: prove over the COMPANY's data when ingested
                             if (w.has_inputs && w.A_in.size() == (std::size_t)gn * gn && w.B_in.size() == (std::size_t)gn * gn) {
                                 gA = w.A_in; gB = w.B_in;
+        // 6.11b: re-verify the input commitment BEFORE proving — the swap
+        // gate. A mismatch marks the work FAILED and the tamper visible.
+        {   std::uint8_t cat[1024 * 1024 * 4]; std::uint8_t h[32];
+            std::size_t an = w.A_in.size() * 32, bn = w.B_in.size() * 32;
+            if (an + bn <= sizeof(cat)) {
+                for (std::size_t k = 0; k < w.A_in.size(); ++k)
+                    fp::fe_to_le_bytes(w.A_in[k], reinterpret_cast<std::byte*>(cat + k * 32));
+                for (std::size_t k = 0; k < w.B_in.size(); ++k)
+                    fp::fe_to_le_bytes(w.B_in[k], reinterpret_cast<std::byte*>(cat + an + k * 32));
+                digest::sha256(cat, an + bn, h);
+                w.commitment_checked = (std::memcmp(h, w.ic.data(), 32) == 0);
+                if (!w.commitment_checked)
+                    std::printf("[work] work_id %llu: COMMITMENT MISMATCH — inputs tampered post-ingestion\n",
+                        (unsigned long long)w.id);
+            } else w.commitment_checked = false;
+        }
                             } else {
                                 for (auto& x : gA) x = grnd();
                                 for (auto& x : gB) x = grnd();

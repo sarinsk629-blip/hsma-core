@@ -4542,3 +4542,10 @@ Readiness COMPLETE.
 - The route extension was context-disambiguated: two identical body=rbuf sites (result route + fleet route); the splice targeted the one whose context references g_work_done. Blind anchor would have hex-appended to the fleet JSON.
 - The tooling law sharpened again: write-per-step — an in-memory edit lost at a raised assert is invisible corruption-by-omission. State reaches disk before any later step assumes it (CA-R299's third form).
 - Law (CA-R307): a service round trip is closed when the caller's own bytes return transformed and verified.
+## DEF-$NEXT — Phase 6.11b CLOSED: cryptographic input commitments — the swap gate LIVE
+- The three-point chain, live-verified: client H=SHA256(A||B) == ingest echo ("commitment" field in the response) == worker re-verification over the deserialized matrices BEFORE proving. Any alteration between parse and prove -> COMMITMENT MISMATCH -> work FAILED, tamper visible in the log. The auditor's chain needs no trust in the node.
+- test_step46 + test_step47 both green through the change; the node compiles after the last touchpoint (w.ic.data()).
+- The completion of CA-R300/312/313 as one law: a type change enumerates its touchpoints by COMPILER — assignment, out-param, memcmp — and the error list terminates. Each touchpoint a one-line conform, each gate-held.
+- Registered 6.11c: commit-then-deliver for n>=256 (the out-of-band delivery channel).
+- Session receipt: the densest feature arc — ten+ gate-held turns across echo-region rebuild, positional narrowing, C-array semantics, and the touchpoint sweep. Zero broken commits. The loading dock now issues cryptographic receipts.
+- Law (CA-R314): std::array everywhere in structs — it composes with .data() at every C-interface boundary explicitly, making each crossing VISIBLE instead of implicit.
