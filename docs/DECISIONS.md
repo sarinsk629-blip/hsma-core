@@ -4613,3 +4613,9 @@ Readiness COMPLETE.
 - The ladder answer, formalized: 1024 and 10000+ are reachable NOT by bigger direct verification but by the FOLD ROUTE — claims become instances in the accumulator (6.7: 476 folds/1.5s -> ~3ms marginal verify), GPU computes the blocks, folding verifies them. Block-shard proof composition = 6.18's research content.
 - The near-term effect: mitarasi's GPU can submit n=256 with the anchor-verified label today; 6.13's cross-verification remains the trust backbone at n=64/epoch cadence.
 - Law (CA-R335): scale claims route through the measured verification price — compute scales with hardware, verification scales with the pipeline. The two must be priced separately and honestly labeled.
+## DEC-$NEXT — the GPU tier's first production receipts: three n=256 VERIFIED
+- The receipt: three consecutive n=256 workloads VERIFIED at 4273/4287/4297 ms — sub-1% variance across independent 16.7M-MAC computations. The GPU backend (bit-identical, 6.5) producing at production scale, through the labeled anchor-verified tier.
+- The measured speedup: 4.3s GPU vs ~70s CPU-equivalent = ~16x. Below the theoretical 60-120x — the gap (PCIe transfer, Montgomery per-thread math) is the registered optimization surface. The honest number is banked; the kernel improvements are registered.
+- The economics, all measured now: GPU produces n=256 in 4.3s; verification costs 9.8s CPU-side. GPU nodes are the efficient producers — the incentive structure works as designed (compute scales with hardware, verification with the pipeline).
+- The last "self-referential" strand: these n=256 claims are anchor-verified (labeled). The fold-route (6.17) extends fleet verification to them. The label keeps the trust honest until then.
+- Law (CA-R337): a production receipt is three independent runs with sub-1% variance — one run is a demo, two is a pattern, three is a measurement.
