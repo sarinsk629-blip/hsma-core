@@ -4562,3 +4562,9 @@ Readiness COMPLETE.
 - The fleet receipt pending: two nodes completing epoch 0 exchange headers -> [pouw-verify] CONFIRMED lines on both sides. The anchor + phone can produce it on next restart cycle.
 - Law (CA-R320): a weight that cannot be recomputed by a peer is a rumor, not a receipt. Cross-verification converts the PoUW claim from self-attested to peer-confirmed.
 - The soak receipt banked same turn: watchdogs=3 ALL dated pre-DEF-254..263 (Oct 3-4 era) — zero fires in 5+ days; fd-count flat at 9 (DEF-302's leak dead); peers=4, the fleet's best snapshot.
+## DEF-$NEXT — Phase 6.13b: the epoch advancement pulse — the lifecycle unstarved
+- The diagnosis: [pouv-verify] never fired because its gate (peer_epoch == current_epoch - 1) requires nodes at DIFFERENT epochs — and epochs only advance on 10 gossip decrees a quiet testnet never produces. Correct code, starved precondition.
+- The fix: a 60s pulse injects one synthetic decree through handle_decree — the SAME path as wire decrees (dedup, fold, completion, header gossip). Deterministic payload (chain tail + index): chains start identical (hardcoded d0) and converge by construction. ~10 minutes per epoch.
+- The emergent property: independent per-node pulses produce convergent chains — no gossip coordination needed for advancement; the headers carry the convergence proof.
+- Honest label: advancement under synthetic load. The soak's marquee receipt (first epoch=1 crossing) becomes reachable within minutes of fleet deployment.
+- Law (CA-R322): a lifecycle feature gated on external load carries its own labeled test load — or it is undemonstrable by design.

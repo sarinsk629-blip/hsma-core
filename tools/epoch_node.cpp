@@ -681,6 +681,28 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 // Gate-3: auto-reconnect — if we have no peers but have a seed
                 // address, reconnect every 30 seconds. The fleet self-heals.
                 static unsigned reconnect_timer = 0;
+        // Phase 6.13b: the epoch advancement pulse — after epoch 0, one
+        // synthetic decree per 60s so the lifecycle is exercisable on a
+        // quiet testnet (honest label: advancement under synthetic load).
+        // Route: handle_decree — the SAME path as wire-received decrees
+        // (dedup -> fold -> completion -> gossip header). Payload is
+        // deterministic from the chain tail + index: identical across
+        // nodes -> chains converge by construction.
+        static unsigned epoch_pulse_timer = 0;
+        if (++epoch_pulse_timer >= 60) {
+            epoch_pulse_timer = 0;
+            if (decree_count < K_ENTRIES) {
+                std::printf("[epoch-pulse] injecting synthetic decree %u/%u\n",
+                    decree_count + 1, K_ENTRIES);
+                std::vector<std::uint8_t> pl(64, 0);
+                const auto& db = digest_chain.back();
+                for (int k = 0; k < 4; ++k)
+                    for (int b = 0; b < 8; ++b)
+                        pl[k*8 + b] = (std::uint8_t)(db[k] >> (8*b));
+                pl[32] = (std::uint8_t)(decree_count + current_epoch * K_ENTRIES);
+                handle_decree(pl);   // the proven wire path: fold + completion
+            }
+        }
                 if (peer_fds.empty() && !g_seed_addrs.empty()) {
                     if (++reconnect_timer >= 30) {
                         reconnect_timer = 0;
