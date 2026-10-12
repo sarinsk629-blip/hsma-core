@@ -4601,3 +4601,10 @@ Readiness COMPLETE.
 - The pending CA-R280 debt collected: verify_gemm_v2 timed at 64/128/256/512/1024. The decision number: verify(n=1024) vs the 250ms budget (25% of the 1s tick).
 - PASS -> the clamp rises to 1024 for GPU nodes (6.17 opens). HOLD -> the clamp stays and the ceiling is named honestly.
 - Law (CA-R334): every clamp has a measurement behind it, or it is an opinion. The verify cost is the fleet-wide recurring price of every GPU claim — it prices the clamp.
+## DEC-$NEXT — Phase 6.16: the verifier-cost gate — HOLD, and the finding reshapes the architecture
+- The measured curve: verify = 615ms (64) -> 2.45s (128) -> 9.8s (256) -> 39.3s (512) -> 156.8s (1024). Clean ~4x per doubling. The 250ms budget fails at EVERY rung above 64 — even the current GPU clamp (128) costs a verifier 2.45s per claim.
+- Finding 1: the existing GPU submission clamp (n<=128, CA-R280) is uneconomical for fleet-wide cross-verification at the measured cost — GPU claims are self-verified + anchor-verified only, not fleet-verifiable within the tick.
+- Finding 2 (the architectural pivot): per-claim linear verification contradicts the folding thesis. The fleet already folds decrees into an accumulator instead of verifying each linearly — external GEMM claims must route the same way (6.17 redirect: fold the claim into the running instance; the folded state is verified once, amortized across all claims).
+- Finding 3: 6.13's cross-verification remains valid at n=64 (615ms is heavy but fits a slower verification cadence — once per epoch, not per tick). The epoch-boundary cadence is the correct verify point; per-tick verification was never the design.
+- The clamp decision: STAYS at 64 for fleet-verifiable submissions; GPU n=128-256 submissions remain anchor-verified with the verifier-cost label in the response (honest metadata).
+- Law (CA-R334) proven the hard way: the measurement didn't just answer the gate question — it redirected the architecture. The clamp is the cheap answer; the fold-routing is the right one.
