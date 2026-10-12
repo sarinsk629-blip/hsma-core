@@ -1,10 +1,10 @@
 In file included from tools/epoch_node.cpp:13:
-include/hsma/explorer.hpp:458:13: warning: format specifies type 'unsigned int' but the argument has type 'std::size_t' (aka 'unsigned long') [-Wformat]
-  456 |             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
+include/hsma/explorer.hpp:471:13: warning: format specifies type 'unsigned int' but the argument has type 'std::size_t' (aka 'unsigned long') [-Wformat]
+  469 |             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
       |                         ~~
       |                         %zu
-  457 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
-  458 |             ns.peer_count, (unsigned long long)ns.uptime_s,
+  470 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
+  471 |             ns.peer_count, (unsigned long long)ns.uptime_s,
       |             ^~~~~~~~~~~~~
 tools/epoch_node.cpp:837:89: warning: format specifies type 'double' but the argument has type 'rep' (aka 'long long') [-Wformat]
   837 |                         std::fprintf(stderr, "[DIAG-SLOW] mssc tick blocked %.1f ms\n", tick_ms);

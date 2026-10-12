@@ -297,6 +297,18 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         unsigned n = 64;
         if (np != std::string::npos) n = std::atoi(post_body.c_str() + np + 4);
         if (n == 0 || n > 256) n = 64;
+        // Phase 6.16 verdict: fleet-verifiable = 64 (615ms verify, fits epoch cadence).
+// GPU nodes may submit up to 256 — anchor-verified only (9.8s/claim: too costly
+// for fleet cross-verification; the response carries the honest label).
+// n>256 = commit-then-deliver only (6.11c, the fold-routing era).
+        if (n > 256) {
+            std::string gb = "{\"error\":\"n>256 requires commit-then-deliver (6.11c)\",\"max_direct\":256}";
+            std::string gr = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                + std::to_string(gb.size()) + "\r\nConnection: close\r\n\r\n" + gb;
+            send(fd, gr.c_str(), gr.size(), 0);
+            close(fd);
+            return;
+        }
         if (n > 64 && !pouw::gpu_available()) {
             std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\"}";
             std::string gr = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
@@ -388,8 +400,9 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             if (has_in) {
                 char tb[320];
                 std::snprintf(tb, sizeof(tb),
-                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\",\"commitment\":\"%s\"}",
+                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\",\"commitment\":\"%s\",\"verification\":\"%s\"}",
                     (unsigned long long)wid, n, (unsigned long long)tag_a, (unsigned long long)tag_b,
+                    (n <= 64 ? "fleet" : "anchor-only (verify cost 9.8s at 256)"),
                     [&]{ char h[65] = {}; for (int k = 0; k < 32; ++k) std::snprintf(h + k*2, 3, "%02x", ic[k]); return std::string(h); }().c_str());
                 body = tb;
             }

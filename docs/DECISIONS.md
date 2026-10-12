@@ -4608,3 +4608,8 @@ Readiness COMPLETE.
 - Finding 3: 6.13's cross-verification remains valid at n=64 (615ms is heavy but fits a slower verification cadence — once per epoch, not per tick). The epoch-boundary cadence is the correct verify point; per-tick verification was never the design.
 - The clamp decision: STAYS at 64 for fleet-verifiable submissions; GPU n=128-256 submissions remain anchor-verified with the verifier-cost label in the response (honest metadata).
 - Law (CA-R334) proven the hard way: the measurement didn't just answer the gate question — it redirected the architecture. The clamp is the cheap answer; the fold-routing is the right one.
+## DEF-$NEXT — Phase 6.16 s2: the measured clamp — GPU allowance raised to 256 with honest labels
+- The gate's numbers became policy: fleet-verifiable = 64; GPU submissions to 256 (anchor-verified only — the response now carries the "verification" label naming who verified and what it cost); n>256 = commit-then-deliver only (6.11c).
+- The ladder answer, formalized: 1024 and 10000+ are reachable NOT by bigger direct verification but by the FOLD ROUTE — claims become instances in the accumulator (6.7: 476 folds/1.5s -> ~3ms marginal verify), GPU computes the blocks, folding verifies them. Block-shard proof composition = 6.18's research content.
+- The near-term effect: mitarasi's GPU can submit n=256 with the anchor-verified label today; 6.13's cross-verification remains the trust backbone at n=64/epoch cadence.
+- Law (CA-R335): scale claims route through the measured verification price — compute scales with hardware, verification scales with the pipeline. The two must be priced separately and honestly labeled.
