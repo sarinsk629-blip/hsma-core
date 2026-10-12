@@ -4587,3 +4587,7 @@ Readiness COMPLETE.
 - Also observed: [gossip] duplicate epoch header re-gossip suppressed — the relay dedup working as designed (P5-H machinery).
 - The 6.13 v1 verification surface is now proven: both directions, both epochs, digest-precondition live, dedup live. v2 items (nonces, slashing teeth, quorum) remain the registered next layer.
 - Law (CA-R325): convergence is not assumed in a distributed system — it is a hash two machines agree on. d67b90d5849e6f38 is the first convergence evidence in project history at a crossed epoch boundary.
+## DEF-$NEXT — DEF-329: the boundary-index spot-check tested the wish, not the contract
+- Certification passed 0 LSB (the table matches the oracle at every SAMPLED index); my spot-check demanded exp_shifted(4.0)==128 at index x_to_idx(4.0)=255 — but index 255 SAMPLES x=3.96875 (the clamp), whose value is exp(-0.03125)~0.9692 -> q7 ~124. The exact 1.0 is the domain edge, not a sampled slot.
+- CA-R305 again, from the other side: this time the TABLE was right and the TEST's expectation ignored the sampling convention. The conform tests the clamped-boundary value against the oracle at the sampled x.
+- Law (CA-R329): a table's contract is defined at its SAMPLED points, not its domain edges — spot-checks must query the oracle at idx_to_x(idx), never at the raw input.

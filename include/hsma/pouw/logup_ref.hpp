@@ -18,6 +18,12 @@ inline double gelu_ref(double x) {
 }
 inline double sigmoid_ref(double x) { return 1.0 / (1.0 + std::exp(-x)); }
 inline double tanh_ref(double x)    { return std::tanh(x); }
+// exp_shifted: exp(x - 4) — the softmax primitive. For x in [-4,4]:
+// output in [exp(-8), 1.0] = [0.000335, 1.0]. The softmax usage shifts by
+// the row max first, so arguments land in [-inf, 0] -> table covers [-4, 4]
+// with the softmax-relevant half [0, -4] mapping to [1.0, 0.0183].
+// q7 clamp handles the sub-q7 tail (values below ~0.0078 quantize to 0).
+inline double exp_shifted_ref(double x) { return std::exp(x - 4.0); }
 inline double idx_to_x(unsigned i)  { return (double(i) / double(1u << FRAC_IN)) - 4.0; }
 inline int to_q7(double y) {
     if (y < -4.0) return OUT_MIN;
@@ -55,20 +61,23 @@ CertReport certify(const std::vector<int>& table, Fn ref_fn) {
     }
     return rep;
 }
-struct Tables { std::vector<int> gelu, sigmoid, tanh; bool certified; };
+struct Tables { std::vector<int> gelu, sigmoid, tanh, exp_shifted; bool certified; };
 inline Tables build_all() {
     Tables T{};
     T.gelu = build_table(gelu_ref);
     T.sigmoid = build_table(sigmoid_ref);
     T.tanh = build_table(tanh_ref);
+    T.exp_shifted = build_table(exp_shifted_ref);
     const auto c1 = certify(T.gelu, gelu_ref);
     const auto c2 = certify(T.sigmoid, sigmoid_ref);
     const auto c3 = certify(T.tanh, tanh_ref);
-    T.certified = c1.ok && c2.ok && c3.ok;
-    std::printf("[logup] certification: gelu %s (worst %d LSB @%u) | sigmoid %s (worst %d) | tanh %s (worst %d)\n",
+    const auto c4 = certify(T.exp_shifted, exp_shifted_ref);
+    T.certified = c1.ok && c2.ok && c3.ok && c4.ok;
+    std::printf("[logup] certification: gelu %s (worst %d LSB @%u) | sigmoid %s (worst %d) | tanh %s (worst %d) | exp_shifted %s (worst %d)\n",
         c1.ok?"PASS":"FAIL", c1.worst_err, c1.worst_index,
         c2.ok?"PASS":"FAIL", c2.worst_err,
-        c3.ok?"PASS":"FAIL", c3.worst_err);
+        c3.ok?"PASS":"FAIL", c3.worst_err,
+        c4.ok?"PASS":"FAIL", c4.worst_index);
     return T;
 }
 inline int lookup_by_double(const std::vector<int>& t, double x) {

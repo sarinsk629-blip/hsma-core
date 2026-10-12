@@ -11,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw-timing][pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1128 ms
+[pouw-timing][pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1129 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -25,3 +25,28 @@
 [explorer] open http://localhost:32234 in a browser
 [epoch-pulse] injecting synthetic decree 1/10
 [fold] decree 1/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 2/10
+[fold] decree 2/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 3/10
+[fold] decree 3/10 folded, SAT
+[DIAG-SLOW] select blocked 0.0 ms (expected ~1000)
+[epoch-pulse] injecting synthetic decree 4/10
+[fold] decree 4/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 5/10
+[fold] decree 5/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 6/10
+[fold] decree 6/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 7/10
+[fold] decree 7/10 folded, SAT
+[DIAG-SLOW] select blocked 0.0 ms (expected ~1000)
+[epoch-pulse] injecting synthetic decree 8/10
+[fold] decree 8/10 folded, SAT
+[DIAG-SLOW] select blocked 0.0 ms (expected ~1000)
+[epoch-pulse] injecting synthetic decree 9/10
+[fold] decree 9/10 folded, SAT
+[epoch-pulse] injecting synthetic decree 10/10
+[fold] decree 10/10 folded, SAT
+[pi_E] epoch 1 complete — producing π_E...
+[pi_E] epoch 1: wrap_verify ACCEPT (stage=0)
+[pouw-timing][pouw] epoch 1: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1175 ms
+[gossip] epoch 1 header sent to 0 peers
