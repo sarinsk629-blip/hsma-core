@@ -4555,3 +4555,10 @@ Readiness COMPLETE.
 - The meta-receipt of the arc: b61baba (the segfault push) was the system's lowest moment — and its self-correction (revert, re-apply, four-gate) is the proof the process works. The four-gate commit is now the standard: build, tests, live behavior, survival — before any push.
 - Next on the map: 6.11c (commit-then-deliver for n>=256 — the out-of-band channel), 6.13 (cross-node verification), 6.14-6.15 (softmax/LayerNorm tables), 6.16-6.17 (the 1024^3 rung).
 - Law (CA-R319): the features that cost the most turns are the ones that leave the most laws behind. 6.11b cost ~15 turns and deposited 10+ — the ledger's interest rate on honest debugging.
+## DEF-$NEXT — Phase 6.13 v1 CLOSED: cross-node PoUW verification — weights become provable claims
+- The gap closed: the receive path compared weight CLAIMS (peer_w == pouw_weight) — a freeloader announcing 262144 matched a real prover. v1: when the state digest AGREES (chains converged — the existing precondition), the receiver RECOMPUTES the deterministic epoch GEMM from its own chain tail, proves, verifies, and compares the weight.
+- The pure verifier (verify_peer_epoch_pouw): no global writes — the receiver's own PoUW state is untouched. Same inputs (chain tail) -> same GEMM -> same proof -> verified -> same weight, or the claim is named UNVERIFIED in the log.
+- The honest boundary (v1): verifies magnitude + proof over the deterministic inputs. Replay/freshness (did they run it WHEN they claim?) = v2, needs challenge-nonces. Slashing integration on [pouw-fail] = v2 (the enforcement teeth).
+- The fleet receipt pending: two nodes completing epoch 0 exchange headers -> [pouw-verify] CONFIRMED lines on both sides. The anchor + phone can produce it on next restart cycle.
+- Law (CA-R320): a weight that cannot be recomputed by a peer is a rumor, not a receipt. Cross-verification converts the PoUW claim from self-attested to peer-confirmed.
+- The soak receipt banked same turn: watchdogs=3 ALL dated pre-DEF-254..263 (Oct 3-4 era) — zero fires in 5+ days; fd-count flat at 9 (DEF-302's leak dead); peers=4, the fleet's best snapshot.

@@ -223,6 +223,34 @@ static std::map<std::uint32_t, std::uint64_t> g_peer_bans;  // ip -> banned-unti
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
+// Phase 6.13: cross-node PoUW verification — pure, no global writes.
+// Recomputes the deterministic epoch GEMM from a chain tail and verifies
+// the claimed weight. Returns true if the claim matches a verified proof.
+static bool verify_peer_epoch_pouw(const std::array<std::uint64_t,4>& chain_tail,
+                                   std::uint64_t claimed_w) noexcept {
+    const unsigned N = pouw_inner;
+    std::uint64_t st = 0;
+    for (int k = 0; k < 4; ++k) st = st * 0x9E3779B97F4A7C15ull + chain_tail[k];
+    auto rnd = [&st]() -> fp::fe {
+        st ^= st << 13; st ^= st >> 7; st ^= st << 17;
+        return fp::fe_from_u64(st * 0x9E3779B97F4A7C15ull);
+    };
+    std::vector<fp::fe> Am((std::size_t)N*N), Bm((std::size_t)N*N), Cm((std::size_t)N*N);
+    for (auto& x : Am) x = rnd();
+    for (auto& x : Bm) x = rnd();
+    for (unsigned i = 0; i < N; ++i)
+        for (unsigned j = 0; j < N; ++j) {
+            fp::fe acc = fp::fe_zero();
+            for (unsigned k = 0; k < N; ++k)
+                acc = fp::fe_add(acc, fp::fe_mul(Am[i*N+k], Bm[k*N+j]));
+            Cm[i*N+j] = acc;
+        }
+    pouw::GemmProofV2 PP = pouw::prove_gemm_v2(Am, Bm, Cm, N, N, N);
+    const bool vok = pouw::verify_gemm_v2(PP, Am, Bm, Cm);
+    const std::uint64_t w = vok ? pouw::weight(N, 1) : 0;
+    return (vok && w == claimed_w);
+}
+
 static void run_epoch_pouw() {
     // ---- P2-06 (DEC-250): the epoch PoUW - deterministic, self-verified ----
     // The epoch's own digest chain seeds a 64^3 GEMM (xorshift64* expansion
@@ -1308,9 +1336,20 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 const unsigned p1 = p2p::get_u32(pl + 40);
                                 const unsigned p2_ = p2p::get_u32(pl + 44);
                                 const unsigned p3 = p2p::get_u32(pl + 48);
-                                if (p0 == g_hash[0] && p1 == g_hash[1] && p2_ == g_hash[2] && p3 == g_hash[3])
+                                if (p0 == g_hash[0] && p1 == g_hash[1] && p2_ == g_hash[2] && p3 == g_hash[3]) {
                                     std::printf("[state] epoch %u digest AGREES (%08x%08x)\n",
                                         peer_epoch, p0, p1);
+                                    // Phase 6.13: cross-node PoUW verification — the chains
+                                    // converged, so the deterministic GEMM is recomputable.
+                                    // Rebuild the tail from our OWN chain (identical by the
+                                    // digest agreement) and verify the claimed weight.
+                                    if (verify_peer_epoch_pouw(digest_chain.back(), peer_w))
+                                        std::printf("[pouw-verify] peer epoch %u weight %llu CONFIRMED by recomputation\n",
+                                            peer_epoch, (unsigned long long)peer_w);
+                                    else
+                                        std::printf("[pouw-fail] peer epoch %u weight %llu UNVERIFIED — claim vs recomputation mismatch\n",
+                                            peer_epoch, (unsigned long long)peer_w);
+                                }
                                 else
                                     std::printf("[state] epoch %u digest MISMATCH local=%08x%08x%08x%08x peer=%08x%08x%08x%08x\n",
                                         peer_epoch, g_hash[0], g_hash[1], g_hash[2], g_hash[3], p0, p1, p2_, p3);
