@@ -4581,3 +4581,9 @@ Readiness COMPLETE.
 - What died tonight: the last version of the critique that "the nodes just prove random matrices to themselves." The matrices are still deterministic — but now the proof of their computation is INDEPENDENTLY RE-DERIVED BY A PEER at every epoch boundary. Self-referential no more.
 - v2 registered: challenge-nonces (replay/freshness), slashing on [pouw-fail] (the teeth), quorum verification (n-2).
 - Law (CA-R324): distributed trust is not a property you declare — it is a log line you can point to. Two timestamps, two recomputations, one weight. That is what decentralization looks like in a terminal.
+## DEC-$NEXT — the symmetric receipt: epoch 1 cross-verified BOTH directions
+- mitarasi's node: [state] epoch 1 digest AGREES (d67b90d5849e6f38) + [pouw-verify] peer epoch 1 weight 262144 CONFIRMED by recomputation. Combined with the anchor's two epoch-0 CONFIRMED lines: the verification is now proven in BOTH directions AND across the epoch-1 boundary (the pulse-driven, non-startup epoch).
+- The deeper meaning of digest AGREES at epoch 1: two independent machines folded the same decrees into the same accumulator state — the chain-convergence assumption (hardcoded d0 -> deterministic decrees -> convergent chains) is now an observed wire fact, evidenced by a matching digest hash.
+- Also observed: [gossip] duplicate epoch header re-gossip suppressed — the relay dedup working as designed (P5-H machinery).
+- The 6.13 v1 verification surface is now proven: both directions, both epochs, digest-precondition live, dedup live. v2 items (nonces, slashing teeth, quorum) remain the registered next layer.
+- Law (CA-R325): convergence is not assumed in a distributed system — it is a hash two machines agree on. d67b90d5849e6f38 is the first convergence evidence in project history at a crossed epoch boundary.
