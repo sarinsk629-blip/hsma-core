@@ -4549,3 +4549,9 @@ Readiness COMPLETE.
 - The receipt: client H == node echo == worker re-check. The auditor's chain, live on the wire.
 - Law (CA-R316): heap buffers sized by actual data. Law (CA-R318): a variable's USE sites define its DECLARATION scope — place the declaration where every use can see it, computed where its inputs exist.
 - Registered 6.11c: commit-then-deliver for n>=256.
+## DEC-$NEXT — 6.11b session close: the loading dock issues cryptographic receipts
+- The complete chain, all live: POST with hex data -> commitment computed over the exact bytes (heap) -> echoed in the response -> client compares its own H -> worker re-verifies before proving -> FAILED on mismatch. The company trusts nothing but its own arithmetic.
+- The PoUW map: 6.11 s1 done, 6.11b done, 6.12 done. The product loop at testnet scale: submit YOUR data -> proven -> YOUR result back -> a commitment YOU can verify.
+- The meta-receipt of the arc: b61baba (the segfault push) was the system's lowest moment — and its self-correction (revert, re-apply, four-gate) is the proof the process works. The four-gate commit is now the standard: build, tests, live behavior, survival — before any push.
+- Next on the map: 6.11c (commit-then-deliver for n>=256 — the out-of-band channel), 6.13 (cross-node verification), 6.14-6.15 (softmax/LayerNorm tables), 6.16-6.17 (the 1024^3 rung).
+- Law (CA-R319): the features that cost the most turns are the ones that leave the most laws behind. 6.11b cost ~15 turns and deposited 10+ — the ledger's interest rate on honest debugging.
