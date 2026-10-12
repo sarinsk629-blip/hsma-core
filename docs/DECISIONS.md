@@ -4568,3 +4568,9 @@ Readiness COMPLETE.
 - The emergent property: independent per-node pulses produce convergent chains — no gossip coordination needed for advancement; the headers carry the convergence proof.
 - Honest label: advancement under synthetic load. The soak's marquee receipt (first epoch=1 crossing) becomes reachable within minutes of fleet deployment.
 - Law (CA-R322): a lifecycle feature gated on external load carries its own labeled test load — or it is undemonstrable by design.
+## DEC-$NEXT — THE FIRST EPOCH CROSSING: epoch 1 exists
+- The receipt: 10/10 pulses, 10 decrees folded SAT, epoch 1 completed, pi_E wrap_verify ACCEPT, header gossiped, node alive. The lifecycle that was designed in P2 and starved since (no gossip traffic -> no advancement) is now exercising itself under labeled synthetic load.
+- The dashboard epoch:0 reading is the known labeling conform (shows the COMPLETED epoch; internal current_epoch = 1; next header says 1). Cosmetic fix registered.
+- What it unlocks: the 6.13 sync-point gate (peer_epoch == current_epoch - 1) can now open — with the fleet running this build, epoch headers from completed-epoch-0 nodes meet nodes at current_epoch=1, the digest agreement fires, and [pouv-verify] CONFIRMED becomes reachable for the first time.
+- The soak's marquee receipt: the testnet has crossed an epoch boundary — the DKG re-ceremony question, pi_E chaining, and cross-node verification all become live observations instead of designed features.
+- Law (CA-R323): a lifecycle that has never executed is a design, not a mechanism. The first crossing converts every epoch-boundary feature from 'designed' to 'observed on the wire'.
