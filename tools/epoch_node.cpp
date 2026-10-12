@@ -26,10 +26,6 @@
 // Phase 6.1: API helper — defined in hsma::explorer namespace to match
 // the extern declaration in explorer.hpp's serve_request
 namespace hsma::explorer {
-void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
-    std::printf("[api] model %llu registered (C=%llu)\n",
-        (unsigned long long)mid, (unsigned long long)commitment);
-}
 } // namespace hsma::explorer
 #include <map>
 #include <string>
@@ -689,8 +685,14 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             gst ^= gst << 13; gst ^= gst >> 7; gst ^= gst << 17;
                             return fp::fe_from_u64(gst * 0x9E3779B97F4A7C15ull);
                         };
-                        for (auto& x : gA) x = grnd();
-                        for (auto& x : gB) x = grnd();
+                        {   // 6.11: prove over the COMPANY's data when ingested
+                            if (w.has_inputs && w.A_in.size() == (std::size_t)gn * gn && w.B_in.size() == (std::size_t)gn * gn) {
+                                gA = w.A_in; gB = w.B_in;
+                            } else {
+                                for (auto& x : gA) x = grnd();
+                                for (auto& x : gB) x = grnd();
+                            }
+                        }
                         pouw::gemm(gA.data(), gB.data(), gC.data(), gn);
                         const auto wt0 = std::chrono::steady_clock::now();
                         auto GPP = pouw::prove_gemm_v2(gA, gB, gC, gn, gn, gn);

@@ -4531,3 +4531,9 @@ Readiness COMPLETE.
 - 6.11-6.20 registered as the PoUW completion list: ingestion (commit-then-deliver), result-data delivery, cross-node verification, softmax/LayerNorm tables, the verifier-cost gate at 1024, 1024^3 e2e, block-sharding, attention circuits, model registry. Marketplace/payment deferred to Gate 5 by design.
 - The synergy ledger: every new activation is a certification task (6.6 machinery), every scale claim routes through the measured-gate law (CA-R284), every ingestion commitment reuses ModelCommit (proven against 3 forgery classes).
 - Law (CA-R297): the ladder to 10K is sharded, not climbed in one step. Each rung must be measured at its own scale before the next is claimed — a proof system's credibility is destroyed faster by one unmeasured claim than by ten honest rungs.
+## DEF-$NEXT — DEF-305 CLOSED: the test's answer key was wrong — the ingestion was right all along
+- The [diag] receipt: C[0][*]=28 correct, C[1][*]=92 vs my 'expected' 36. Row i of A sums to i*n^2 + n(n-1)/2 — the machine computed exactly right; my formula wrote i*n. The last FAIL was the test grading its own answer key wrong.
+- The multi-site catch: the formula appeared TWICE (assertion + the diag printout added the same turn) — the blind replace would have been an anchor-2 assertion, and the gate refused it. Both sites conformed in one pass.
+- The meaning: the company's bytes round-trip byte-exact through fe_from_le_bytes, flow into gemm_cpu, and produce the mathematically correct C. Ingestion is proven at the wire level AND by the live curl.
+- Law (CA-R305): when a test fails, the failure may be in the answer key — instrument the values before trusting the assertion. And (CA-R299 echo): a failing replace with anchor-count != 1 is the gate protecting the second site.
+- 6.11 s1 CLOSED after ten gate-held turns. Zero broken commits. The loading dock is open, wire-tested, live-verified, and armored.

@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <ctime>
 #include <cstring>
+#include <cstdlib>
 #include <map>
 #include <mutex>
 #include <atomic>
@@ -65,6 +66,10 @@ struct WorkItem {
     std::uint64_t completed_at;
     bool verified;
     bool operator==(const WorkItem& o) const { return id == o.id; }
+    // Phase 6.11: external data ingestion (opt-in via "a"/"b" hex fields)
+    bool has_inputs = false;
+    std::vector<fp::fe> A_in, B_in;   // n*n each, Montgomery domain
+    std::uint64_t ingest_tag_a = 0, ingest_tag_b = 0; // transport tag (FNV-1a); ModelCommit binding = 6.11b
 };
 inline std::vector<WorkItem> g_work_queue;
 inline std::map<std::uint64_t, WorkItem> g_work_done;
@@ -193,34 +198,64 @@ Workload queue · Model inference · Result verification · Payment integration
 }
 
 // serve one HTTP request (blocking)
+// DEF-301: defined IN the header (inline) — any TU linking serve_request,
+// tests included, must resolve every symbol the header's code calls.
+inline void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
+    std::printf("[api] model %llu registered (C=%llu)\n",
+        (unsigned long long)mid, (unsigned long long)commitment);
+}
+
 inline void serve_request(int fd, const NodeState& ns) noexcept {
     // Phase 6.3: seed the founder's testnet key (idempotent)
     g_valid_keys["hsma_founder_testnet_key"] = true;
 
-    char req[4096] = {};
-    ssize_t rlen = recv(fd, req, sizeof(req) - 1, 0);
-    if (rlen <= 0) { close(fd); return; }   // recv failed or connection closed
-    req[rlen] = '\0';   // null-terminate at the actual read length
+    // Phase 6.11: full-request read — the old single 4KB recv was the
+    // ingestion wall (CA-R296). Headers until \r\n\r\n, then the
+    // Content-Length body, capped. SO_RCVTIMEO (set at accept) bounds
+    // every recv — the loop cannot hang.
+    static constexpr std::size_t INGEST_CAP = 16u * 1024u * 1024u;
+    std::string req;
+    req.reserve(8192);
+    {
+        char tmp[16384];
+        std::size_t hdr_end = std::string::npos, want = std::string::npos;
+        while (req.size() < INGEST_CAP) {
+            const ssize_t r = recv(fd, tmp, sizeof(tmp), 0);
+            if (r <= 0) break;
+            req.append(tmp, (std::size_t)r);
+            if (hdr_end == std::string::npos) hdr_end = req.find("\r\n\r\n");
+            if (hdr_end != std::string::npos && want == std::string::npos) {
+                want = hdr_end + 4;
+                std::size_t clp = req.find("Content-Length:");
+                if (clp == std::string::npos || clp > hdr_end) clp = req.find("content-length:");
+                if (clp != std::string::npos && clp < hdr_end)
+                    want += (std::size_t)std::strtoul(req.c_str() + clp + 15, nullptr, 10);
+            }
+            if (want != std::string::npos && req.size() >= want) break;
+        }
+    }
+    if (req.empty()) { close(fd); return; }
+    const char* RQ = req.c_str(); // unified view (CA-R265)
     
     std::string method, path;
     {   // extract method + path from "METHOD /path HTTP/1.1"
-        const char* sp1 = std::strstr(req, " ");
+        const char* sp1 = std::strstr(RQ, " ");
         if (sp1) {
-            method.assign(req, sp1 - req);
+            method.assign(RQ, sp1 - RQ);   // DEF-304: ptr+len form — the 2-arg string overload (str, pos) means 'pos to end', not 'len bytes'
             const char* sp2 = std::strstr(sp1 + 1, " ");
             if (sp2) path.assign(sp1 + 1, sp2 - sp1 - 1);
         }
     }
     
     std::string post_body;
-    {   auto bp = std::strstr(req, "\r\n\r\n");
+    {   auto bp = std::strstr(RQ, "\r\n\r\n");
         if (bp) post_body = std::string(bp + 4);
     }
     std::string body, content_type;
 
     // Phase 6.3: extract Authorization header
     std::string auth_key;
-    {   auto auth_hdr = std::strstr(req, "Authorization: Bearer ");
+    {   auto auth_hdr = std::strstr(RQ, "Authorization: Bearer ");
         if (auth_hdr) {
             const char* astart = auth_hdr + strlen("Authorization: Bearer ");
             const char* aend = std::strstr(astart, "\r\n");
@@ -264,17 +299,83 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         }
 
                     // Phase 6.2: queue the work
+            // Phase 6.11: external data ingestion — embedded matrices as hex
+            // (canonical LE, n*n fes per matrix). fe_from_le_bytes REJECTS
+            // non-canonical encodings (DEC-105): malleability closed at parse.
+            // Tags are transport receipts (FNV-1a); ModelCommit binding = 6.11b.
+            bool has_in = false;
+            std::vector<fp::fe> Ain, Bin;
+            std::uint64_t tag_a = 0, tag_b = 0;
+            {
+                auto ap = post_body.find("\"a\":\"");
+                auto bp2 = post_body.find("\"b\":\"");
+                if (ap != std::string::npos || bp2 != std::string::npos) {
+                    auto hexbytes = [](const std::string& t, std::size_t start) -> std::vector<std::uint8_t> {
+                        std::vector<std::uint8_t> out;
+                        std::size_t i = start;
+                        auto hx = [](char c) -> int {
+                            if (c >= '0' && c <= '9') return c - '0';
+                            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+                            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+                            return -1; };
+                        while (i + 1 < t.size() && t[i] != '"') {
+                            const int hi = hx(t[i]), lo = hx(t[i + 1]);
+                            if (hi < 0 || lo < 0) { out.clear(); return out; }
+                            out.push_back((std::uint8_t)((hi << 4) | lo));
+                            i += 2;
+                        }
+                        return out;
+                    };
+                    auto rawA = (ap != std::string::npos) ? hexbytes(post_body, ap + 5) : std::vector<std::uint8_t>{};
+                    auto rawB = (bp2 != std::string::npos) ? hexbytes(post_body, bp2 + 5) : std::vector<std::uint8_t>{};
+                    const std::size_t need = (std::size_t)n * n * 32;
+                    auto tofes = [&](const std::vector<std::uint8_t>& raw, std::vector<fp::fe>& out) -> bool {
+                        if (raw.size() != need) return false;
+                        out.resize(n * n);
+                        for (std::size_t k = 0; k < n * n; ++k) {
+                            const auto rr = fp::fe_from_le_bytes(reinterpret_cast<const std::byte*>(raw.data() + k * 32));
+                            if (!rr.ok) return false;
+                            out[k] = rr.value;
+                        }
+                        return true;
+                    };
+                    auto fnv = [](const std::vector<std::uint8_t>& raw) -> std::uint64_t {
+                        std::uint64_t h = 14695981039346656037ull;
+                        for (std::uint8_t b : raw) { h ^= b; h *= 1099511628211ull; }
+                        return h;
+                    };
+                    if (rawA.size() == need && rawB.size() == need && tofes(rawA, Ain) && tofes(rawB, Bin)) {
+                        has_in = true;
+                        tag_a = fnv(rawA); tag_b = fnv(rawB);
+                    } else {
+                        const std::string eb = "{\"error\":\"ingestion failed: a/b must be hex of n*n canonical 32-byte field elements\"}";
+                        const std::string er = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                            + std::to_string(eb.size()) + "\r\nConnection: close\r\n\r\n" + eb;
+                        send(fd, er.c_str(), er.size(), 0);
+                        close(fd);
+                        return;
+                    }
+                }
+            }
             std::uint64_t wid = g_next_work_id.fetch_add(1);
             {
                 std::lock_guard<std::mutex> lk(g_work_mutex);
                 g_work_queue.push_back({wid, (std::uint64_t)n, WorkStatus::QUEUED,
-                    (std::uint64_t)time(nullptr), 0, false});
+                (std::uint64_t)time(nullptr), 0, false,
+                has_in, std::move(Ain), std::move(Bin), tag_a, tag_b});
             }
             char wbuf[128];
             snprintf(wbuf, sizeof(wbuf),
                 "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u}",
                 (unsigned long long)wid, n);
             body = wbuf;
+            if (has_in) {
+                char tb[320];
+                std::snprintf(tb, sizeof(tb),
+                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\"}",
+                    (unsigned long long)wid, n, (unsigned long long)tag_a, (unsigned long long)tag_b);
+                body = tb;
+            }
             content_type = "application/json";
     } else if (method == "POST" && path == "/register_model") {
         auto idp = post_body.find("\"model_id\":");
@@ -287,7 +388,6 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             auto D = pouw::mcommit::weight_digest(w, 64);
             auto rr = mid * 31 + 7;
             auto Cm = pouw::mcommit::commit(D, rr);
-            extern void api_register_model(std::uint64_t, std::uint64_t);
             api_register_model(mid, Cm.C);
             char tmp[128];
             std::snprintf(tmp, sizeof(tmp), "{\"model_id\":%llu,\"registered\":true}", (unsigned long long)mid);
@@ -355,6 +455,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
     std::string response(hdr);
     response += body;
     send(fd, response.data(), response.size(), 0);
+    close(fd);   // DEF-302: Connection: close is DECLARED — honor it on every path
 }
 
 // the explorer server: runs in a background thread
