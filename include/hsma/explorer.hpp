@@ -70,6 +70,9 @@ struct WorkItem {
     bool has_inputs = false;
     std::vector<fp::fe> A_in, B_in;   // n*n each, Montgomery domain
     std::uint64_t ingest_tag_a = 0, ingest_tag_b = 0; // transport tag (FNV-1a); ModelCommit binding = 6.11b
+    // Phase 6.12: result-data delivery — C serialized canonical LE (32B/fe)
+    bool has_result = false;
+    std::vector<std::uint8_t> result_bytes;
 };
 inline std::vector<WorkItem> g_work_queue;
 inline std::map<std::uint64_t, WorkItem> g_work_done;
@@ -408,6 +411,13 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                     it->second.verified ? "true" : "false");
                 body = rbuf;
                 content_type = "application/json";
+                if (it->second.has_result && !it->second.result_bytes.empty()) {
+                    static const char* hexd = "0123456789abcdef";
+                    std::string hx; hx.reserve(it->second.result_bytes.size() * 2);
+                    for (std::uint8_t b : it->second.result_bytes) { hx += hexd[b >> 4]; hx += hexd[b & 15]; }
+                    const std::size_t cut = body.find_last_of('}');
+                    if (cut != std::string::npos) body = body.substr(0, cut) + ",\"result\":\"" + hx + "\"}";
+                }
             } else {
                 // check pending queue
                 bool found = false;

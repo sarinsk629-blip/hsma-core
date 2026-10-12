@@ -700,6 +700,16 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         w.status = gvok ? WorkStatus::DONE : WorkStatus::FAILED;
                         w.verified = gvok;
                         w.completed_at = (std::uint64_t)time(nullptr);
+                        // Phase 6.12: serialize C canonical-LE for result delivery
+                        if (gvok) {
+                            w.has_result = true;
+                            w.result_bytes.reserve(gC.size() * 32);
+                            for (const auto& fe : gC) {
+                                std::uint8_t ob[32];
+                                fp::fe_to_le_bytes(fe, reinterpret_cast<std::byte*>(ob));
+                                w.result_bytes.insert(w.result_bytes.end(), ob, ob + 32);
+                            }
+                        }
                         g_work_done[w.id] = w;
                         g_work_queue.erase(std::remove_if(g_work_queue.begin(),
                             g_work_queue.end(),

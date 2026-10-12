@@ -4537,3 +4537,8 @@ Readiness COMPLETE.
 - The meaning: the company's bytes round-trip byte-exact through fe_from_le_bytes, flow into gemm_cpu, and produce the mathematically correct C. Ingestion is proven at the wire level AND by the live curl.
 - Law (CA-R305): when a test fails, the failure may be in the answer key — instrument the values before trusting the assertion. And (CA-R299 echo): a failing replace with anchor-count != 1 is the gate protecting the second site.
 - 6.11 s1 CLOSED after ten gate-held turns. Zero broken commits. The loading dock is open, wire-tested, live-verified, and armored.
+## DEC-$NEXT — Phase 6.12 CLOSED: result-data delivery — the round trip completes
+- The full loop, wire-proven: company data in (6.11) -> sum-check verified -> C serialized canonical-LE -> GET /result/{id} returns hex -> decoded and verified against the corrected analytic key (i*n^2 + n(n-1)/2).
+- The route extension was context-disambiguated: two identical body=rbuf sites (result route + fleet route); the splice targeted the one whose context references g_work_done. Blind anchor would have hex-appended to the fleet JSON.
+- The tooling law sharpened again: write-per-step — an in-memory edit lost at a raised assert is invisible corruption-by-omission. State reaches disk before any later step assumes it (CA-R299's third form).
+- Law (CA-R307): a service round trip is closed when the caller's own bytes return transformed and verified.
