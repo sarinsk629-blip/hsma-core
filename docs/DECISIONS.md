@@ -4542,3 +4542,10 @@ Readiness COMPLETE.
 - The route extension was context-disambiguated: two identical body=rbuf sites (result route + fleet route); the splice targeted the one whose context references g_work_done. Blind anchor would have hex-appended to the fleet JSON.
 - The tooling law sharpened again: write-per-step — an in-memory edit lost at a raised assert is invisible corruption-by-omission. State reaches disk before any later step assumes it (CA-R299's third form).
 - Law (CA-R307): a service round trip is closed when the caller's own bytes return transformed and verified.
+## DEF-$NEXT — Phase 6.11b CLOSED (properly): the swap gate — four-gate proven
+- The journey: b61baba (segfault, pushed) → revert → fresh re-application. The scope lesson: the compute block referenced rawA/rawB BEFORE their nested-scope declaration — 7 undeclared-identifier errors, gate held. The conform: ic declared at route scope, computed inside the hex-parse block where the bytes exist, consumed at echo + post-push carry.
+- Both 4MB stack arrays → heap vectors (DEF-315) — the segfault class dead.
+- The four-gate commit (CA-R317): build ✓ / tests ✓ / live assert (commitment field + client-H match) ✓ / node-alive ✓ — then the push.
+- The receipt: client H == node echo == worker re-check. The auditor's chain, live on the wire.
+- Law (CA-R316): heap buffers sized by actual data. Law (CA-R318): a variable's USE sites define its DECLARATION scope — place the declaration where every use can see it, computed where its inputs exist.
+- Registered 6.11c: commit-then-deliver for n>=256.

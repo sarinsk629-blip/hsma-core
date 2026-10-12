@@ -16,6 +16,7 @@
 #include <atomic>
 #include <chrono>
 #include <algorithm>
+#include <array>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -28,6 +29,7 @@
 
 // P6.1: PoUW + ModelCommit for the submission API routes
 #include <hsma/pouw.hpp>
+#include <hsma/sha256.hpp>
 #include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/pouw/model_commit.hpp>
 // P6.1: the Pasta field parameters (for fp::fe operations in GEMM submission)
@@ -73,6 +75,9 @@ struct WorkItem {
     // Phase 6.12: result-data delivery — C serialized canonical LE (32B/fe)
     bool has_result = false;
     std::vector<std::uint8_t> result_bytes;
+    // Phase 6.11b: cryptographic input commitments (DEF-315: heap-typed)
+    std::array<std::uint8_t, 32> ic{};   // SHA256(A_bytes || B_bytes) — set at ingestion
+    bool commitment_checked = false;     // worker re-verified at pickup
 };
 inline std::vector<WorkItem> g_work_queue;
 inline std::map<std::uint64_t, WorkItem> g_work_done;
@@ -309,6 +314,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             bool has_in = false;
             std::vector<fp::fe> Ain, Bin;
             std::uint64_t tag_a = 0, tag_b = 0;
+            std::array<std::uint8_t, 32> ic{};   // 6.11b: filled inside the hex-parse block below
             {
                 auto ap = post_body.find("\"a\":\"");
                 auto bp2 = post_body.find("\"b\":\"");
@@ -331,6 +337,12 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                     };
                     auto rawA = (ap != std::string::npos) ? hexbytes(post_body, ap + 5) : std::vector<std::uint8_t>{};
                     auto rawB = (bp2 != std::string::npos) ? hexbytes(post_body, bp2 + 5) : std::vector<std::uint8_t>{};
+                    {   // 6.11b: the commitment (heap, DEF-315) — fills the route-scope ic
+                        std::vector<std::uint8_t> cat(rawA.size() + rawB.size());
+                        std::memcpy(cat.data(), rawA.data(), rawA.size());
+                        std::memcpy(cat.data() + rawA.size(), rawB.data(), rawB.size());
+                        digest::sha256(cat.data(), cat.size(), ic.data());
+                    }
                     const std::size_t need = (std::size_t)n * n * 32;
                     auto tofes = [&](const std::vector<std::uint8_t>& raw, std::vector<fp::fe>& out) -> bool {
                         if (raw.size() != need) return false;
@@ -366,6 +378,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                 g_work_queue.push_back({wid, (std::uint64_t)n, WorkStatus::QUEUED,
                 (std::uint64_t)time(nullptr), 0, false,
                 has_in, std::move(Ain), std::move(Bin), tag_a, tag_b});
+                if (has_in) g_work_queue.back().ic = ic;
             }
             char wbuf[128];
             snprintf(wbuf, sizeof(wbuf),
@@ -375,8 +388,9 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             if (has_in) {
                 char tb[320];
                 std::snprintf(tb, sizeof(tb),
-                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\"}",
-                    (unsigned long long)wid, n, (unsigned long long)tag_a, (unsigned long long)tag_b);
+                    "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u,\"ingested\":true,\"tag_a\":\"%016llx\",\"tag_b\":\"%016llx\",\"commitment\":\"%s\"}",
+                    (unsigned long long)wid, n, (unsigned long long)tag_a, (unsigned long long)tag_b,
+                    [&]{ char h[65] = {}; for (int k = 0; k < 32; ++k) std::snprintf(h + k*2, 3, "%02x", ic[k]); return std::string(h); }().c_str());
                 body = tb;
             }
             content_type = "application/json";
