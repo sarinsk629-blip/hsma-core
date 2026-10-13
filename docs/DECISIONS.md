@@ -4625,3 +4625,7 @@ Readiness COMPLETE.
 - Path A vs B/C: A (commitment-as-decree) ships now — proven rails only. C (quorum sampling) next — distributes verification. B (proof-carrying fold — the sum-check as a foldable instance) registered as the endgame: research-grade, the real fleet-verifiable-256 layer.
 - The control receipt: n=64 CPU claims do NOT mint (correct — they're already fleet-verifiable); only the GPU tier (anchor-only trust) enters the ledger.
 - Law (CA-R338): a verified claim that is not part of the chain state is a promise in a log file. Folding the claim's identity into the accumulator converts attestation into record.
+## DEF-$NEXT — DEF-341: the digest IS the sampler — undeclared global removed
+- The read confirmed: epoch_beacon needs threshold::Committee (BLS points, Lagrange interpolation) — heavy plumbing for drawing a sample index. The node's committee globals (g_members, g_cfg_members) are different types entirely.
+- The conform: the sample seeds from the agreed digest bytes (p0..p3) — already in scope at the AGREE branch, already deterministic across all nodes that reach it. Same quorum property, zero plumbing. The beacon integration registered as v2 (when Committee-type sampling is worth the wire format).
+- Law (CA-R341): when infrastructure plumbing exceeds the feature, check whether a value already in scope is itself the randomness you need — the agreed digest IS the epoch's shared randomness. That's not a workaround; it's the correct minimal design.

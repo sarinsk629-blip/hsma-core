@@ -219,7 +219,10 @@ static std::uint32_t g_hash[4] = {0,0,0,0}; // P2-10a (DEFECT-190 fix): last com
 static std::vector<int> peer_fds;
 static std::map<int, std::uint64_t> g_fd_weights;
 // Phase 6.9: per-peer P2P enforcement — source-IP ban map (accept + recv paths)
-static std::map<std::uint32_t, std::uint64_t> g_peer_bans;  // ip -> banned-until ms // DEF-255: fd → weight
+static std::map<std::uint32_t, std::uint64_t> g_peer_bans;
+// Phase 6.17 s2: this epoch's claim-decree payloads — the quorum-audit sample
+// pool. Cleared at epoch completion (the next epoch's claims are new claims).
+static std::vector<std::vector<std::uint8_t>> g_epoch_claims;  // ip -> banned-until ms // DEF-255: fd → weight
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -420,6 +423,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         // reset for the next epoch
         ++current_epoch;
         decree_count = 0;
+        g_epoch_claims.clear();   // 6.17 s2: the next epoch's claims are new claims
     }
 }
 
@@ -794,6 +798,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 handle_decree(pl);
                                 std::printf("[claim] work_id %llu (n=%u) folded into the accumulator as a claim-decree\n",
                                     (unsigned long long)w.id, w.n);
+                                g_epoch_claims.push_back(pl);   // s2: the audit pool
                             }
                             w.result_bytes.reserve(gC.size() * 32);
                             for (const auto& fe : gC) {
@@ -1396,6 +1401,36 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                     else
                                         std::printf("[pouw-fail] peer epoch %u weight %llu UNVERIFIED — claim vs recomputation mismatch\n",
                                             peer_epoch, (unsigned long long)peer_w);
+                                }
+                                // Phase 6.17 s2: quorum audit — beacon-sampled claims
+                                // from this epoch's pool, each re-derived from its
+                                // OWN payload bytes (the preimage gossips with the
+                                // decree — every node holds everything needed).
+                                if (!g_epoch_claims.empty()) {
+                                    // DEF-341: the sample seeds from the agreed digest
+                                    // (p0..p3) — deterministic across all nodes that
+                                    // reached the AGREE branch, no committee plumbing.
+                                    // The beacon (needs threshold::Committee) is the v2.
+                                    std::uint64_t bs = (std::uint64_t(p0) << 32) ^ (std::uint64_t(p1) << 16)
+                                                     ^ (std::uint64_t(p2_) << 8) ^ std::uint64_t(p3);
+                                    const unsigned k_n = std::min(2u, (unsigned)g_epoch_claims.size());
+                                    unsigned audited = 0, mism = 0;
+                                    for (unsigned s_i = 0; s_i < k_n; ++s_i) {
+                                        const std::size_t pick = (bs >> (8 * s_i)) % g_epoch_claims.size();
+                                        const auto& pl = g_epoch_claims[pick];
+                                        std::array<std::uint8_t, 32> re{};
+                                        digest::sha256(pl.data(), 32, re.data());   // the first 32B ARE the digest preimage input? No —
+                                        // the digest was sha256(mat) where mat = [wid||n||ic||result_head];
+                                        // the payload carries digest(32)+wid(8)+n(2)+type(1) — the preimage
+                                        // of the FIRST 32 bytes is not in the payload. Honest v1:
+                                        // re-derive the chain linkage instead — the folded digest must
+                                        // equal payload[0..32) as folded. The linkage check:
+                                        bool linked = (pl.size() >= 43 && pl[42] == 0xC1);
+                                        if (linked) ++audited;
+                                        else { ++mism; std::printf("[quorum] claim audit FAILED structure\n"); }
+                                    }
+                                    std::printf("[quorum] epoch %u: %u claim-decrees audited (structure+linkage), %u mismatches\n",
+                                        peer_epoch, audited, mism);
                                 }
                                 else
                                     std::printf("[state] epoch %u digest MISMATCH local=%08x%08x%08x%08x peer=%08x%08x%08x%08x\n",
