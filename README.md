@@ -2,7 +2,7 @@
 
 # 🧬 HSMA — Holographic Spin-Manifold Architecture
 
-### *Not a blockchain. Not a DAG. A new category of protocol.*
+### *Not a blockchain. Not a DAG. A new category of distributed ledger.*
 
 [![HSMA Gate](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml/badge.svg)](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml)
 [![Gate](https://img.shields.io/badge/gate-34%2F34_GREEN-brightgreen?style=for-the-badge)](https://github.com/sarinsk629-blip/hsma-core)
@@ -17,7 +17,7 @@
 the mempool is cryptographically unreadable before ordering,
 and entire epochs compress into 1,600-byte recursive proofs.**
 
-**Built by one person. 223 defects owned. Zero hiding.**
+**Built by one person. 73 defects owned. Zero hiding.**
 
 [📄 Whitepaper PDF](https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf) •
 [📝 LaTeX Source](docs/whitepaper_v4.tex) •
@@ -26,7 +26,22 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 [🟢 Live Explorer](http://3.237.91.235:32233)
 
 
-## 🤝 Join the Community
+## 🎯 The Ethereum-Relevant Contribution — MEV eliminated by construction
+
+Ethereum's hardest open problem is MEV: validators and builders extract billions by reordering transactions. Proposer-Builder Separation restructures the market but **concedes ordering power will exist** — it auctions what cannot be prevented.
+
+HSMA's research contribution — **Commit-Then-Simulate (CTS) ordering** — removes the attack surface mathematically: transactions arrive **encrypted** (threshold BLS, t-of-n DKG), the ordering is committed via a beacon-determined sort **before anyone can decrypt**, and decryption happens only after ordering is final. No transaction can influence its position. No validator can profit from ordering power that structurally cannot exist.
+
+**Live wire receipts** (each verifiable in the ledger and commit history):
+- Cross-node PoUW verification: `[pouw-verify] peer epoch 1 weight 262144 CONFIRMED by recomputation` — a peer's proof-of-work independently re-derived on different hardware
+- The first epoch boundary crossed: epoch 1 folded, proven (π_E ACCEPT), gossiped
+- GPU workloads verified and folded into chain state as claim-decrees: `[claim] work_id 1 (n=256) folded into the accumulator`
+- Folding performance measured: **476 instances → 1.5 s** into an O(1) accumulator
+- The honest verifier-cost curve: 615 ms → 156 s (n=64→1024) — measured, published, and the architecture rerouted to fold-verification because of it
+
+📄 Full research summary: [docs/ESP_RESEARCH_SUMMARY.md](docs/ESP_RESEARCH_SUMMARY.md) · 📜 Wire receipts: [docs/RECEIPTS.md](docs/RECEIPTS.md)
+
+🤝 Join the Community
 
 [![Telegram](https://img.shields.io/badge/Telegram-Group-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/hsmaCoreFounder)
 [![Channel](https://img.shields.io/badge/Telegram-Channel-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/hsmaFounder)
@@ -53,7 +68,7 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 #### then watch the live peers counter: 
 http://3.237.91.235:32233/api
 No token. No sale. No premine. Economics will be designed with contributors, not for them.
-223 defects owned publicly — every one with evidence, fix, and a generalizable law. Zero hiding.
+73 defects owned publicly — every one with evidence, fix, and a generalizable law. Zero hiding.
 If the gate runs GREEN on your machine, star the repo — that is how independent research gets seen.
 
 ## ⚡ Run The Verification Yourself
@@ -66,7 +81,7 @@ cd hsma-core
 
 ```
 → 41 golden headers generated (determinism-proven: two-run byte-identical)
-→ 34/34 conformance tests passed
+→ 51 conformance programs — GATE GREEN
 → GATE GREEN
 ```
 
@@ -271,7 +286,7 @@ This project maintains a verification discipline that has no peer in the Layer-1
 
 - **An append-only decision ledger** — every supersession chain traceable, zero silent regressions
 - **A bilingual golden-oracle system** — Python computes the truth, C++ reproduces it bit-for-bit, the goldens arbitrate
-- **An adversarial review culture** — 223 errata, every one owned with a named fix
+- **An adversarial review culture** — 73 errata, every one owned with a named fix
 - **A byte-identical refactor discipline** — structure changes require byte-identical output proof
 - **The pre-emit self-check law** — every golden emitter validates every receipt before writing
 - **The domain law** — fe_mul computes a*b mod p, proven by three independent probes
@@ -466,7 +481,7 @@ We welcome contributors who appreciate verification discipline. The entry point:
 
 1. Clone the repo
 2. Run `./scripts/gate.sh` — observe GATE GREEN
-3. Read `docs/DECISIONS.md` — understand the 281 decisions
+3. Read `docs/DECISIONS.md` — understand the 61 decisions
 4. Pick an open issue or propose one
 
 All contributions require the same verification discipline: every change passes the gate, every defect is owned in the ledger.
@@ -483,7 +498,7 @@ MIT
 
 **Built by one person. The Satoshi path: build → publish → verify → wait.**
 
-*223 defects owned. 203 laws. 281 decisions. 34 gates. π_E exists.*
+*223 defects owned. 203 laws. 61 decisions. 34 gates. π_E exists.*
 
 # ***Zero hiding.***
 
