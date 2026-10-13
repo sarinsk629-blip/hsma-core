@@ -770,6 +770,31 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         // Phase 6.12: serialize C canonical-LE for result delivery
                         if (gvok) {
                             w.has_result = true;
+                            // Phase 6.17 (Path A): verified GPU claims fold into the
+                            // accumulator as claim-decrees. Payload: [digest(32) =
+                            // SHA256(work_id||n||ic||result_first32)][work_id(8)][n(4)]
+                            // [type(1)=0xC1]. The digest is the claim's cryptographic
+                            // identity; folding it makes the claim part of pi_E's hash
+                            // history — tamper-evident forever.
+                            if (w.n > 64) {
+                                std::vector<std::uint8_t> claim_id(32);
+                                {   std::vector<std::uint8_t> mat;
+                                    auto put64 = [&](std::uint64_t v){ for (int b=0;b<8;++b) mat.push_back((std::uint8_t)(v >> (8*b))); };
+                                    put64(w.id); put64(w.n);
+                                    for (auto b : w.ic) mat.push_back(b);
+                                    if (!w.result_bytes.empty())
+                                        mat.insert(mat.end(), w.result_bytes.begin(), w.result_bytes.begin() + 32);
+                                    digest::sha256(mat.data(), mat.size(), claim_id.data());
+                                }
+                                std::vector<std::uint8_t> pl = claim_id;
+                                auto put64 = [&](std::uint64_t v){ for (int b=0;b<8;++b) pl.push_back((std::uint8_t)(v >> (8*b))); };
+                                put64(w.id);
+                                pl.push_back((std::uint8_t)(w.n >> 8)); pl.push_back((std::uint8_t)(w.n & 0xFF));
+                                pl.push_back(0xC1);   // claim-decree marker
+                                handle_decree(pl);
+                                std::printf("[claim] work_id %llu (n=%u) folded into the accumulator as a claim-decree\n",
+                                    (unsigned long long)w.id, w.n);
+                            }
                             w.result_bytes.reserve(gC.size() * 32);
                             for (const auto& fe : gC) {
                                 std::uint8_t ob[32];

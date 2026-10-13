@@ -4619,3 +4619,9 @@ Readiness COMPLETE.
 - The economics, all measured now: GPU produces n=256 in 4.3s; verification costs 9.8s CPU-side. GPU nodes are the efficient producers — the incentive structure works as designed (compute scales with hardware, verification with the pipeline).
 - The last "self-referential" strand: these n=256 claims are anchor-verified (labeled). The fold-route (6.17) extends fleet verification to them. The label keeps the trust honest until then.
 - Law (CA-R337): a production receipt is three independent runs with sub-1% variance — one run is a demo, two is a pattern, three is a measurement.
+## DEF-$NEXT — Phase 6.17 s1 (Path A): GPU claims fold into the accumulator
+- The design: verified GPU claims (n>64) mint a claim-decree — payload [digest = SHA256(work_id||n||input_commitment||result_head)][work_id][n][marker 0xC1] — folded via handle_decree into the accumulator. The claim becomes part of pi_E's hash history: tamper-evident, replay-safe (seen_or_add dedup), chain-linked (dprev -> dnew).
+- The trust label upgrade: anchor-verified claims are now ALSO in the ledger state — an auditor reading pi_E sees every GPU claim's existence, identity digest, and epoch. The claim cannot be erased without breaking the chain.
+- Path A vs B/C: A (commitment-as-decree) ships now — proven rails only. C (quorum sampling) next — distributes verification. B (proof-carrying fold — the sum-check as a foldable instance) registered as the endgame: research-grade, the real fleet-verifiable-256 layer.
+- The control receipt: n=64 CPU claims do NOT mint (correct — they're already fleet-verifiable); only the GPU tier (anchor-only trust) enters the ledger.
+- Law (CA-R338): a verified claim that is not part of the chain state is a promise in a log file. Folding the claim's identity into the accumulator converts attestation into record.
