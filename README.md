@@ -13,7 +13,7 @@
 [![π_E](https://img.shields.io/badge/π_E-1600_bytes-critical?style=for-the-badge)]
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)]
 
-**A verified Layer-1 protocol where consensus weight derives from verified AI inference,
+**A verified protocol where consensus weight derives from verified AI inference,
 the mempool is cryptographically unreadable before ordering,
 and entire epochs compress into 1,600-byte recursive proofs.**
 
