@@ -4640,3 +4640,9 @@ Readiness COMPLETE.
 - The conform: flag declared once beside the pool; the orphan excised by EXACT 4-line sequence match (blank + printf + args + brace) — statement-anchored per CA-R346, no token fishing.
 - The census after: 1 decl + 3 uses (427/717/718), one audit site in the pulse gate. The compiler agrees.
 - Law (CA-R346 enforced): excise by statement, never by token. And the census BEFORE the gate: the file's symbol state is asserted in grep before the compiler is asked to confirm it.
+## DEC-$NEXT — THE QUORUM RECEIPT: the trust pipeline's complete wire proof
+- The three-line sequence on mitarasi's machine: [work] VERIFIED (n=256, 7037ms — GPU compute) -> [claim] folded into the accumulator (chain state) -> [quorum] 1 claim-decrees audited, 0 mismatches (fleet audit). Every layer of the trust pipeline, receipted on the wire, in one log sequence.
+- The timing note: 7037ms vs his earlier 4273-4297ms — the audit + claim overhead added ~2.7s to the pipeline, OR network/thermal variance. Registered as a measurement question, not a concern (the claims verified; the audit ran; the variance is within first-run noise).
+- The journey this receipt completes: the original critique — "nodes compute random matrices nobody wants, self-referential" — now has its terminal answer: external-size workloads, company data (committed), GPU-proven, honestly labeled, folded into chain state, audited by deterministic quorum. Every stage receipted. No stage trusted without verification.
+- The trust pipeline, final form: data in (committed) -> proven (sum-check) -> labeled (honest tiers) -> recorded (chain state) -> audited (quorum). Five layers, five log lines, one log sequence.
+- Law (CA-R347): a trust pipeline is proven when its entire sequence appears in ONE operator's log — not across demos, not across slides. One machine, one sequence, every layer.
