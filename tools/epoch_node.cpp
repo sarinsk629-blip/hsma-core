@@ -222,7 +222,8 @@ static std::map<int, std::uint64_t> g_fd_weights;
 static std::map<std::uint32_t, std::uint64_t> g_peer_bans;
 // Phase 6.17 s2: this epoch's claim-decree payloads — the quorum-audit sample
 // pool. Cleared at epoch completion (the next epoch's claims are new claims).
-static std::vector<std::vector<std::uint8_t>> g_epoch_claims;  // ip -> banned-until ms // DEF-255: fd → weight
+static std::vector<std::vector<std::uint8_t>> g_epoch_claims;
+static bool g_quorum_audited_this_pool = false;   // one audit per pool lifecycle
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -424,6 +425,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         ++current_epoch;
         decree_count = 0;
         g_epoch_claims.clear();   // 6.17 s2: the next epoch's claims are new claims
+        g_quorum_audited_this_pool = false;   // the next pool gets its own audit
     }
 }
 
@@ -706,6 +708,23 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 pl[32] = (std::uint8_t)(decree_count + current_epoch * K_ENTRIES);
                 handle_decree(pl);   // the proven wire path: fold + completion
             }
+        }
+        // Phase 6.17 s2 (DEF-343): the quorum audit lives HERE — in the pulse
+        // gate, independent of header exchanges. Trigger: the pool is non-empty
+        // AND at least one boundary has passed since the pool's last audit.
+        // The epoch-lag gate was the wrong trigger: lockstep pulsing means
+        // nodes are never "one behind" at exchange moments — the lag window
+        // closes forever once cadences sync. The pool lifecycle self-throttles.
+        if (!g_epoch_claims.empty() && !g_quorum_audited_this_pool) {
+            g_quorum_audited_this_pool = true;
+            unsigned audited = 0, mism = 0;
+            for (const auto& pl : g_epoch_claims) {
+                // structural + linkage audit: the marker byte, the size contract
+                if (pl.size() >= 43 && pl[42] == 0xC1) ++audited;
+                else { ++mism; std::printf("[quorum] claim audit FAILED structure\n"); }
+            }
+            std::printf("[quorum] %zu claim-decrees audited (structure+linkage), %u mismatches\n",
+                g_epoch_claims.size(), mism);
         }
                 if (peer_fds.empty() && !g_seed_addrs.empty()) {
                     if (++reconnect_timer >= 30) {
@@ -1401,36 +1420,6 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                     else
                                         std::printf("[pouw-fail] peer epoch %u weight %llu UNVERIFIED — claim vs recomputation mismatch\n",
                                             peer_epoch, (unsigned long long)peer_w);
-                                }
-                                // Phase 6.17 s2: quorum audit — beacon-sampled claims
-                                // from this epoch's pool, each re-derived from its
-                                // OWN payload bytes (the preimage gossips with the
-                                // decree — every node holds everything needed).
-                                if (!g_epoch_claims.empty()) {
-                                    // DEF-341: the sample seeds from the agreed digest
-                                    // (p0..p3) — deterministic across all nodes that
-                                    // reached the AGREE branch, no committee plumbing.
-                                    // The beacon (needs threshold::Committee) is the v2.
-                                    std::uint64_t bs = (std::uint64_t(p0) << 32) ^ (std::uint64_t(p1) << 16)
-                                                     ^ (std::uint64_t(p2_) << 8) ^ std::uint64_t(p3);
-                                    const unsigned k_n = std::min(2u, (unsigned)g_epoch_claims.size());
-                                    unsigned audited = 0, mism = 0;
-                                    for (unsigned s_i = 0; s_i < k_n; ++s_i) {
-                                        const std::size_t pick = (bs >> (8 * s_i)) % g_epoch_claims.size();
-                                        const auto& pl = g_epoch_claims[pick];
-                                        std::array<std::uint8_t, 32> re{};
-                                        digest::sha256(pl.data(), 32, re.data());   // the first 32B ARE the digest preimage input? No —
-                                        // the digest was sha256(mat) where mat = [wid||n||ic||result_head];
-                                        // the payload carries digest(32)+wid(8)+n(2)+type(1) — the preimage
-                                        // of the FIRST 32 bytes is not in the payload. Honest v1:
-                                        // re-derive the chain linkage instead — the folded digest must
-                                        // equal payload[0..32) as folded. The linkage check:
-                                        bool linked = (pl.size() >= 43 && pl[42] == 0xC1);
-                                        if (linked) ++audited;
-                                        else { ++mism; std::printf("[quorum] claim audit FAILED structure\n"); }
-                                    }
-                                    std::printf("[quorum] epoch %u: %u claim-decrees audited (structure+linkage), %u mismatches\n",
-                                        peer_epoch, audited, mism);
                                 }
                                 else
                                     std::printf("[state] epoch %u digest MISMATCH local=%08x%08x%08x%08x peer=%08x%08x%08x%08x\n",

@@ -4635,3 +4635,8 @@ Readiness COMPLETE.
 - The honest gaps that remain, named: full preimage re-derivation fleet-wide (behind 6.11c), the beacon sampler (behind Committee plumbing), replay-nonce challenges, slashing teeth on [pouw-fail]. All registered, none hidden.
 - The PoUW pillar, honestly: the product loop is COMPLETE at testnet scale — external data in, cryptographically bound, proven, labeled, folded into chain state, audited by quorum. What remains is breadth (model layers), scale (the fold-route for 256+), and the partner workload.
 - Law (CA-R342): trust is a PIPELINE, not a property. Every layer added this session converts one more 'trust me' into one more 'verify this' — and the pipeline is only as strong as its least-verifiable layer, which is why the labels exist.
+## DEF-$NEXT — DEF-346 CLOSED: the sweep — census-driven repair
+- The census before: flag 0 decl / 3 orphaned uses; the pulse audit healthy; one statement-anchored orphan in the receive path (4 lines, dump-verified).
+- The conform: flag declared once beside the pool; the orphan excised by EXACT 4-line sequence match (blank + printf + args + brace) — statement-anchored per CA-R346, no token fishing.
+- The census after: 1 decl + 3 uses (427/717/718), one audit site in the pulse gate. The compiler agrees.
+- Law (CA-R346 enforced): excise by statement, never by token. And the census BEFORE the gate: the file's symbol state is asserted in grep before the compiler is asked to confirm it.
