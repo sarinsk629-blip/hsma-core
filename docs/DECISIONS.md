@@ -4646,3 +4646,8 @@ Readiness COMPLETE.
 - The journey this receipt completes: the original critique — "nodes compute random matrices nobody wants, self-referential" — now has its terminal answer: external-size workloads, company data (committed), GPU-proven, honestly labeled, folded into chain state, audited by deterministic quorum. Every stage receipted. No stage trusted without verification.
 - The trust pipeline, final form: data in (committed) -> proven (sum-check) -> labeled (honest tiers) -> recorded (chain state) -> audited (quorum). Five layers, five log lines, one log sequence.
 - Law (CA-R347): a trust pipeline is proven when its entire sequence appears in ONE operator's log — not across demos, not across slides. One machine, one sequence, every layer.
+## DEF-$NEXT — Phase 6.18-pre CLOSED: partner key persistence — AFE's key live-verified
+- The loader: api_keys.txt read once at first request (restart-surviving), founder key guaranteed, partner keys persistent across anchor auto-restarts.
+- TWO partner keys issued: bro-age (the first ask) and AFE (Genesis contributor #2, 17K+ rounds — the second external builder to request programmatic access). AFE's key authenticated a real submission locally before shipping.
+- The /tmp lesson (Termux): restricted tmp — session artifacts live in ~, not /tmp.
+- Law (CA-R349b): invitations must survive restarts. The door now has real keys for real builders.

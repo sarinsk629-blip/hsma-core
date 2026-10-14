@@ -11,6 +11,7 @@
 #include <ctime>
 #include <cstring>
 #include <cstdlib>
+#include <fstream>
 #include <map>
 #include <mutex>
 #include <atomic>
@@ -213,7 +214,22 @@ inline void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
         (unsigned long long)mid, (unsigned long long)commitment);
 }
 
+// Phase 6.18-pre: partner API keys — loaded once from api_keys.txt at first
+// request (restart-surviving). One key per line. The founder key is
+// guaranteed too (testnet scope).
+inline void load_api_keys_once() noexcept {
+    static bool loaded = false;
+    if (loaded) return;
+    loaded = true;
+    std::ifstream kf("api_keys.txt");
+    std::string line;
+    while (std::getline(kf, line)) {
+        while (!line.empty() && (line.back() == '\r' || line.back() == ' ')) line.pop_back();
+        if (!line.empty()) g_valid_keys[line] = true;
+    }
+}
 inline void serve_request(int fd, const NodeState& ns) noexcept {
+    load_api_keys_once();
     // Phase 6.3: seed the founder's testnet key (idempotent)
     g_valid_keys["hsma_founder_testnet_key"] = true;
 
