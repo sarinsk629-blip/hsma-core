@@ -307,7 +307,35 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         }
     }
 
-    // ── POST routes (Phase 6.1: the submission API) ── (Phase 6.1: the submission API) ──
+    // Phase 6.18: SELF-SERVE API KEYS — the permissionless principle.
+    // Anyone generates their own key instantly (the Bitcoin-address model:
+    // no approval, no human). The key ties actions to an identity for
+    // rate limiting + revocation. Spam defenses are the existing ones:
+    // per-key rate limits + tier clamps + honest labels.
+    if (method == "GET" && path == "/api_key") {
+        std::uint8_t raw[24];
+        {   // os-random key material
+            std::ifstream urand("/dev/urandom", std::ios::binary);
+            urand.read(reinterpret_cast<char*>(raw), sizeof(raw));
+        }
+        char khex[49] = {};
+        for (int k = 0; k < 24; ++k)
+            std::snprintf(khex + k*2, 3, "%02x", raw[k]);
+        std::string key = std::string("hsma_") + khex;
+        // persist: append to api_keys.txt (the loader picks it up for ALL
+        // nodes on next restart; this node accepts it immediately)
+        {   std::ofstream kf("api_keys.txt", std::ios::app);
+            kf << key << "\n";
+        }
+        g_valid_keys[key] = true;   // this node: live now
+        char kb[160];
+        std::snprintf(kb, sizeof(kb),
+            "{\"api_key\":\"%s\",\"note\":\"keep private; rate-limited 10/min; works on all nodes after next restart\"}",
+            key.c_str());
+        body = kb;
+        content_type = "application/json";
+        // fall through to the response — done
+    } else // ── POST routes (Phase 6.1: the submission API) ── (Phase 6.1: the submission API) ──
     if (method == "POST" && path == "/submit_gemm") {
         auto np = post_body.find("\"n\":");
         unsigned n = 64;

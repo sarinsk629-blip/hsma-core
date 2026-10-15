@@ -4651,3 +4651,9 @@ Readiness COMPLETE.
 - TWO partner keys issued: bro-age (the first ask) and AFE (Genesis contributor #2, 17K+ rounds — the second external builder to request programmatic access). AFE's key authenticated a real submission locally before shipping.
 - The /tmp lesson (Termux): restricted tmp — session artifacts live in ~, not /tmp.
 - Law (CA-R349b): invitations must survive restarts. The door now has real keys for real builders.
+## DEF-$NEXT — Phase 6.18 CLOSED: self-serve API keys — the permissionless door
+- GET /api_key: /dev/urandom key material, hsma_ + 48 hex, returned instantly, appended to api_keys.txt (persistent across restarts), live on the issuing node immediately.
+- The test's loop: generate -> USE the fresh key in the next call -> accepted. The full permissionless cycle proven in one test.
+- The design law: the Bitcoin-address model for API access — no approval, no human, instant. Spam defense is NOT gatekeeping; it's the existing rate limits + tier clamps + honest labels. A spammer with 1000 keys gets 1000 rate-limited, honestly-labeled channels.
+- The distribution unlock: the campaign's ask shrinks from "ask us for a key" to "curl /api_key" — the friction between curiosity and usage just vanished.
+- Law (CA-R352): permissionless access with post-hoc accountability beats gated access with pre-hoc approval — the internet's entire growth model, now the API's.
