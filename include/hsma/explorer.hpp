@@ -300,8 +300,8 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             return;
         }
         if (!check_rate_limit(auth_key)) {
-            std::string err2 = "{\"error\":\"rate limit exceeded\"}";
-            std::string err_resp2 = "HTTP/1.1 429 Too Many Requests\r\nContent-Type: application/json\r\nContent-Length: "
+            std::string err2 = "{\"error\":\"rate limit exceeded (10 submissions/min — GET routes are unlimited)\"}";
+            std::string err_resp2 = "HTTP/1.1 429 Too Many Requests\r\nContent-Type: application/json\r\nRetry-After: 60\r\nContent-Length: "
                 + std::to_string(err2.size()) + "\r\nConnection: close\r\n\r\n" + err2;
             send(fd, err_resp2.c_str(), err_resp2.size(), 0);
             close(fd);
