@@ -1,10 +1,10 @@
 In file included from tools/epoch_node.cpp:13:
-include/hsma/explorer.hpp:517:13: warning: format specifies type 'unsigned int' but the argument has type 'std::size_t' (aka 'unsigned long') [-Wformat]
-  515 |             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
+include/hsma/explorer.hpp:525:13: warning: format specifies type 'unsigned int' but the argument has type 'std::size_t' (aka 'unsigned long') [-Wformat]
+  523 |             "{\"peers\":%u,\"uptime_s\":%llu,\"hb_consensus\":%llu,"
       |                         ~~
       |                         %zu
-  516 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
-  517 |             ns.peer_count, (unsigned long long)ns.uptime_s,
+  524 |             "\"pouw_weight\":%llu,\"pouw_verify\":\"%s\"}",
+  525 |             ns.peer_count, (unsigned long long)ns.uptime_s,
       |             ^~~~~~~~~~~~~
 tools/epoch_node.cpp:819:63: warning: format specifies type 'unsigned int' but the argument has type 'std::uint64_t' (aka 'unsigned long') [-Wformat]
   818 |                                 std::printf("[claim] work_id %llu (n=%u) folded into the accumulator as a claim-decree\n",

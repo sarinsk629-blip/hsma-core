@@ -4657,3 +4657,7 @@ Readiness COMPLETE.
 - The design law: the Bitcoin-address model for API access — no approval, no human, instant. Spam defense is NOT gatekeeping; it's the existing rate limits + tier clamps + honest labels. A spammer with 1000 keys gets 1000 rate-limited, honestly-labeled channels.
 - The distribution unlock: the campaign's ask shrinks from "ask us for a key" to "curl /api_key" — the friction between curiosity and usage just vanished.
 - Law (CA-R352): permissionless access with post-hoc accountability beats gated access with pre-hoc approval — the internet's entire growth model, now the API's.
+## DEF-$NEXT — DEF-359 CLOSED: the sliding-window limiter, behaviorally proven
+- The fix: the whole function replaced by line-splice (name-anchored — immune to body-text drift that broke the first attempt's anchor). 12 rapid -> exactly 10 OK + 2 limited; after 61s -> OK again. The valve swings both ways, proven behaviorally.
+- AFE's empirical catch banked with his name: the fleet's first real user found the second real defect. The users ARE the test suite.
+- Law (CA-R356): a limit named 'per X' must reset per X. Law (CA-R345 echo): patch by reading the actual text — the first anchor failed because my memory of the body differed from the file; the name-anchored whole-function splice is drift-proof.

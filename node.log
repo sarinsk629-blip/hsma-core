@@ -11,7 +11,7 @@
 [node] generating 10 local decree entries...
 [pi_E] epoch 0 complete (10 entries) — producing π_E...
 [pi_E] epoch 0: wrap_verify ACCEPT (stage=0)
-[pouw-timing][pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1125 ms
+[pouw-timing][pouw] epoch 0: 64^3 GEMM self-verify ACCEPT | weight 262144 MACs | 1127 ms
 [gossip] epoch header sent to 0 peers
 
 ═══════════════════════════════════════
@@ -23,3 +23,15 @@
 ═══════════════════════════════════════
 [explorer] HTTP server listening on port 32234
 [explorer] open http://localhost:32234 in a browser
+[work] work_id 2: VERIFIED (n=8, 61 ms)
+[work] work_id 3: VERIFIED (n=8, 60 ms)
+[work] work_id 4: VERIFIED (n=8, 43 ms)
+[work] work_id 5: VERIFIED (n=8, 43 ms)
+[work] work_id 6: VERIFIED (n=8, 48 ms)
+[work] work_id 7: VERIFIED (n=8, 48 ms)
+[work] work_id 8: VERIFIED (n=8, 47 ms)
+[work] work_id 9: VERIFIED (n=8, 48 ms)
+[work] work_id 10: VERIFIED (n=8, 48 ms)
+[work] work_id 10: VERIFIED (n=8, 47 ms)
+[epoch-pulse] injecting synthetic decree 1/10
+[fold] decree 1/10 folded, SAT

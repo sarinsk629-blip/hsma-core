@@ -96,9 +96,17 @@ inline bool validate_api_key(const std::string& key) {
     return it != g_valid_keys.end() && it->second;
 }
 inline bool check_rate_limit(const std::string& key) {
+    // DEF-359: TRUE sliding window — AFE caught the original never
+    // resetting (10 requests ever = blocked forever). Each key's count
+    // resets after 60s (shared window, testnet-simple).
     auto now = std::chrono::steady_clock::now();
     auto it = g_rate_limit.find(key);
-    if (it == g_rate_limit.end()) { g_rate_limit[key] = 1; return true; }
+    if (it == g_rate_limit.end() ||
+        std::chrono::duration_cast<std::chrono::seconds>(now - g_rate_window_start).count() >= 60) {
+        g_rate_limit[key] = 1;
+        g_rate_window_start = now;
+        return true;
+    }
     if (it->second >= RATE_LIMIT_PER_MIN) return false;
     it->second++;
     return true;
