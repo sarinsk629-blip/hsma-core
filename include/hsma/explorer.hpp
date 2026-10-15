@@ -182,6 +182,8 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
 <p><b>GET /fleet</b> — Fleet statistics</p>
 <pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/fleet</pre>
 <p><b>GET /api</b> — Full JSON status</p>
+<p><b>GET /api_key</b> — Get your own API key instantly (self-serve, no signup)</p>
+<pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/api_key</pre>
 </div>
 </div>
 
