@@ -13,7 +13,7 @@
 [![π_E](https://img.shields.io/badge/π_E-1600_bytes-critical?style=for-the-badge)]
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)]
 
-**A verified protocol where consensus weight derives from verified AI inference,
+**A verified Layer 1 protocol where consensus weight derives from verified AI inference,
 the mempool is cryptographically unreadable before ordering,
 and entire epochs compress into 1,600-byte recursive proofs.**
 
@@ -24,22 +24,6 @@ and entire epochs compress into 1,600-byte recursive proofs.**
 [📊 Decision Ledger](docs/DECISIONS.md) •
 [🌐 Landing Page](https://sarinsk629-blip.github.io/hsma-core/) •
 [🟢 Live Explorer](http://3.237.91.235:32233)
-
-
-## 🎯 The Ethereum-Relevant Contribution — MEV eliminated by construction
-
-Ethereum's hardest open problem is MEV: validators and builders extract billions by reordering transactions. Proposer-Builder Separation restructures the market but **concedes ordering power will exist** — it auctions what cannot be prevented.
-
-HSMA's research contribution — **Commit-Then-Simulate (CTS) ordering** — removes the attack surface mathematically: transactions arrive **encrypted** (threshold BLS, t-of-n DKG), the ordering is committed via a beacon-determined sort **before anyone can decrypt**, and decryption happens only after ordering is final. No transaction can influence its position. No validator can profit from ordering power that structurally cannot exist.
-
-**Live wire receipts** (each verifiable in the ledger and commit history):
-- Cross-node PoUW verification: `[pouw-verify] peer epoch 1 weight 262144 CONFIRMED by recomputation` — a peer's proof-of-work independently re-derived on different hardware
-- The first epoch boundary crossed: epoch 1 folded, proven (π_E ACCEPT), gossiped
-- GPU workloads verified and folded into chain state as claim-decrees: `[claim] work_id 1 (n=256) folded into the accumulator`
-- Folding performance measured: **476 instances → 1.5 s** into an O(1) accumulator
-- The honest verifier-cost curve: 615 ms → 156 s (n=64→1024) — measured, published, and the architecture rerouted to fold-verification because of it
-
-📄 Full research summary: [docs/ESP_RESEARCH_SUMMARY.md](docs/ESP_RESEARCH_SUMMARY.md) · 📜 Wire receipts: [docs/RECEIPTS.md](docs/RECEIPTS.md)
 
 🤝 Join the Community
 
