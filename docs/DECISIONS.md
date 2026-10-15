@@ -4661,3 +4661,9 @@ Readiness COMPLETE.
 - The fix: the whole function replaced by line-splice (name-anchored — immune to body-text drift that broke the first attempt's anchor). 12 rapid -> exactly 10 OK + 2 limited; after 61s -> OK again. The valve swings both ways, proven behaviorally.
 - AFE's empirical catch banked with his name: the fleet's first real user found the second real defect. The users ARE the test suite.
 - Law (CA-R356): a limit named 'per X' must reset per X. Law (CA-R345 echo): patch by reading the actual text — the first anchor failed because my memory of the body differed from the file; the name-anchored whole-function splice is drift-proof.
+## DEF-$NEXT — DEF-359 session close: the limiter, the user, and the meta-lesson
+- The behavioral proof: 12 rapid -> 10 OK / 2 limited (exact cap, no off-by-one); 61s -> recovery. The sliding window is real, named, and tested at the human cadence.
+- The defect's origin story: written in the 6.3 auth session, the window variable was declared but never wired — the code review that session checked the auth flow, not the time arithmetic. No test submitted 11 times in a minute. Only sustained real usage could catch it. AFE did.
+- The user-as-test-suite scorecard, two days: AFE found the decoder gap (UX) and the one-way valve (logic) — two defects no automated test could reach, because both required human-cadence, human-motivation usage patterns.
+- The fleet implication: every new real user is a new adversarial test of paths no CI covers. The partner campaign isn't just adoption — it's the highest-value QA the project can acquire.
+- Law (CA-R356, final form): a limit must be tested at limit+1, at the boundary, and AFTER the window — three moments, or the limit is untested. And the corollary: the users who complain are the users who care — AFE's complaints are contributions, logged with his name.
