@@ -57,6 +57,18 @@ struct NodeState {
     std::string pouw_verify;           // "ACCEPT" | "REJECT" | "PENDING"
     unsigned long long uptime_s = 0;   // P5-D: node age in seconds (node-written)
     unsigned long long hb_consensus = 0; // P5-D: consensus heartbeat counter (node-written)
+    // Phase 6.17 v2 s2: the rotating epoch-verifier receipt (node-written).
+    // has_receipt=false is the HONEST zero state: no pool has been audited yet.
+    bool verifier_has_receipt = false;
+    unsigned verifier_epoch{};          // epoch whose pool the last audit ran on
+    std::size_t verifier_pool{};        // pool size at audit time
+    std::uint64_t verifier_work_id{};   // the selected claim's work_id
+    bool verifier_digest_ok{};          // tier-1: identity re-derivation
+    bool verifier_recompute_ran{};      // tier-2 ran (fleet rung n<=64)
+    bool verifier_recompute_ok{};       // tier-2 byte-exact
+    bool verifier_pass{};               // overall verdict
+    unsigned long long verifier_rotations = 0;  // lifetime deep-audit count
+    std::string verifier_identity_hex;          // re-derived claim identity (64 hex)
 };
 
 // ---- Phase 6.2: workload queue ----
@@ -190,6 +202,8 @@ h1 { color: #00ff88; border-bottom: 2px solid #00ff88; padding-bottom: 10px; }
 <p><b>GET /fleet</b> — Fleet statistics</p>
 <pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/fleet</pre>
 <p><b>GET /api</b> — Full JSON status</p>
+<p><b>GET /verifier</b> — The rotating epoch-verifier receipt (6.17 v2 s2)</p>
+<pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/verifier</pre>
 <p><b>GET /api_key</b> — Get your own API key instantly (self-serve, no signup)</p>
 <pre style="background:#0d0d1a; padding:8px; border-radius:4px;">curl http://HOST:PORT/api_key</pre>
 </div>
@@ -524,6 +538,28 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         send(fd, nr.c_str(), nr.size(), 0);
         close(fd);
         return;
+    } else if (method == "GET" && path == "/verifier") {
+        // Phase 6.17 v2 s2: the rotating epoch-verifier receipt — PUBLIC.
+        // Transparency route: no key material, no preimage bytes — only the
+        // rotation schedule and the last deep-audit verdict. Any fleet member
+        // can re-derive the schedule from the chain (select_index is public).
+        char vb[720];
+        std::snprintf(vb, sizeof(vb),
+            "{\"route\":\"epoch-verifier 6.17 v2 s2\",\"epoch\":%u,\"rotations\":%llu,"
+            "\"pool_size\":%zu,\"selected_work_id\":%llu,"
+            "\"identity_ok\":%s,\"recompute_ran\":%s,\"recompute_ok\":%s,"
+            "\"pass\":%s,\"has_receipt\":%s,\"claim_identity\":\"%s\","
+            "\"note\":\"sample rotates with the epoch beacon; recompute runs at the fleet rung (n<=64)\"}",
+            ns.verifier_epoch, (unsigned long long)ns.verifier_rotations,
+            ns.verifier_pool, (unsigned long long)ns.verifier_work_id,
+            ns.verifier_digest_ok ? "true" : "false",
+            ns.verifier_recompute_ran ? "true" : "false",
+            ns.verifier_recompute_ok ? "true" : "false",
+            ns.verifier_pass ? "true" : "false",
+            ns.verifier_has_receipt ? "true" : "false",
+            ns.verifier_identity_hex.c_str());
+        body = vb;
+        content_type = "application/json";
     } else if (method == "GET" && path.rfind("/result/", 0) == 0) {
         // Phase 6.2: result lookup
         std::uint64_t wid = std::strtoull(path.c_str() + 8, nullptr, 10);

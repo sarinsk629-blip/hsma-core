@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""gate_617_live.py — HSMA 6.17 v2 s1 four-gate (CA-R281/317), persisted per CA-R299.
+"""gate_617_live.py — HSMA 6.17 v2 four-gate (CA-R281/317), persisted per CA-R299.
 v3: key via GET /api_key (self-service bootstrap) + api_keys.txt fallback;
 mint POST /submit_gemm INGESTED (explicit A/B) -> full byte-exact preimage loop;
-claim checks: a/b == submitted hex, C == exact recompute, cross-/result, determinism."""
+claim checks: a/b == submitted hex, C == exact recompute, cross-/result, determinism.
+v4 (s2): test_step52 in the test battery + GET /verifier leg — the rotating
+epoch-verifier route must answer with the honest zero state on a fresh node
+(n=8 mint never folds a claim; the pool is empty; has_receipt=false)."""
 import glob, hashlib, json, os, re, signal, socket, subprocess, sys, time
 import urllib.request, urllib.error
 
@@ -48,12 +51,12 @@ if r.returncode != 0:
     REASONS.append("build"); print(r.stdout[-1500:] + r.stderr[-1500:])
 
 # ---- gate 2: tests ----
-cands = ["test_step46", "test_step47", "t46", "t47"]
+cands = ["test_step46", "test_step47", "test_step52", "t46", "t47", "t52"]
 sh("ninja -C build " + " ".join(cands))
 tests = [c for c in cands if os.path.isfile(f"build/{c}") and os.access(f"build/{c}", os.X_OK)]
 print(f"[gate2 tests] binaries: {tests or 'NONE FOUND'}")
-for i, t in enumerate(tests[:2]):
-    errf = "t46_err.txt" if i == 0 else "t47_err.txt"
+for i, t in enumerate(tests):
+    errf = f"{t}_err.txt"
     r = sh(f"./build/{t} > {errf} 2>&1", timeout=900)
     print(f"[gate2 tests] {t} rc={r.returncode} -> {errf}")
     if r.returncode != 0:
@@ -171,6 +174,33 @@ try:
                                 REASONS.append("live: preimage checks failed")
                         except Exception as e:
                             REASONS.append(f"live: preimage parse error {e!r}")
+
+            # --- s2: the rotating epoch-verifier route (public, transparency) ---
+            st4, txt4 = http("GET", f"{base}/verifier")
+            print(f"[gate3 live] GET /verifier -> {st4} {txt4[:130]}")
+            if st4 != 200:
+                REASONS.append(f"live: /verifier returned {st4}")
+            else:
+                try:
+                    v = json.loads(txt4)
+                    schema_ok = all(kk in v for kk in (
+                        "epoch", "rotations", "pool_size", "selected_work_id",
+                        "identity_ok", "recompute_ran", "recompute_ok",
+                        "pass", "has_receipt", "claim_identity"))
+                    # honest zero state: this driver mints n=8 only — claims fold
+                    # for n>64, so the pool is empty and no rotation has fired
+                    zero_ok = (v.get("pool_size") == 0
+                               and v.get("has_receipt") is False
+                               and v.get("pass") is False
+                               and v.get("rotations") == 0)
+                    print(f"[gate3 live] verifier schema={schema_ok} zero_state={zero_ok} "
+                          f"rotations={v.get('rotations')} pool={v.get('pool_size')}")
+                    if not schema_ok:
+                        REASONS.append("live: /verifier schema incomplete")
+                    if not zero_ok:
+                        REASONS.append("live: /verifier zero-state dishonest")
+                except Exception as e:
+                    REASONS.append(f"live: /verifier parse error {e!r}")
     # ---- gate 4: survival ----
     if node and node.poll() is None:
         time.sleep(8)

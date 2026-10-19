@@ -11,6 +11,7 @@
 #include <hsma/fexec_circuit.hpp>
 #include <hsma/whir.hpp>
 #include <hsma/explorer.hpp>
+#include <hsma/verifier.hpp>   // Phase 6.17 v2 s2: the rotating epoch-verifier
 #include <hsma/pouw.hpp>
 #include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/sha256.hpp>
@@ -224,6 +225,20 @@ static std::map<std::uint32_t, std::uint64_t> g_peer_bans;
 // pool. Cleared at epoch completion (the next epoch's claims are new claims).
 static std::vector<std::vector<std::uint8_t>> g_epoch_claims;
 static bool g_quorum_audited_this_pool = false;   // one audit per pool lifecycle
+
+// Phase 6.17 v2 s2: the rotating epoch-verifier — receipt of the last deep
+// audit + the lifetime rotation counter. Served via GET /verifier; the receipt
+// is the node's own verifier duty made legible to the fleet.
+struct VerifierReceipt {
+    bool has = false;                 // false = honest zero state (nothing audited yet)
+    unsigned epoch = 0;
+    std::size_t pool = 0;
+    std::uint64_t work_id = 0;
+    bool digest_ok = false, recompute_ran = false, recompute_ok = false, pass = false;
+    std::string identity_hex;
+};
+static VerifierReceipt g_verifier_receipt;
+static unsigned long long g_verifier_rotations = 0;
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -725,6 +740,46 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             }
             std::printf("[quorum] %zu claim-decrees audited (structure+linkage), %u mismatches\n",
                 g_epoch_claims.size(), mism);
+        // Phase 6.17 v2 s2 (CA-R370d): the ROTATING deep audit — same pool
+        // lifecycle gate (one pass per pool; the audit above is tier-0 over
+        // the whole pool). The verifier selects ONE claim deterministically —
+        // seeded from THIS epoch's digest tail under the VERIFIER domain tag
+        // (independent of the PoUW seed on the same tail) — re-derives the
+        // claim's cryptographic identity (tier-1) and recomputes the full
+        // GEMM when the fleet rung (n<=64) makes it affordable (tier-2).
+        // Fresh tail + fresh pool each epoch: the sample auto-rotates.
+        // No permanent verifier, no permanent sample.
+        if (!g_epoch_claims.empty()) {
+            const std::size_t pool = g_epoch_claims.size();
+            const std::size_t sel = verifier::select_index(digest_chain.back(), pool);
+            const auto& pl = g_epoch_claims[sel];
+            std::uint64_t wid = 0;
+            for (int b = 0; b < 8; ++b) wid |= (std::uint64_t)pl[32 + b] << (8 * b);
+            explorer::WorkItem snap;   // bounded copy under the work mutex (once per pool)
+            {   std::lock_guard<std::mutex> lk(g_work_mutex);
+                auto it = g_work_done.find(wid);
+                if (it != g_work_done.end()) snap = it->second; }
+            const auto out = verifier::verify_claim(pl, snap);
+            char ih[65] = {};
+            for (int k = 0; k < 32; ++k) std::snprintf(ih + k * 2, 3, "%02x", out.identity[k]);
+            g_verifier_receipt.has = true;
+            g_verifier_receipt.epoch = current_epoch;
+            g_verifier_receipt.pool = pool;
+            g_verifier_receipt.work_id = wid;
+            g_verifier_receipt.digest_ok = out.identity_ok;
+            g_verifier_receipt.recompute_ran = out.recompute_ran;
+            g_verifier_receipt.recompute_ok = out.recompute_ok;
+            g_verifier_receipt.pass = out.pass;
+            g_verifier_receipt.identity_hex = ih;
+            ++g_verifier_rotations;
+            std::printf("[verifier] epoch %u: rotation %llu selected pool[%zu/%zu] work %llu — identity %s%s | %s\n",
+                current_epoch, (unsigned long long)g_verifier_rotations, sel, pool,
+                (unsigned long long)wid,
+                out.identity_ok ? "PASS" : "FAIL",
+                out.recompute_ran ? (out.recompute_ok ? " | recompute PASS" : " | recompute FAIL")
+                                  : " | recompute n/a (above fleet rung)",
+                out.pass ? "CLAIM VERIFIED" : "CLAIM REJECTED");
+        }
         }
                 if (peer_fds.empty() && !g_seed_addrs.empty()) {
                     if (++reconnect_timer >= 30) {
@@ -842,6 +897,17 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             }
                 g_ns_shared.uptime_s = (unsigned long long)std::chrono::duration_cast<std::chrono::seconds>(now - g_boot).count();
                 g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
+                // Phase 6.17 v2 s2: mirror the verifier receipt into the served state
+                g_ns_shared.verifier_has_receipt = g_verifier_receipt.has;
+                g_ns_shared.verifier_epoch = g_verifier_receipt.epoch;
+                g_ns_shared.verifier_pool = g_verifier_receipt.pool;
+                g_ns_shared.verifier_work_id = g_verifier_receipt.work_id;
+                g_ns_shared.verifier_digest_ok = g_verifier_receipt.digest_ok;
+                g_ns_shared.verifier_recompute_ran = g_verifier_receipt.recompute_ran;
+                g_ns_shared.verifier_recompute_ok = g_verifier_receipt.recompute_ok;
+                g_ns_shared.verifier_pass = g_verifier_receipt.pass;
+                g_ns_shared.verifier_rotations = g_verifier_rotations;
+                g_ns_shared.verifier_identity_hex = g_verifier_receipt.identity_hex;
                 // Gate-3: uptime proof broadcast — every 300 ticks (5 minutes), if peers exist
                 static std::uint64_t uptime_tick_counter = 0;
                 if (++uptime_tick_counter >= 300 && !peer_fds.empty()) {
