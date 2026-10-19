@@ -92,6 +92,31 @@ struct WorkItem {
     std::array<std::uint8_t, 32> ic{};   // SHA256(A_bytes || B_bytes) — set at ingestion
     bool commitment_checked = false;     // worker re-verified at pickup
 };
+
+// Phase 6.17 v2 s1.1 (CA-R345): the faucet write-back. A faucet-minted work
+// used to prove over self-generated inputs that were never served — has_inputs
+// stayed false, so the claim condition (has_inputs && verified) was
+// structurally unsatisfiable and /claim_inputs 404'd for faucet work (the s1
+// 404 root cause). This binds the generated matrices INTO the work record the
+// way ingestion binds submitted data: A_in/B_in carry the exact bytes about to
+// be proven, ic = SHA256(le(A)||le(B)) is bound at generation, and the
+// worker's swap gate re-derives it — ONE uniform commitment invariant for
+// both mint paths.
+inline void bind_faucet_inputs(WorkItem& w,
+                               const std::vector<fp::fe>& A,
+                               const std::vector<fp::fe>& B) {
+    w.A_in = A;
+    w.B_in = B;
+    w.has_inputs = true;
+    const std::size_t m = w.A_in.size();
+    std::vector<std::uint8_t> cat(m * 64);   // DEF-315: heap, sized by data
+    for (std::size_t k = 0; k < m; ++k) {
+        fp::fe_to_le_bytes(w.A_in[k], reinterpret_cast<std::byte*>(cat.data() + k * 32));
+        fp::fe_to_le_bytes(w.B_in[k], reinterpret_cast<std::byte*>(cat.data() + m * 32 + k * 32));
+    }
+    digest::sha256(cat.data(), cat.size(), w.ic.data());
+}
+
 inline std::vector<WorkItem> g_work_queue;
 inline std::map<std::uint64_t, WorkItem> g_work_done;
 inline std::atomic<std::uint64_t> g_next_work_id{1};

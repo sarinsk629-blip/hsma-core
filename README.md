@@ -455,7 +455,8 @@ hsma-core/
 | Phase 2 | The testnet: P2P, validator nodes, explorer, weight consensus | ✅ |
 | Phase 3 | MSSC: votes, convergence, deadlock resolution, aggregate verify | ✅ |
 | Phase 4 | Zero-MEV: envelope, ordering, threshold, mempool, capstone | ✅ |
-| **Next** | DKG rotation, aggregate-verify integration, the multi-node capstone | 🔜 |
+| Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1) — every verified work is now claimable and auditable | ✅ |
+| **Next** | Fleet-positive rotation receipt (n>64 fold on GPU), DKG rotation, aggregate-verify integration | 🔜 |
 
 ---
 

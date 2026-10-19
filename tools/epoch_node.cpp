@@ -818,7 +818,24 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         {   // 6.11: prove over the COMPANY's data when ingested
                             if (w.has_inputs && w.A_in.size() == (std::size_t)gn * gn && w.B_in.size() == (std::size_t)gn * gn) {
                                 gA = w.A_in; gB = w.B_in;
+                            } else if (!w.has_inputs) {
+                                for (auto& x : gA) x = grnd();
+                                for (auto& x : gB) x = grnd();
+                                // Phase 6.17 v2 s1.1 (CA-R345): the faucet
+                                // write-back — the self-generated matrices are
+                                // bound into the work record exactly like
+                                // ingested data (ic bound at generation; the
+                                // swap gate below re-derives it). Before s1.1
+                                // these bytes were proven over but never served:
+                                // the claim condition (has_inputs && verified)
+                                // was structurally unsatisfiable for faucet
+                                // work — the s1 404 root cause.
+                                explorer::bind_faucet_inputs(w, gA, gB);
+                            }   // else: malformed ingestion (sizes wrong, ic
+                                // unbound) — the gate below fails it and gvok
+                                // keeps the work FAILED, as before s1.1
         // 6.11b: re-verify the input commitment BEFORE proving — the swap gate
+        // (s1.1: uniform — ingested AND faucet work pass through the same gate)
         {   std::size_t an = w.A_in.size() * 32, bn = w.B_in.size() * 32;
             std::vector<std::uint8_t> cat(an + bn);   // DEF-315: heap, sized by data
             for (std::size_t k = 0; k < w.A_in.size(); ++k)
@@ -832,10 +849,6 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 std::printf("[work] work_id %llu: COMMITMENT MISMATCH — inputs tampered post-ingestion\n",
                     (unsigned long long)w.id);
         }
-                            } else {
-                                for (auto& x : gA) x = grnd();
-                                for (auto& x : gB) x = grnd();
-                            }
                         }
                         pouw::gemm(gA.data(), gB.data(), gC.data(), gn);
                         const auto wt0 = std::chrono::steady_clock::now();

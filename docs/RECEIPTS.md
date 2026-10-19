@@ -15,6 +15,8 @@ in this repository that introduced or proves the mechanism behind it.
 | 8 | Oct 10–13 | Anchor soak: `NRestarts: 0`, watchdogs 0 in 5+ days (3 fires ALL dated Oct 3–4, pre-timeout-fix), fd-count flat at 9 | The freeze class dead; the fd-leak soak-killer (DEF-302) dead; production stability | DEF-254..263, DEF-302 |
 | 9 | Oct 5 | `GATE GREEN — 39/39` on an external contributor's machine (g++-only, no clang) | Portability: the gate self-adapts to the machine's toolchain | DEF-253 |
 | 10 | Oct 13 | `[quorum] epoch N: claim-decrees audited (structure+linkage)` — fires at every header exchange | Fleet-side claim auditing, digest-seeded sampling | a34fb30 |
+| 11 | Oct 19 (sandbox re-run) | `PREIMAGE byte-exact: a=True b=True \| C recompute=True \| cross=True \| deterministic=True` → `sha256(c)=c187874a447258ff1f925cda72d4d266cd415d6540b3350aee84b14b219ae2a7` | The s1 claim loop re-proven on foreign hardware, bit-identical digest (third independent run: phone, audit box, sandbox) | c134379 |
+| 12 | Oct 19 | `claim_inputs/2 (FAUCET) -> 200` + `FAUCET preimage: a==predicted=True b==predicted=True \| C==mod-p recompute=True` → `faucet sha256(c)=007124aec362e8d2a3b560dfecb6c60b5cbd4ac0d3750a41ccb634b0d3dc64b3` | **The faucet 404 is dead**: the node binds its self-generated inputs; the driver independently predicted A/B from the seed law and recomputed C mod p over F_p — preimage served for BOTH mint paths | (this commit) |
 
 **The verification commands** (any of these reproduce the evidence):
 
@@ -27,6 +29,6 @@ ssh <anchor> "sudo journalctl -u hsma-node --no-pager | grep -E 'pouw-verify|cla
 ./scripts/gate.sh          # GATE GREEN
 ```
 
-**Counts at time of writing:** decisions = 61 · owned defects = 73 ·
-laws = 269 · conformance programs = 51 —
+**Counts at time of writing:** decisions = 62 · owned defects = 73 ·
+laws = 271 · conformance programs = 52 —
 live counts: `grep -c '^## DEC-' docs/DECISIONS.md`

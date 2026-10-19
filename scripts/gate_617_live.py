@@ -5,7 +5,12 @@ mint POST /submit_gemm INGESTED (explicit A/B) -> full byte-exact preimage loop;
 claim checks: a/b == submitted hex, C == exact recompute, cross-/result, determinism.
 v4 (s2): test_step52 in the test battery + GET /verifier leg — the rotating
 epoch-verifier route must answer with the honest zero state on a fresh node
-(n=8 mint never folds a claim; the pool is empty; has_receipt=false)."""
+(n=8 mint never folds a claim; the pool is empty; has_receipt=false).
+v5 (s1.1): the FAUCET leg — mint WITHOUT inputs; the node must bind its
+self-generated matrices (bind_faucet_inputs) and /claim_inputs answers 200
+where pre-s1.1 it 404'd structurally. The faucet seed law (gseed = id*7919+13,
+xorshift64, x golden ratio) is deterministic per work_id: the driver
+INDEPENDENTLY predicts A/B and recomputes C mod p (Pallas) from the claim."""
 import glob, hashlib, json, os, re, signal, socket, subprocess, sys, time
 import urllib.request, urllib.error
 
@@ -33,6 +38,21 @@ def wait_log(pat, path, timeout, since=0):
         except OSError: pass
         time.sleep(0.25)
     return None
+def faucet_predict(wid, count=128):
+    """Replica-exact of the node's faucet PRNG (epoch_node.cpp):
+    gseed = id*7919+13; xorshift64 (L13,R7,L17); value = state * 0x9E3779B97F4A7C15,
+    u64-wrapped. fe_from_u64(v) holds canonical value v (v < 2^64 < p), and
+    fe_to_le_bytes serves canonical LE — so these u64s ARE the served preimage."""
+    M = (1 << 64) - 1
+    st = (wid * 7919 + 13) & M
+    out = []
+    for _ in range(count):
+        st ^= (st << 13) & M
+        st ^= st >> 7
+        st ^= (st << 17) & M
+        out.append((st * 0x9E3779B97F4A7C15) & M)
+    return out
+
 def http(method, url, headers=None, body=None, timeout=15):
     req = urllib.request.Request(url, data=body.encode() if body else None, method=method)
     for k, v in (headers or {}).items(): req.add_header(k, v)
@@ -51,7 +71,7 @@ if r.returncode != 0:
     REASONS.append("build"); print(r.stdout[-1500:] + r.stderr[-1500:])
 
 # ---- gate 2: tests ----
-cands = ["test_step46", "test_step47", "test_step52", "t46", "t47", "t52"]
+cands = ["test_step46", "test_step47", "test_step52", "test_step53", "t46", "t47", "t52", "t53"]
 sh("ninja -C build " + " ".join(cands))
 tests = [c for c in cands if os.path.isfile(f"build/{c}") and os.access(f"build/{c}", os.X_OK)]
 print(f"[gate2 tests] binaries: {tests or 'NONE FOUND'}")
@@ -174,6 +194,53 @@ try:
                                 REASONS.append("live: preimage checks failed")
                         except Exception as e:
                             REASONS.append(f"live: preimage parse error {e!r}")
+
+            # --- s1.1: the FAUCET leg — mint WITHOUT inputs; the node binds
+            # its self-generated matrices and the claim route answers 200
+            # (pre-s1.1: structural 404). The driver independently predicts
+            # A/B from the seed law and recomputes C mod p over F_p (Pallas).
+            if good_h and mint_path:
+                P = 0x40000000000000000000000000000000224698fc0994a8dd8c46eb2100000001
+                stf, txtf = http("POST", base + mint_path, headers=good_h, body='{"n":8}')
+                print(f"[gate3 live] mint POST {mint_path} (faucet n=8) -> {stf} {txtf[:90]}")
+                fwm = re.search(r'"work_id":(\d+)', txtf)
+                if 200 <= stf < 300 and fwm:
+                    fwid = int(fwm.group(1))
+                    if not wait_log(rf"\[work\] work_id {fwid}: VERIFIED", "node.log", 240, since=mark):
+                        REASONS.append(f"live: faucet work {fwid} never VERIFIED")
+                    else:
+                        stc, txtc = http("GET", f"{base}/claim_inputs/{fwid}", headers=good_h)
+                        print(f"[gate3 live] claim_inputs/{fwid} (FAUCET) -> {stc} {txtc[:90]}")
+                        if stc != 200:
+                            REASONS.append(f"live: faucet claim returned {stc} (write-back failed?)")
+                        else:
+                            try:
+                                pred = faucet_predict(fwid, 128)
+                                PA, PB = pred[:64], pred[64:]
+                                cl = json.loads(txtc)
+                                araw, braw = bytes.fromhex(cl["a"]), bytes.fromhex(cl["b"])
+                                a_ok = len(araw) == 64 * 32 and all(
+                                    int.from_bytes(araw[k * 32:k * 32 + 8], "little") == PA[k] for k in range(64))
+                                b_ok = len(braw) == 64 * 32 and all(
+                                    int.from_bytes(braw[k * 32:k * 32 + 8], "little") == PB[k] for k in range(64))
+                                craw = bytes.fromhex(cl["c"])
+                                CEXP = [sum(PA[i * 8 + k2] * PB[k2 * 8 + j] for k2 in range(8)) % P
+                                        for i in range(8) for j in range(8)]
+                                Cgot = [int.from_bytes(craw[t * 32:(t + 1) * 32], "little") for t in range(64)]
+                                c_ok = (len(craw) == 64 * 32 and Cgot == CEXP)
+                                stx, rx = http("GET", f"{base}/result/{fwid}")
+                                try: res_hex = json.loads(rx).get("result", "")
+                                except Exception: res_hex = ""
+                                cross = bool(res_hex) and res_hex.lower() == cl["c"].lower()
+                                print(f"[gate3 live] FAUCET preimage: a==predicted={a_ok} b==predicted={b_ok} "
+                                      f"| C==mod-p recompute={c_ok} | cross-/result={cross}")
+                                print(f"[gate3 live] faucet sha256(c)={hashlib.sha256(craw).hexdigest()}")
+                                if not (a_ok and b_ok and c_ok and cross):
+                                    REASONS.append("live: faucet preimage checks failed")
+                            except Exception as e:
+                                REASONS.append(f"live: faucet preimage parse error {e!r}")
+                else:
+                    REASONS.append("live: faucet mint failed (auth or body rejected)")
 
             # --- s2: the rotating epoch-verifier route (public, transparency) ---
             st4, txt4 = http("GET", f"{base}/verifier")
