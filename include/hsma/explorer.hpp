@@ -478,6 +478,52 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             body = tmp;
             content_type = "application/json";
         }
+    } else if (method == "GET" && path.rfind("/claim_inputs/", 0) == 0) {
+        // Phase 6.17 v2: the claim preimage — served to epoch-verifiers.
+        // AUTH REQUIRED. Returns A/B hex + result hex for independent re-verification.
+        if (auth_key.empty() || !validate_api_key(auth_key)) {
+            std::string e = "{\"error\":\"invalid API key\"}";
+            std::string er = "HTTP/1.1 401 Unauthorized\r\nContent-Type: application/json\r\nContent-Length: "
+                + std::to_string(e.size()) + "\r\nConnection: close\r\n\r\n" + e;
+            send(fd, er.c_str(), er.size(), 0);
+            close(fd);
+            return;
+        }
+        std::uint64_t cid = std::strtoull(path.c_str() + 14, nullptr, 10);
+        {   std::lock_guard<std::mutex> lk(g_work_mutex);
+            auto it = g_work_done.find(cid);
+            if (it != g_work_done.end() && it->second.has_inputs && it->second.verified) {
+                const auto& w = it->second;
+                auto to_hex = [](const std::vector<fp::fe>& v) {
+                    static const char* d = "0123456789abcdef";
+                    std::string out; out.reserve(v.size()*64);
+                    for (const auto& f : v) {
+                        std::uint8_t b[32];
+                        fp::fe_to_le_bytes(f, reinterpret_cast<std::byte*>(b));
+                        for (int k = 0; k < 32; ++k) { out += d[b[k] >> 4]; out += d[b[k] & 15]; }
+                    }
+                    return out; };
+                auto bytes_hex = [](const std::vector<std::uint8_t>& v) {
+                    static const char* d = "0123456789abcdef";
+                    std::string out; out.reserve(v.size()*2);
+                    for (std::uint8_t b : v) { out += d[b >> 4]; out += d[b & 15]; }
+                    return out; };
+                std::string j = "{\"work_id\":" + std::to_string(w.id) + ",\"n\":" + std::to_string(w.n)
+                    + ",\"a\":\"" + to_hex(w.A_in) + "\",\"b\":\"" + to_hex(w.B_in)
+                    + "\",\"c\":\"" + bytes_hex(w.result_bytes) + "\"}";
+                std::string r = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: "
+                    + std::to_string(j.size()) + "\r\nConnection: close\r\n\r\n" + j;
+                send(fd, r.c_str(), r.size(), 0);
+                close(fd);
+                return;
+            }
+        }
+        std::string nf = "{\"error\":\"claim not found or lacks inputs\"}";
+        std::string nr = "HTTP/1.1 404 Not Found\r\nContent-Type: application/json\r\nContent-Length: "
+            + std::to_string(nf.size()) + "\r\nConnection: close\r\n\r\n" + nf;
+        send(fd, nr.c_str(), nr.size(), 0);
+        close(fd);
+        return;
     } else if (method == "GET" && path.rfind("/result/", 0) == 0) {
         // Phase 6.2: result lookup
         std::uint64_t wid = std::strtoull(path.c_str() + 8, nullptr, 10);
