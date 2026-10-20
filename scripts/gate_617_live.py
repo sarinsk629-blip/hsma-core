@@ -78,7 +78,9 @@ if r.returncode != 0:
 # ---- gate 2: tests ----
 cands = ["test_step46", "test_step47", "test_step52", "test_step53", "test_step54",
          "test_step55", "test_step56", "test_step57", "test_step58",
-         "t46", "t47", "t52", "t53", "t54", "t55", "t56", "t57", "t58"]
+         "test_step59", "test_step60", "test_step61", "test_step62",
+         "t46", "t47", "t52", "t53", "t54", "t55", "t56", "t57", "t58",
+         "t59", "t60", "t61", "t62"]
 sh("ninja -C build " + " ".join(cands))
 tests = [c for c in cands if os.path.isfile(f"build/{c}") and os.access(f"build/{c}", os.X_OK)]
 print(f"[gate2 tests] binaries: {tests or 'NONE FOUND'}")

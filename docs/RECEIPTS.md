@@ -24,6 +24,10 @@ in this repository that introduced or proves the mechanism behind it.
 | 17 | Oct 20 | `[dkg] epoch 1 committee rotated: n=5 t=3 shares_ok=5/5 agg_pk=2f502670cf7c4712…` + `/dkg {has:true, n:5, t:3, shares_verified:5, agg_pk:384-hex}` | **The DKG rotation is WIRED**: the node derives its epoch committee from the chain tip (beacon-seeded Feldman VSS), every share verifies, the aggregate pk moves with the chain — auditable determinism | (this commit) |
 | 18 | Oct 20 | `POST /register_model -> 200 {"model_id":4242,"registered":true,"C":1111614908399931266}` + `GET /models -> {"registry_size":1,"models":[{…4242…}]}` | **6.20 live: the registry HOLDS state** — the pre-s4 route printed and forgot (DEF-376 owned); now registration lands in the live Registry, /models publishes it, and submit_gemm admission binds workloads by the opening check | (this commit) |
 | 19 | Oct 19 | `test_step54: ALL PASS — 1088 rows EXACT, all SAT, gadget output == fp::poseidon3 (Montgomery-exact), tamper breaks SAT, 3 domains` | **"Poseidon-3 as R1CS" is now semantically TRUE** (DEF-375 fixed): the row count measured at production parameters, the gadget↔permutation bridge finally pinned | 7a56d55 |
+| 20 | Oct 20 | `test_step59: ALL PASS — tables certified (exp worst 0 LSB, rsqrt worst 1) \| worst \|P-oracle\|=0.01335 \| row-sum ~128 \| D=1024 boundary ACCEPT, D=1152 REJECT \| both LogUp sides balance, both poisons IMBALANCE` | **6.14 CLOSES: the certified softmax producer** — q7/q14 fixed-point over the exp_shifted + RCP tables, the extended SoftmaxBatch (one trace, two LogUp sides), the exact rung boundary measured | (this commit) |
+| 21 | Oct 20 | `test_step60: ALL PASS — full pipeline 11 legs verify \| doctored-P proof REJECTED (the fence holds) \| flipped X REJECTED \| legacy scaffold still verifies` | **The 6.19 fence is SHUT**: P_h is DERIVED by the producer from the proven scores — the attack the rung-1 scaffold could not express now dies in the verifier's own re-derivation | (this commit) |
+| 22 | Oct 20 | `test_step61: ALL PASS — rsqrt grid receipt (worst chord 1) \| worst \|y-oracle\|=0.00803 \| n=8 divisions exact \| eps floor rows exact 0 \| negative model rejected \| n-division trace balances` | **6.15 takes the honest rung**: LayerNorm as table+fixup — RCP mean/variance, interpolated rsqrt window, drift pinned at 0.05 (measured 0.00803); exact LayerNorm remains registered circuit work | (this commit) |
+| 23 | Oct 20 | `test_step62: ALL PASS — 240x305 shared circuit, 4 real block instances, folded instance SATISFIES \| FS deterministic \| both tamper negatives die \| block C == parent slices \| steps 31/32/33 k=1 regressions GREEN` | **6.18 rung-2: the fold-of-folds through the REAL mfold** — DEF-379 found+fixed on its first k>1 caller; epoch-scale instantiation (10,000³) remains P1-13 | (this commit) |
 
 **The verification commands** (any of these reproduce the evidence):
 
@@ -36,6 +40,6 @@ ssh <anchor> "sudo journalctl -u hsma-node --no-pager | grep -E 'pouw-verify|cla
 ./scripts/gate.sh          # GATE GREEN
 ```
 
-**Counts at time of writing:** decisions = 64 · owned defects = 76 ·
-laws = 276 · conformance programs = 57 —
+**Counts at time of writing:** decisions = 68 · owned defects = 80 ·
+laws = 280 · conformance programs = 61 —
 live counts: `grep -c '^## DEC-' docs/DECISIONS.md`

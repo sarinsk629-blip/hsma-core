@@ -17,6 +17,10 @@ add_library(hsma_params INTERFACE)
 target_include_directories(hsma_params INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(hsma_params INTERFACE cxx_std_20)
 target_compile_options(hsma_params INTERFACE -Wall -Wextra -Wpedantic -Wno-pedantic -Werror)
+# DEF-380 prevention, GLOBAL: shift-count-overflow is the precedence-bug
+# tripwire (x >> 14 + EPS parsed as x >> (14+EPS)) — every target gets it as
+# a hard error, not just hsma_params consumers.
+add_compile_options(-Werror=shift-count-overflow)
 
 # ---- DEC-090 lint is part of EVERY build ----------------------------------
 find_program(BASH_PROG bash REQUIRED)
@@ -354,6 +358,14 @@ add_executable(test_step57 conformance/test_step57_block_shard.cpp)
 target_include_directories(test_step57 PRIVATE include generated)
 add_executable(test_step58 conformance/test_step58_attention.cpp)
 target_include_directories(test_step58 PRIVATE include generated)
+add_executable(test_step59 conformance/test_step59_softmax.cpp)
+target_include_directories(test_step59 PRIVATE include generated)
+add_executable(test_step60 conformance/test_step60_attention_full.cpp)
+target_include_directories(test_step60 PRIVATE include generated)
+add_executable(test_step61 conformance/test_step61_layernorm.cpp)
+target_include_directories(test_step61 PRIVATE include generated)
+add_executable(test_step62 conformance/test_step62_shard_fold.cpp)
+target_include_directories(test_step62 PRIVATE include generated)
 add_executable(rung_probe tools/rung_probe.cpp)
 target_include_directories(rung_probe PRIVATE include generated)
 add_executable(shardprobe tools/shardprobe.cpp)

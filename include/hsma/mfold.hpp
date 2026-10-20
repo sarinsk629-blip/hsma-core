@@ -127,21 +127,27 @@ inline MultifoldResult multifold(const SparseMat& A, const SparseMat& B, const S
     for (unsigned j = 0; j < k; ++j)
         M.r[j] = fp::poseidon3(dom::Dom::HSM_SUMCHECK_v1, M.seed, fp::fe_from_u64(j));
 
-    // the fold (EXACT algebra for any r_j)
+    // THE FOLD, SEQUENTIALLY (DEF-379 fix). The pair-fold identity is exact
+    // for ONE instance against the CURRENT accumulator; folding k instances
+    // SIMULTANEOUSLY (the old z/E accumulation) drops the cross-j terms
+    // sum_{i!=j} r_i r_j (Az_i.Boz_j - Cz_j) — test_step62 (k=3) exposed it.
+    // The challenges are UNCHANGED (the transcript above is untouched, so
+    // every k=1 caller - steps 31/32/33 - reproduces its exact r and fold);
+    // only the application is chained: each round folds js[j] into the
+    // CURRENT accumulator with a cross-term recomputed against it, which is
+    // exactly the proven 2-to-1 identity, applied k times.
     M.folded = U;
     M.folded.u = fp::fe_add(U.u, fp::fe_zero());
-    for (unsigned j = 0; j < k; ++j) M.folded.u = fp::fe_add(M.folded.u, M.r[j]);
-    for (std::size_t t = 0; t < U.z.size(); ++t) {
-        fp::fe acc = U.z[t];
-        for (unsigned j = 0; j < k; ++j)
-            acc = fp::fe_add(acc, fp::fe_mul(M.r[j], js[j].z[t]));
-        M.folded.z[t] = acc;
-    }
-    for (std::size_t i = 0; i < U.E.size(); ++i) {
-        fp::fe acc = U.E[i];
-        for (unsigned j = 0; j < k; ++j)
-            acc = fp::fe_add(acc, fp::fe_mul(M.r[j], M.T[j][i]));
-        M.folded.E[i] = acc;
+    for (unsigned j = 0; j < k; ++j) {
+        const std::vector<fp::fe> Tj = cross_term(A, B, C, M.folded, js[j]);
+        M.T[j] = Tj;                       // the cross-term actually applied
+        M.folded.u = fp::fe_add(M.folded.u, M.r[j]);
+        for (std::size_t t = 0; t < M.folded.z.size(); ++t)
+            M.folded.z[t] = fp::fe_add(M.folded.z[t],
+                                       fp::fe_mul(M.r[j], js[j].z[t]));
+        for (std::size_t i = 0; i < M.folded.E.size(); ++i)
+            M.folded.E[i] = fp::fe_add(M.folded.E[i],
+                                       fp::fe_mul(M.r[j], Tj[i]));
     }
     return M;
 }

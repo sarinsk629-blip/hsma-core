@@ -71,7 +71,7 @@ int main() {
         pouw::attn::transpose(Kh, seq, dh, KhT);
         pouw::attn::matmul(Qh, KhT, Sh, seq, seq, dh);
         pouw::attn::col_slice(Vm, seq, dm, 0, dh, Vh);
-        pouw::attn::matmul(Ps[0], Vh, Ah, seq, dh, seq);
+        pouw::attn::matmul(Ps[0], Vh, Ah, seq, seq, dh);   // DEF-378 fix: (rows, inner, cols)
         fp::fe s0 = fp::fe_zero(), a0 = fp::fe_zero();
         for (std::size_t k = 0; k < Sh.size(); ++k) s0 = fp::fe_add(s0, Sh[k]);
         for (std::size_t k = 0; k < Ah.size(); ++k) a0 = fp::fe_add(a0, Ah[k]);
@@ -81,7 +81,7 @@ int main() {
         pouw::attn::transpose(Kh2, seq, dh, KhT2);
         pouw::attn::matmul(Qh2, KhT2, Sh2, seq, seq, dh);
         pouw::attn::col_slice(Vm, seq, dm, 0, dh, Vh2);
-        pouw::attn::matmul(Ps[0], Vh2, Ah2, seq, dh, seq);
+        pouw::attn::matmul(Ps[0], Vh2, Ah2, seq, seq, dh); // DEF-378 fix: (rows, inner, cols)
         fp::fe s0b = fp::fe_zero(), a0b = fp::fe_zero();
         for (std::size_t k = 0; k < Sh2.size(); ++k) s0b = fp::fe_add(s0b, Sh2[k]);
         for (std::size_t k = 0; k < Ah2.size(); ++k) a0b = fp::fe_add(a0b, Ah2[k]);

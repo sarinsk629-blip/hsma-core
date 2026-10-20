@@ -61,23 +61,74 @@ CertReport certify(const std::vector<int>& table, Fn ref_fn) {
     }
     return rep;
 }
-struct Tables { std::vector<int> gelu, sigmoid, tanh, exp_shifted; bool certified; };
+// Tables (the container) lives in logup.hpp — the provable core; the
+// builders + certification below are the construction-time oracle.
+// ---- Phase 6.15: the rsqrt table (mantissa window + interpolation) ----
+// LayerNorm needs 1/sqrt(sigma^2). The honest rung (the roadmap's
+// "table+fixup approximation"): normalize sigma^2 (q14 integer) into the
+// mantissa window w in [2^20, 2^21) by EVEN power-of-2 shifts (sigma^2 =
+// w * 2^shift, shift even -> rsqrt(2^shift) is an exact power of two),
+// index the window's top 8 bits (m8 in [128,256]), LINEARLY interpolate
+// the low 13 bits, halve the exponent. Certified below on the
+// (m8, frac) grid against the double oracle — the interpolation chord
+// bound is MEASURED and pinned (worst_err in the report), not assumed.
+inline constexpr unsigned RSQ_M8_MIN = 128;
+inline constexpr unsigned RSQ_M8_MAX = 256;   // +1 interpolation sentinel
+// rsqrt_win(w) = round(2^21 / sqrt(w)) for w in [2^20, 2^21] — the q21-domain
+// inverse sqrt of the windowed mantissa (sqrt(w) in [2^10, 2^11)), so the
+// window maps to [1448, 2048]. Consumer: inv(σ²) = f(w) >> (shift/2), then
+// y_q7 = (c_q7 · inv) >> 14 — see pouw/layernorm.hpp.
+inline double rsqrt_win_ref(double w) { return 2097152.0 / std::sqrt(w); }
+inline std::vector<int> build_rsqrt_table() {
+    std::vector<int> t(RSQ_M8_MAX - RSQ_M8_MIN + 1, 0);
+    for (unsigned m8 = RSQ_M8_MIN; m8 <= RSQ_M8_MAX; ++m8)
+        t[m8 - RSQ_M8_MIN] = int(rsqrt_win_ref(double(m8) * 8192.0) + 0.5);
+    return t;
+}
+// certify the INTERPOLATED reader on the (m8, frac) grid. frac in
+// {0, 2048, 4096, 6144, 8191} — the endpoints pin the table itself, the
+// midpoints pin the chord. Bound: the interpolation chord error of sqrt
+// on a 2^13 window (~0.4% relative worst-case) + 1 q21 rounding unit.
+inline CertReport certify_rsqrt(const std::vector<int>& t) {
+    CertReport rep{true, 0, 0};
+    if (t.size() != std::size_t(RSQ_M8_MAX - RSQ_M8_MIN + 1)) {
+        rep.ok = false; rep.worst_err = 9999; return rep;
+    }
+    const unsigned fracs[5] = {0, 2048, 4096, 6144, 8191};
+    for (unsigned m8 = RSQ_M8_MIN; m8 <= RSQ_M8_MAX - 1; ++m8) {
+        for (const unsigned fr : fracs) {
+            const double w = double(m8) * 8192.0 + double(fr);
+            const int expect = int(rsqrt_win_ref(w) + 0.5);
+            const int t0 = t[m8 - RSQ_M8_MIN], t1 = t[m8 - RSQ_M8_MIN + 1];
+            const int got = t0 + int((double(t1 - t0) * double(fr)) / 8192.0);
+            int err = got - expect;
+            const int aerr = (err < 0) ? -err : err;
+            if (aerr > rep.worst_err) { rep.worst_err = aerr; rep.worst_index = m8; }
+            if (aerr > 8) rep.ok = false;
+        }
+    }
+    return rep;
+}
 inline Tables build_all() {
     Tables T{};
     T.gelu = build_table(gelu_ref);
     T.sigmoid = build_table(sigmoid_ref);
     T.tanh = build_table(tanh_ref);
     T.exp_shifted = build_table(exp_shifted_ref);
+    T.rcp = build_rcp_table();
+    T.rsqrt = build_rsqrt_table();
     const auto c1 = certify(T.gelu, gelu_ref);
     const auto c2 = certify(T.sigmoid, sigmoid_ref);
     const auto c3 = certify(T.tanh, tanh_ref);
     const auto c4 = certify(T.exp_shifted, exp_shifted_ref);
-    T.certified = c1.ok && c2.ok && c3.ok && c4.ok;
-    std::printf("[logup] certification: gelu %s (worst %d LSB @%u) | sigmoid %s (worst %d) | tanh %s (worst %d) | exp_shifted %s (worst %d)\n",
+    const auto c6 = certify_rsqrt(T.rsqrt);
+    T.certified = c1.ok && c2.ok && c3.ok && c4.ok && c6.ok;
+    std::printf("[logup] certification: gelu %s (worst %d LSB @%u) | sigmoid %s (worst %d) | tanh %s (worst %d) | exp_shifted %s (worst %d) | rsqrt %s (worst %d @m8=%u)\n",
         c1.ok?"PASS":"FAIL", c1.worst_err, c1.worst_index,
         c2.ok?"PASS":"FAIL", c2.worst_err,
         c3.ok?"PASS":"FAIL", c3.worst_err,
-        c4.ok?"PASS":"FAIL", c4.worst_index);
+        c4.ok?"PASS":"FAIL", c4.worst_index,
+        c6.ok?"PASS":"FAIL", c6.worst_err, c6.worst_index);
     return T;
 }
 inline int lookup_by_double(const std::vector<int>& t, double x) {

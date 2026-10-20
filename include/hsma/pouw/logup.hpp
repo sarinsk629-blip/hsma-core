@@ -57,6 +57,16 @@ struct LogUpBatch {
     }
 };
 
+// ---- the table bundle (6.14/6.15 CLOSE): a pure integer container — the
+// STRUCT lives in the provable core; its BUILDERS + certification live in
+// logup_ref.hpp (the construction-time oracle), per the established split.
+struct Tables {
+    std::vector<int> gelu, sigmoid, tanh, exp_shifted;
+    std::vector<int> rcp;      // step49 reciprocals, q14
+    std::vector<int> rsqrt;    // 6.15 window table: 128 slots + 1 sentinel
+    bool certified = false;
+};
+
 template <typename ValAt>   // ValAt: unsigned idx -> int q7 (INTEGER callable)
 std::uint64_t table_side_sum(const LogUpBatch& b, ValAt val_at) {
     std::uint64_t s = 0;

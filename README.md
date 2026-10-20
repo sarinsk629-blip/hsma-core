@@ -457,7 +457,8 @@ hsma-core/
 | Phase 4 | Zero-MEV: envelope, ordering, threshold, mempool, capstone | ✅ |
 | Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1), **live rotation receipt + Poseidon R1CS semantic bridge (s3)** | ✅ |
 | Phase 6.17 v2 s4 | **The fleet layer**: pool aggregate-verify (tier-1 ALL + measured-budget tier-2), DKG rotation wired (per-epoch committee from the chain tip, `/dkg`), the 6.16 MEASURED rung (256³ = 629 ms), **6.18 rung-1: 1,024³ block-sharded (256 proofs, sampled verify)**, **6.19 rung-1: attention as 8 provable GEMM legs**, **6.20: the REAL model registry** (`/models`, admission binding) | ✅ |
-| **Next** | The 6.18 headline (block-sharded 10,000³ on the GPU fleet), 6.14 softmax table (the attention fence), NIFS fold of block proofs, LayerNorm (6.15) | 🔜 |
+| Phase 6.17 v2 s5 | **The AI PoUW pillar's final package**: 6.14 CLOSES (the certified softmax producer, SoftmaxBatch = one trace / two LogUp sides, oracle drift 0.01335), **the 6.19 fence SHUT** (P_h derived from the proven scores — the doctored-P attack dies in the verifier's re-derivation), **6.15 the honest rung** (LayerNorm table+fixup: RCP mean/variance + interpolated rsqrt, drift 0.00803, exact-LayerNorm = registered circuit work), **6.18 rung-2** (the fold-of-folds through the real mfold — DEF-379 found+fixed by its first k>1 caller), the full audit: DEF-377/378/379/380 owned, 61 conformance programs + GATE617 GREEN | ✅ |
+| **Next** | The 6.18 headline (block-sharded 10,000³ on the GPU fleet — scale, not design), node wiring for attention/model-admission workloads, the P1-13 epoch-scale fold instantiation | 🔜 |
 
 ---
 
