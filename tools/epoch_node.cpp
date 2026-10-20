@@ -236,9 +236,85 @@ struct VerifierReceipt {
     std::uint64_t work_id = 0;
     bool digest_ok = false, recompute_ran = false, recompute_ok = false, pass = false;
     std::string identity_hex;
+    // ---- s4: the pool AGGREGATE receipt (tier-1 for EVERY claim) ----
+    bool pool_has = false;
+    std::size_t pool_size = 0;
+    unsigned long long pool_structure_bad = 0, pool_unknown_work = 0;
+    unsigned long long pool_tier1_ok = 0, pool_tier1_bad = 0;
+    unsigned long long pool_tier2_ran = 0, pool_tier2_ok = 0, pool_tier2_bad = 0;
+    unsigned long long pool_tier2_skipped = 0, pool_macs_spent = 0;
+    bool pool_pass = false;
 };
 static VerifierReceipt g_verifier_receipt;
 static unsigned long long g_verifier_rotations = 0;
+
+// ---- Phase 6.17 v2 s4 (DEC-s4): the DKG rotation ----
+// The P5-A machinery (beacon-seeded Feldman VSS, per-epoch rotation) was
+// golden-proven but never WIRED — the node never derived its epoch committee.
+// Now it does: at startup and at every epoch completion the committee is
+// re-dealt (vss::deal) with prev = the CURRENT chain tip, every member share
+// is verified against the Feldman commitments, and the aggregate public key
+// C[0] = [f(0)]G2 becomes the epoch's committee identity (served on /dkg).
+// No secret material is kept beyond the transcript — the testnet committee
+// is deterministic from the chain, which is the point: every fleet member
+// derives the SAME committee from the SAME chain (auditable determinism).
+static threshold::vss::Transcript g_dkg;
+static bool g_dkg_live = false;
+static unsigned g_dkg_shares_ok = 0;
+static unsigned g_dkg_n = 0, g_dkg_t = 0;
+static std::string g_dkg_agg_pk_hex;
+
+static std::string g2_to_hex(const threshold::g2::G2Pt& P) {
+    std::uint64_t x0[6], x1[6], y0[6], y1[6];
+    if (!threshold::g2::to_affine(P, x0, x1, y0, y1)) return std::string(384, '0');
+    static const char* d = "0123456789abcdef";
+    std::string out; out.reserve(384);
+    const auto limb = [&out](std::uint64_t v) {
+        for (int b = 0; b < 8; ++b) {
+            const std::uint8_t byte = (std::uint8_t)(v >> (8 * b));
+            out += d[byte >> 4]; out += d[byte & 15];
+        }
+    };
+    for (int k = 0; k < 6; ++k) limb(x0[k]);
+    for (int k = 0; k < 6; ++k) limb(x1[k]);
+    for (int k = 0; k < 6; ++k) limb(y0[k]);
+    for (int k = 0; k < 6; ++k) limb(y1[k]);
+    return out;
+}
+
+static void rotate_dkg() {
+    // prev = the CURRENT chain tip (the last digest of the epoch being closed
+    // — at startup, the genesis-era chain head). The chain stores 4-limb
+    // tails; the Digest is reconstructed LE64-per-limb — the same put64
+    // convention the claim identity and select_index both ride.
+    consensus::Digest prev{};
+    if (!digest_chain.empty()) {
+        std::uint8_t pb[32];
+        for (int k = 0; k < 4; ++k)
+            for (int b = 0; b < 8; ++b)
+                pb[k * 8 + b] = (std::uint8_t)(digest_chain.back()[k] >> (8 * b));
+        prev = consensus::Digest::from_bytes(pb);
+    }
+    // config: the proven testnet shape n=5, t=3 (law: t >= 2, 2t >= n,
+    // n <= 224; capstone 224/112).
+    threshold::vss::Transcript T;
+    if (!threshold::vss::deal(T, current_epoch, 5, 3, &prev)) {
+        std::printf("[dkg] epoch %u deal REJECTED by the config law — committee carries over\n", current_epoch);
+        return;
+    }
+    unsigned ok = 0;
+    for (std::uint64_t j = 1; j <= T.n; ++j)
+        ok += threshold::vss::verify_share(T, j, T.Y[j]) ? 1u : 0u;
+    g_dkg = T;
+    g_dkg_live = true;
+    g_dkg_shares_ok = ok;
+    g_dkg_n = (unsigned)T.n;
+    g_dkg_t = (unsigned)T.t;
+    g_dkg_agg_pk_hex = g2_to_hex(T.C[0]);   // C_0 = [f(0)]G2 — the aggregate pk
+    std::printf("[dkg] epoch %u committee rotated: n=%u t=%u shares_ok=%u/%u agg_pk=%s...\n",
+                current_epoch, g_dkg_n, g_dkg_t, ok, (unsigned)T.n,
+                g_dkg_agg_pk_hex.substr(0, 16).c_str());
+}
 
 // P2-08 (DEC-254): the shared epoch PoUW - main AND handle_decree call this.
 // Writes the file-scope globals; deterministic from the epoch's digest chain.
@@ -441,6 +517,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         decree_count = 0;
         g_epoch_claims.clear();   // 6.17 s2: the next epoch's claims are new claims
         g_quorum_audited_this_pool = false;   // the next pool gets its own audit
+        rotate_dkg();             // s4: the committee re-dealt from the NEW chain tip
     }
 }
 
@@ -456,8 +533,8 @@ int main(int argc, char* argv[]) {
     // band is active — every operator must see that the 6.16 GPU gate is
     // relaxed for the bounded receipt band (64 < n <= 96) on THIS node.
     if (explorer::cpu_fold_band_allowed(80))
-        std::printf("[testnet] HSMA_TESTNET_CPU_FOLD active — CPU fold band 64<n<=96 enabled "
-                    "(s2 rotation receipt tool; NOT the default, NOT for production)\n");
+        std::printf("[testnet] HSMA_TESTNET_CPU_FOLD active — CPU fold band 64<n<=256 enabled "
+                    "(the 6.16 measured band, rung_probe receipt; NOT the default, NOT for production)\n");
 
     // build the circuit matrices
     fcirc::build_matrices(A, B, C);
@@ -680,6 +757,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     // P2-08: DEFECT-171 - epoch 0 complete; the node now accepts epoch 1 decrees
     ++current_epoch;
     decree_count = 0;
+    rotate_dkg();   // s4: the node's epoch committee, derived from the chain it just started
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
     // for simplicity, use a fixed port: 8080
@@ -786,6 +864,46 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 out.recompute_ran ? (out.recompute_ok ? " | recompute PASS" : " | recompute FAIL")
                                   : " | recompute n/a (above fleet rung)",
                 out.pass ? "CLAIM VERIFIED" : "CLAIM REJECTED");
+        }
+
+        // ---- s4 (DEC-s4): the pool AGGREGATE pass — same pool lifecycle
+        // gate. tier-1 identity for EVERY claim in the pool, tier-2 recompute
+        // for every in-rung claim under the MAC budget (the heartbeat never
+        // stalls). The receipt covers the WHOLE pool, not one sample; the
+        // budget-skipped claims are counted, never silently dropped.
+        {
+            std::map<std::uint64_t, explorer::WorkItem> pool_snap;
+            {   std::lock_guard<std::mutex> lk(g_work_mutex);
+                for (const auto& cpl : g_epoch_claims) {
+                    if (cpl.size() < 43) continue;
+                    std::uint64_t cwid = 0;
+                    for (int b = 0; b < 8; ++b)
+                        cwid |= (std::uint64_t)cpl[32 + b] << (8 * b);
+                    auto it = g_work_done.find(cwid);
+                    if (it != g_work_done.end()) pool_snap[cwid] = it->second;
+                }
+            }
+            const auto pout = verifier::verify_pool(g_epoch_claims, pool_snap);
+            auto& R = g_verifier_receipt;
+            R.pool_has = true;
+            R.pool_size = pout.pool;
+            R.pool_structure_bad = pout.structure_bad;
+            R.pool_unknown_work = pout.unknown_work;
+            R.pool_tier1_ok = pout.tier1_ok;
+            R.pool_tier1_bad = pout.tier1_bad;
+            R.pool_tier2_ran = pout.tier2_ran;
+            R.pool_tier2_ok = pout.tier2_ok;
+            R.pool_tier2_bad = pout.tier2_bad;
+            R.pool_tier2_skipped = pout.tier2_skipped_budget;
+            R.pool_macs_spent = pout.macs_spent;
+            R.pool_pass = pout.pass;
+            std::printf("[verifier-pool] aggregate: %zu claims — tier1 %llu ok / %llu bad, tier2 %llu ok / %llu bad (%llu skipped by budget, %llu MACs spent) | %s\n",
+                pout.pool,
+                (unsigned long long)pout.tier1_ok, (unsigned long long)pout.tier1_bad,
+                (unsigned long long)pout.tier2_ok, (unsigned long long)pout.tier2_bad,
+                (unsigned long long)pout.tier2_skipped_budget,
+                (unsigned long long)pout.macs_spent,
+                pout.pass ? "POOL CLEAN" : "POOL REJECTED");
         }
         }
                 if (peer_fds.empty() && !g_seed_addrs.empty()) {
@@ -939,6 +1057,25 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                 g_ns_shared.verifier_pass = g_verifier_receipt.pass;
                 g_ns_shared.verifier_rotations = g_verifier_rotations;
                 g_ns_shared.verifier_identity_hex = g_verifier_receipt.identity_hex;
+                // s4: pool aggregate + DKG rotation mirrored for the routes
+                g_ns_shared.pool_has = g_verifier_receipt.pool_has;
+                g_ns_shared.pool_size = g_verifier_receipt.pool_size;
+                g_ns_shared.pool_structure_bad = g_verifier_receipt.pool_structure_bad;
+                g_ns_shared.pool_unknown_work = g_verifier_receipt.pool_unknown_work;
+                g_ns_shared.pool_tier1_ok = g_verifier_receipt.pool_tier1_ok;
+                g_ns_shared.pool_tier1_bad = g_verifier_receipt.pool_tier1_bad;
+                g_ns_shared.pool_tier2_ran = g_verifier_receipt.pool_tier2_ran;
+                g_ns_shared.pool_tier2_ok = g_verifier_receipt.pool_tier2_ok;
+                g_ns_shared.pool_tier2_bad = g_verifier_receipt.pool_tier2_bad;
+                g_ns_shared.pool_tier2_skipped = g_verifier_receipt.pool_tier2_skipped;
+                g_ns_shared.pool_macs_spent = g_verifier_receipt.pool_macs_spent;
+                g_ns_shared.pool_pass = g_verifier_receipt.pool_pass;
+                g_ns_shared.dkg_has = g_dkg_live;
+                g_ns_shared.dkg_epoch = current_epoch;
+                g_ns_shared.dkg_n = g_dkg_n;
+                g_ns_shared.dkg_t = g_dkg_t;
+                g_ns_shared.dkg_shares_ok = g_dkg_shares_ok;
+                g_ns_shared.dkg_agg_pk_hex = g_dkg_agg_pk_hex;
                 // Gate-3: uptime proof broadcast — every 300 ticks (5 minutes), if peers exist
                 static std::uint64_t uptime_tick_counter = 0;
                 if (++uptime_tick_counter >= 300 && !peer_fds.empty()) {

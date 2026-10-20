@@ -456,7 +456,8 @@ hsma-core/
 | Phase 3 | MSSC: votes, convergence, deadlock resolution, aggregate verify | ✅ |
 | Phase 4 | Zero-MEV: envelope, ordering, threshold, mempool, capstone | ✅ |
 | Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1), **live rotation receipt + Poseidon R1CS semantic bridge (s3)** | ✅ |
-| **Next** | GPU-fleet rotation at production scale, DKG rotation, aggregate-verify integration | 🔜 |
+| Phase 6.17 v2 s4 | **The fleet layer**: pool aggregate-verify (tier-1 ALL + measured-budget tier-2), DKG rotation wired (per-epoch committee from the chain tip, `/dkg`), the 6.16 MEASURED rung (256³ = 629 ms), **6.18 rung-1: 1,024³ block-sharded (256 proofs, sampled verify)**, **6.19 rung-1: attention as 8 provable GEMM legs**, **6.20: the REAL model registry** (`/models`, admission binding) | ✅ |
+| **Next** | The 6.18 headline (block-sharded 10,000³ on the GPU fleet), 6.14 softmax table (the attention fence), NIFS fold of block proofs, LayerNorm (6.15) | 🔜 |
 
 ---
 
@@ -483,7 +484,7 @@ MIT
 
 **Built by one person. The Satoshi path: build → publish → verify → wait.**
 
-*223 defects owned. 203 laws. 61 decisions. 34 gates. π_E exists.*
+*223 defects owned. 276 laws. 64 decisions. π_E exists.*
 
 # ***Zero hiding.***
 

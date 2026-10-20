@@ -89,6 +89,9 @@ public:
         return true;
     }
     std::size_t size() const { return reg_.size(); }
+    // Phase 6.20 (DEC-s4): read-only enumeration for the /models discovery
+    // route. The map itself stays private — callers get the committed view.
+    const std::map<std::uint64_t, Commitment>& entries() const { return reg_; }
 private:
     std::map<std::uint64_t, Commitment> reg_;
 };

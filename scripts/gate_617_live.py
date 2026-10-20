@@ -6,6 +6,7 @@ claim checks: a/b == submitted hex, C == exact recompute, cross-/result, determi
 v4 (s2): test_step52 in the test battery + GET /verifier leg — the rotating
 epoch-verifier route must answer with the honest zero state on a fresh node
 (n=8 mint never folds a claim; the pool is empty; has_receipt=false).
+v7 (s4): rung 256 measured, pool aggregate + DKG + model registry legs;
 v5 (s1.1): the FAUCET leg — mint WITHOUT inputs; the node must bind its
 self-generated matrices (bind_faucet_inputs) and /claim_inputs answers 200
 where pre-s1.1 it 404'd structurally. The faucet seed law (gseed = id*7919+13,
@@ -76,7 +77,8 @@ if r.returncode != 0:
 
 # ---- gate 2: tests ----
 cands = ["test_step46", "test_step47", "test_step52", "test_step53", "test_step54",
-         "t46", "t47", "t52", "t53", "t54"]
+         "test_step55", "test_step56", "test_step57", "test_step58",
+         "t46", "t47", "t52", "t53", "t54", "t55", "t56", "t57", "t58"]
 sh("ninja -C build " + " ".join(cands))
 tests = [c for c in cands if os.path.isfile(f"build/{c}") and os.access(f"build/{c}", os.X_OK)]
 print(f"[gate2 tests] binaries: {tests or 'NONE FOUND'}")
@@ -271,40 +273,100 @@ try:
                 else:
                     REASONS.append("live: rotation mint failed")
 
-            # --- s2/s3: the rotating epoch-verifier route — POSITIVE receipt.
+            # --- s2/s3/s4: the rotating epoch-verifier route — POSITIVE receipt.
             # The rotation leg folded an n=80 claim into the pool and the
             # pulse gate fired the rotation, so the route must now show an
-            # HONEST POSITIVE receipt — tier-1 PASS, tier-2 honestly n/a
-            # (n=80 is above the fleet rung; recompute_ran=false is the truth).
-            st4, txt4 = http("GET", f"{base}/verifier")
+            # HONEST POSITIVE receipt — tier-1 PASS. s4 (DEC-s4) RAISED the
+            # tier-2 rung to the measured 256 (the rung_probe receipt), so
+            # n=80 is now IN-RUNG: recompute_ran=true + recompute_ok=true is
+            # the new truth (the v5-era "recompute n/a" assertion is retired
+            # WITH the receipt that justified it).
+            st4 = None
+            v = {}
+            for _ in range(60):   # the receipt mirror catches up within one main-loop tick
+                st4, txt4 = http("GET", f"{base}/verifier")
+                try:
+                    v = json.loads(txt4)
+                except Exception:
+                    v = {}
+                if v.get("has_receipt") is True and v.get("rotations", 0) >= 1:
+                    break
+                time.sleep(0.5)
             print(f"[gate3 live] GET /verifier -> {st4} {txt4[:130]}")
             if st4 != 200:
                 REASONS.append(f"live: /verifier returned {st4}")
             else:
                 try:
-                    v = json.loads(txt4)
                     schema_ok = all(kk in v for kk in (
                         "epoch", "rotations", "pool_size", "selected_work_id",
                         "identity_ok", "recompute_ran", "recompute_ok",
-                        "pass", "has_receipt", "claim_identity"))
+                        "pass", "has_receipt", "claim_identity", "pool"))
                     # POSITIVE state: the rotation fired in-run over a real
-                    # folded claim. recompute_ran=false is the HONEST label —
-                    # n=80 is above the fleet rung; tier-2 did not run.
+                    # folded claim, and the MEASURED rung (256) covers n=80,
+                    # so tier-2 recompute ran and passed.
                     pos_ok = (v.get("has_receipt") is True
                               and v.get("pass") is True
                               and v.get("identity_ok") is True
+                              and v.get("recompute_ran") is True
+                              and v.get("recompute_ok") is True
                               and v.get("pool_size", 0) >= 1
-                              and v.get("rotations", 0) >= 1
-                              and v.get("recompute_ran") is False)
+                              and v.get("rotations", 0) >= 1)
+                    pool = v.get("pool") or {}
+                    pool_ok = (pool.get("has") is True
+                               and pool.get("pass") is True
+                               and pool.get("tier1_ok", 0) >= 1)
                     print(f"[gate3 live] verifier schema={schema_ok} POSITIVE={pos_ok} "
-                          f"rotations={v.get('rotations')} pool={v.get('pool_size')} "
+                          f"POOL={pool_ok} rotations={v.get('rotations')} pool={v.get('pool_size')} "
                           f"work={v.get('selected_work_id')}")
                     if not schema_ok:
                         REASONS.append("live: /verifier schema incomplete")
                     if not pos_ok:
                         REASONS.append("live: /verifier rotation receipt not positive")
+                    if not pool_ok:
+                        REASONS.append("live: /verifier pool aggregate receipt not positive")
                 except Exception as e:
                     REASONS.append(f"live: /verifier parse error {e!r}")
+            # --- s4: the DKG rotation route — the committee MUST be live by
+            # now (dealt at startup, re-dealt at the epoch boundary the pulse
+            # drove). All n shares verify; the aggregate pk is 384 hex chars.
+            st5, txt5 = http("GET", f"{base}/dkg")
+            print(f"[gate3 live] GET /dkg -> {st5} {txt5[:130]}")
+            if st5 != 200:
+                REASONS.append(f"live: /dkg returned {st5}")
+            else:
+                try:
+                    dkg = json.loads(txt5)
+                    dkg_ok = (dkg.get("has") is True
+                              and dkg.get("n") == 5 and dkg.get("t") == 3
+                              and dkg.get("shares_verified") == 5
+                              and len(dkg.get("agg_pk", "")) == 384)
+                    print(f"[gate3 live] dkg OK={dkg_ok} epoch={dkg.get('epoch')} "
+                          f"n={dkg.get('n')} t={dkg.get('t')} pk_len={len(dkg.get('agg_pk',''))}")
+                    if not dkg_ok:
+                        REASONS.append("live: /dkg receipt not positive")
+                except Exception as e:
+                    REASONS.append(f"live: /dkg parse error {e!r}")
+            # --- s4 (6.20): the model registry — register then LIST. The
+            # registry must HOLD the state (the pre-s4 route printed and forgot).
+            st6, txt6 = http("POST", f"{base}/register_model",
+                             headers=(good_h if good_h else None), body='{"model_id":4242}')
+            print(f"[gate3 live] POST /register_model -> {st6} {txt6[:110]}")
+            if st6 != 200 or json.loads(txt6).get("registered") is not True:
+                REASONS.append("live: /register_model did not register")
+            st7, txt7 = http("GET", f"{base}/models")
+            print(f"[gate3 live] GET /models -> {st7} {txt7[:130]}")
+            if st7 != 200:
+                REASONS.append(f"live: /models returned {st7}")
+            else:
+                try:
+                    m = json.loads(txt7)
+                    ids = [x.get("model_id") for x in m.get("models", [])]
+                    m_ok = m.get("registry_size", 0) >= 1 and 4242 in ids
+                    print(f"[gate3 live] models OK={m_ok} size={m.get('registry_size')}")
+                    if not m_ok:
+                        REASONS.append("live: /models does not show the registration")
+                except Exception as e:
+                    REASONS.append(f"live: /models parse error {e!r}")
     # ---- gate 4: survival ----
     if node and node.poll() is None:
         time.sleep(8)

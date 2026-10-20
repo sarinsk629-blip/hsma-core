@@ -27,6 +27,7 @@
 #include <hsma/explorer.hpp>   // WorkItem + field/pouw/digest deps (already wired)
 #include <array>
 #include <vector>
+#include <map>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -35,6 +36,16 @@ namespace hsma::verifier {
 
 // "VERIFIER" as a u64 big-endian ASCII pack — the s2 domain separator.
 static constexpr std::uint64_t VERIFIER_DOMAIN = 0x5645524946494552ull;
+
+// ---- s4 (DEC-s4): the MEASURED fleet rung (the 6.16 gate) ----------------
+// Was 64 (the 6.16 first verdict — honest, but unmeasured beyond "safe").
+// Raised to 256 on the rung_probe receipt (tools/rung_probe.cpp): CPU
+// recompute at 256^3 = 16.8M MACs measured affordable once per pool
+// lifecycle in the pulse gate; 512^3 measured but held OUT of the rung
+// until the node's weakest hardware class is measured too (the receipt
+// ships the numbers; the rung cites them). The verifier's budget guard
+// below keeps a large pool from stalling the heartbeat regardless.
+inline constexpr unsigned TIER2_RUNG = 256;
 
 struct Outcome {
     bool structure_ok = false;    // 43B contract + 0xC1 marker + id/n linkage vs w
@@ -104,10 +115,10 @@ inline Outcome verify_claim(const std::vector<std::uint8_t>& pl,
             std::memcpy(o.identity, id2, 32);
             o.identity_ok = (std::memcmp(id2, pl.data(), 32) == 0);
         }
-        // tier-2 affordability: the fleet rung (n <= 64, the 6.16 verdict) and
-        // the full preimage present. Above the rung: digest-tier, honestly
-        // labeled via recompute_ran=false.
-        if (w.n <= 64 && w.A_in.size() == (std::size_t)w.n * w.n
+        // tier-2 affordability: the MEASURED rung (TIER2_RUNG, the 6.16
+        // receipt) and the full preimage present. Above the rung:
+        // digest-tier, honestly labeled via recompute_ran=false.
+        if (w.n <= TIER2_RUNG && w.A_in.size() == (std::size_t)w.n * w.n
             && w.B_in.size() == (std::size_t)w.n * w.n
             && w.result_bytes.size() == (std::size_t)w.n * w.n * 32) {
             o.recompute_ran = true;
@@ -131,6 +142,69 @@ inline std::size_t select_index(const std::array<std::uint64_t, 4>& epoch_tail,
     st ^= st << 13; st ^= st >> 7; st ^= st << 17;   // xorshift64* (CA-R90)
     return (std::size_t)((st * 0x9E3779B97F4A7C15ull)
                          % (std::uint64_t)pool_size);
+}
+
+// ---- s4 (DEC-s4): the pool AGGREGATE verify ------------------------------
+// s2 audited ONE beacon-selected claim per pool. The fleet's own machinery
+// goes further: tier-1 identity for EVERY claim in the pool (one SHA-256
+// each — cheap), and tier-2 recompute for every claim inside the measured
+// rung, under a MAC budget so a large pool can never stall the heartbeat.
+// This is the aggregate-verify integration for the CLAIM pool: the receipt
+// covers everything the pool contains, not one sample of it. (The BLS vote
+// aggregate — 1 pairing vs N — is the sibling integration in msscvote.)
+struct PoolOutcome {
+    std::size_t pool = 0;
+    std::size_t structure_bad = 0;   // 43B contract / 0xC1 marker failures
+    std::size_t unknown_work = 0;    // claim names a record nobody holds
+    std::size_t tier1_ok = 0, tier1_bad = 0;
+    std::size_t tier2_ran = 0, tier2_ok = 0, tier2_bad = 0;
+    std::size_t tier2_skipped_budget = 0;  // in-rung claims the budget skipped
+    std::uint64_t macs_spent = 0;
+    bool pass = false;               // every claim: structure+identity clean;
+                                     // recompute (where it ran) byte-exact
+};
+
+// Default tier-2 budget: ~64M MACs ≈ a couple of seconds on the weakest
+// measured hardware — the heartbeat never stalls on the aggregate pass.
+inline constexpr std::uint64_t DEFAULT_TIER2_BUDGET_MACS = 64000000ull;
+
+inline PoolOutcome verify_pool(
+    const std::vector<std::vector<std::uint8_t>>& claims,
+    const std::map<std::uint64_t, explorer::WorkItem>& done,
+    std::uint64_t tier2_budget_macs = DEFAULT_TIER2_BUDGET_MACS) noexcept
+{
+    PoolOutcome o;
+    o.pool = claims.size();
+    if (claims.empty()) return o;
+    bool all_clean = true;
+    for (const auto& pl : claims) {
+        if (pl.size() < 43 || pl[42] != 0xC1) {
+            ++o.structure_bad; all_clean = false; continue;
+        }
+        std::uint64_t wid = 0;
+        for (int b = 0; b < 8; ++b) wid |= (std::uint64_t)pl[32 + b] << (8 * b);
+        auto it = done.find(wid);
+        if (it == done.end()) {
+            ++o.unknown_work; all_clean = false; continue;
+        }
+        const auto out = verify_claim(pl, it->second);
+        if (!out.structure_ok) { ++o.structure_bad; all_clean = false; continue; }
+        if (out.identity_ok) ++o.tier1_ok;
+        else { ++o.tier1_bad; all_clean = false; }
+        if (out.recompute_ran) {
+            const std::uint64_t macs = (std::uint64_t)out.n * out.n * out.n;
+            if (o.macs_spent + macs <= tier2_budget_macs) {
+                ++o.tier2_ran;
+                o.macs_spent += macs;
+                if (out.recompute_ok) ++o.tier2_ok;
+                else { ++o.tier2_bad; all_clean = false; }
+            } else {
+                ++o.tier2_skipped_budget;   // honest skip: labeled, not silent
+            }
+        }
+    }
+    o.pass = all_clean;
+    return o;
 }
 
 } // namespace hsma::verifier

@@ -18,7 +18,12 @@ in this repository that introduced or proves the mechanism behind it.
 | 11 | Oct 19 (sandbox re-run) | `PREIMAGE byte-exact: a=True b=True \| C recompute=True \| cross=True \| deterministic=True` → `sha256(c)=c187874a447258ff1f925cda72d4d266cd415d6540b3350aee84b14b219ae2a7` | The s1 claim loop re-proven on foreign hardware, bit-identical digest (third independent run: phone, audit box, sandbox) | c134379 |
 | 12 | Oct 19 | `claim_inputs/2 (FAUCET) -> 200` + `FAUCET preimage: a==predicted=True b==predicted=True \| C==mod-p recompute=True` → `faucet sha256(c)=007124aec362e8d2a3b560dfecb6c60b5cbd4ac0d3750a41ccb634b0d3dc64b3` | **The faucet 404 is dead**: the node binds its self-generated inputs; the driver independently predicted A/B from the seed law and recomputed C mod p over F_p — preimage served for BOTH mint paths | (this commit) |
 | 13 | Oct 19 | `[claim] work_id 3 (n=80) folded` → `[verifier] epoch 1: rotation 1 selected pool[0/1] work 3 — identity PASS \| recompute n/a (above fleet rung) \| CLAIM VERIFIED` + `/verifier {has_receipt:true, pass:true, rotations:1, pool:1}` | **The first live rotation in project history** — the s2 open-item closed via the env-gated testnet CPU band (64<n<=96); the rotating verifier audited a real claim on real hardware — and REJECTED the first one (DEF-374 caught by the tripwire) | (this commit) |
-| 14 | Oct 19 | `test_step54: ALL PASS — 1088 rows EXACT, all SAT, gadget output == fp::poseidon3 (Montgomery-exact), tamper breaks SAT, 3 domains` | **"Poseidon-3 as R1CS" is now semantically TRUE** (DEF-375 fixed): the row count measured at production parameters, the gadget↔permutation bridge finally pinned | (this commit) |
+| 14 | Oct 20 | `[rung] n=  64       9 ms … n=256     629 ms … -> IN-RUNG` (tools/rung_probe, the tier-2 call itself) | **The 6.16 gate closes with a receipt**: the tier-2 rung is a MEASURED number (256³ = 16.8M MACs at 629 ms — once-per-pool affordable), not folklore; verifier.hpp's TIER2_RUNG=256 cites this table | (this commit) |
+| 15 | Oct 20 | `[shard-6.18] N=1024 … prove 256 blocks: 474099 ms … verify (sampled 16/256): 29577 ms … pass=1 … GREEN` | **6.18 rung-1: 1,024³ block-sharded end-to-end on CPU** — 256 output blocks of 64×64×1024, each a full v2 proof, chain-folded under HSM_SHARD_v1, verified at O(sample) budget; the O(N³)→O(sample) verifier curve is real | (this commit) |
+| 16 | Oct 20 | `[verifier-pool] aggregate: 1 claims — tier1 1 ok / 0 bad, tier2 1 ok / 0 bad (0 skipped by budget, 512000 MACs spent) \| POOL CLEAN` + `/verifier … "pool":{"has":true,…,"pass":true}` | **The pool AGGREGATE receipt** — the rotating verifier's audit now covers EVERY claim in the pool (tier-1 all, tier-2 under the measured budget), not one sample | (this commit) |
+| 17 | Oct 20 | `[dkg] epoch 1 committee rotated: n=5 t=3 shares_ok=5/5 agg_pk=2f502670cf7c4712…` + `/dkg {has:true, n:5, t:3, shares_verified:5, agg_pk:384-hex}` | **The DKG rotation is WIRED**: the node derives its epoch committee from the chain tip (beacon-seeded Feldman VSS), every share verifies, the aggregate pk moves with the chain — auditable determinism | (this commit) |
+| 18 | Oct 20 | `POST /register_model -> 200 {"model_id":4242,"registered":true,"C":1111614908399931266}` + `GET /models -> {"registry_size":1,"models":[{…4242…}]}` | **6.20 live: the registry HOLDS state** — the pre-s4 route printed and forgot (DEF-376 owned); now registration lands in the live Registry, /models publishes it, and submit_gemm admission binds workloads by the opening check | (this commit) |
+| 19 | Oct 19 | `test_step54: ALL PASS — 1088 rows EXACT, all SAT, gadget output == fp::poseidon3 (Montgomery-exact), tamper breaks SAT, 3 domains` | **"Poseidon-3 as R1CS" is now semantically TRUE** (DEF-375 fixed): the row count measured at production parameters, the gadget↔permutation bridge finally pinned | 7a56d55 |
 
 **The verification commands** (any of these reproduce the evidence):
 
@@ -31,6 +36,6 @@ ssh <anchor> "sudo journalctl -u hsma-node --no-pager | grep -E 'pouw-verify|cla
 ./scripts/gate.sh          # GATE GREEN
 ```
 
-**Counts at time of writing:** decisions = 63 · owned defects = 75 ·
-laws = 273 · conformance programs = 53 —
+**Counts at time of writing:** decisions = 64 · owned defects = 76 ·
+laws = 276 · conformance programs = 57 —
 live counts: `grep -c '^## DEC-' docs/DECISIONS.md`

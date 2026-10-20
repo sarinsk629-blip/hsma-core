@@ -4,6 +4,7 @@
 // No external dependencies — raw POSIX sockets, hand-built HTTP responses.
 #pragma once
 #include <hsma/p2p.hpp>
+#include <hsma/pouw/model_commit.hpp>   // Phase 6.20 (DEC-s4): the REAL registry
 #include <string>
 #include <vector>
 #include <cstdio>
@@ -69,6 +70,19 @@ struct NodeState {
     bool verifier_pass{};               // overall verdict
     unsigned long long verifier_rotations = 0;  // lifetime deep-audit count
     std::string verifier_identity_hex;          // re-derived claim identity (64 hex)
+    // ---- Phase 6.17 v2 s4: the DKG committee + the pool aggregate ----
+    bool dkg_has = false;               // honest zero state until first deal
+    unsigned dkg_epoch = 0;
+    unsigned dkg_n = 0, dkg_t = 0;
+    unsigned dkg_shares_ok = 0;
+    std::string dkg_agg_pk_hex;         // aggregate pk C[0] (G2 affine, 384 hex)
+    bool pool_has = false;              // the pool AGGREGATE receipt (s4)
+    unsigned long long pool_size = 0;
+    unsigned long long pool_structure_bad = 0, pool_unknown_work = 0;
+    unsigned long long pool_tier1_ok = 0, pool_tier1_bad = 0;
+    unsigned long long pool_tier2_ran = 0, pool_tier2_ok = 0, pool_tier2_bad = 0;
+    unsigned long long pool_tier2_skipped = 0, pool_macs_spent = 0;
+    bool pool_pass = false;
 };
 
 // ---- Phase 6.2: workload queue ----
@@ -90,6 +104,10 @@ struct WorkItem {
     std::vector<std::uint8_t> result_bytes;
     // Phase 6.11b: cryptographic input commitments (DEF-315: heap-typed)
     std::array<std::uint8_t, 32> ic{};   // SHA256(A_bytes || B_bytes) — set at ingestion
+    // Phase 6.20 (DEC-s4): the model binding — 0 = unbound; nonzero = the
+    // registered model this workload was ADMITTED against (the opening was
+    // checked at submission; every receipt downstream carries the binding).
+    std::uint64_t model_id = 0;
     bool commitment_checked = false;     // worker re-verified at pickup
 };
 
@@ -122,6 +140,19 @@ inline std::map<std::uint64_t, WorkItem> g_work_done;
 inline std::atomic<std::uint64_t> g_next_work_id{1};
 inline std::mutex g_work_mutex;
 
+// ---- Phase 6.20 (DEC-s4): the REAL model registry ----
+// THE OWNED DEFECT: /register_model used to fabricate a commitment from the
+// model_id (deterministic dev weights), print, and forget — the P5-G Registry
+// class existed, golden-proven, but NO state ever lived in it and NO workload
+// was ever admitted against it. The registry is now REAL: registrations land
+// in a live Registry instance, and /submit_gemm can bind a workload to a
+// registered model through the OPENING check (weight_digest over the
+// submitted bytes + r must recompute the registered commitment) — reject on
+// mismatch, bind on match, and the binding rides the work record forever.
+inline pouw::mcommit::Registry g_model_registry;
+inline std::map<std::uint64_t, std::pair<std::uint64_t, std::uint64_t>> g_model_openings; // id -> (digest, r)
+inline std::mutex g_model_mutex;
+
 // ---- Phase 6.3: API authentication ----
 inline std::map<std::string, bool> g_valid_keys;  // key -> active
 inline std::map<std::string, std::uint64_t> g_rate_limit;  // key -> request count
@@ -149,16 +180,16 @@ inline bool check_rate_limit(const std::string& key) {
     return true;
 }
 
-// Phase 6.17 v2 s3: the TESTNET CPU-fold band. The 6.16 verdict STANDS as the
-// default: n>64 on the CPU backend risks the heartbeat (verify cost grows
-// ~ (n/64)^3 · 615ms), so the API requires GPU for n>64. This env-gated band
-// exists for one purpose: a CPU-only testnet node must be able to produce the
-// s2 rotation receipt — claims fold into the audit pool ONLY at n>64, and an
-// empty pool means the rotating epoch-verifier never fires. Loud, bounded,
-// default OFF: 64 < n <= 96, the band is honest in every response it touches,
-// and the node prints the override at startup when active.
+// Phase 6.17 v2 s3: the TESTNET CPU-fold band. The 6.16 verdict was the
+// default: n>64 on the CPU backend risks the heartbeat. s4 (DEC-s4) replaced
+// the folklore with a receipt: tools/rung_probe.cpp measured the tier-2
+// recompute ladder on the node's hardware class — 256^3 = 16.8M MACs lands
+// inside the once-per-pool budget, 512^3 does not. The band is RAISED to the
+// measured edge and cites the receipt. Still loud, still bounded, still
+// default OFF: 64 < n <= 256, honest label on every response it touches,
+// startup override print when active.
 inline bool cpu_fold_band_allowed(unsigned n) noexcept {
-    if (n <= 64 || n > 96) return false;
+    if (n <= 64 || n > 256) return false;
     const char* e = std::getenv("HSMA_TESTNET_CPU_FOLD");
     return e != nullptr && e[0] != '\0' && e[0] != '0';
 }
@@ -272,10 +303,8 @@ Workload queue · Model inference · Result verification · Payment integration
 // serve one HTTP request (blocking)
 // DEF-301: defined IN the header (inline) — any TU linking serve_request,
 // tests included, must resolve every symbol the header's code calls.
-inline void api_register_model(std::uint64_t mid, std::uint64_t commitment) {
-    std::printf("[api] model %llu registered (C=%llu)\n",
-        (unsigned long long)mid, (unsigned long long)commitment);
-}
+// (api_register_model removed in s4 — it was the print-and-forget theater
+// the real registry replaced; the class now prints its own receipts.)
 
 // Phase 6.18-pre: partner API keys — loaded once from api_keys.txt at first
 // request (restart-surviving). One key per line. The founder key is
@@ -417,7 +446,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             return;
         }
         if (n > 64 && !pouw::gpu_available() && !cpu_fold_band_allowed(n)) {
-            std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\",\"note\":\"CPU-only testnet nodes may set HSMA_TESTNET_CPU_FOLD=1 for the bounded receipt band 64<n<=96\"}";
+            std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\",\"note\":\"CPU-only testnet nodes may set HSMA_TESTNET_CPU_FOLD=1 for the measured receipt band 64<n<=256 (the 6.16 rung_probe receipt)\"}";
             std::string gr = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
                 + std::to_string(gb.size()) + "\r\nConnection: close\r\n\r\n" + gb;
             send(fd, gr.c_str(), gr.size(), 0);
@@ -434,6 +463,9 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             std::vector<fp::fe> Ain, Bin;
             std::uint64_t tag_a = 0, tag_b = 0;
             std::array<std::uint8_t, 32> ic{};   // 6.11b: filled inside the hex-parse block below
+            // Phase 6.20 (DEC-s4): the model-binding digest (route scope)
+            bool model_digest_ready = false;
+            std::uint64_t model_digest = 0;
             {
                 auto ap = post_body.find("\"a\":\"");
                 auto bp2 = post_body.find("\"b\":\"");
@@ -481,9 +513,53 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                     if (rawA.size() == need && rawB.size() == need && tofes(rawA, Ain) && tofes(rawB, Bin)) {
                         has_in = true;
                         tag_a = fnv(rawA); tag_b = fnv(rawB);
+                        // Phase 6.20 (DEC-s4): the model-binding digest rides
+                        // the SUBMITTED bytes (canonical LE, A||B) — the same
+                        // bytes the ic commitment covers.
+                        std::vector<std::uint8_t> mcat;
+                        mcat.reserve(rawA.size() + rawB.size());
+                        mcat.insert(mcat.end(), rawA.begin(), rawA.end());
+                        mcat.insert(mcat.end(), rawB.begin(), rawB.end());
+                        model_digest = pouw::mcommit::weight_digest(mcat.data(), mcat.size());
+                        model_digest_ready = true;
                     } else {
                         const std::string eb = "{\"error\":\"ingestion failed: a/b must be hex of n*n canonical 32-byte field elements\"}";
                         const std::string er = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                            + std::to_string(eb.size()) + "\r\nConnection: close\r\n\r\n" + eb;
+                        send(fd, er.c_str(), er.size(), 0);
+                        close(fd);
+                        return;
+                    }
+                }
+            }
+            // Phase 6.20 (DEC-s4): the model ADMISSION gate. A workload may
+            // declare its model ("model_id" + "model_r"); the binding is the
+            // OPENING check — weight_digest over the submitted bytes + r must
+            // recompute the registered commitment. No inputs, no binding.
+            // Mismatch = rejection with the honest error.
+            std::uint64_t bind_model = 0;
+            {
+                auto mp = post_body.find("\"model_id\":");
+                if (mp != std::string::npos) {
+                    bind_model = std::strtoull(post_body.c_str() + mp + 11, nullptr, 10);
+                    if (!model_digest_ready) {
+                        const std::string eb = "{\"error\":\"model binding requires ingested a/b (the digest rides the submitted bytes)\"}";
+                        const std::string er = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
+                            + std::to_string(eb.size()) + "\r\nConnection: close\r\n\r\n" + eb;
+                        send(fd, er.c_str(), er.size(), 0);
+                        close(fd);
+                        return;
+                    }
+                    auto rp = post_body.find("\"model_r\":");
+                    const std::uint64_t mrr = (rp != std::string::npos)
+                        ? std::strtoull(post_body.c_str() + rp + 10, nullptr, 10) : 0;
+                    bool admitted = false;
+                    {   std::lock_guard<std::mutex> lk(g_model_mutex);
+                        admitted = g_model_registry.workload_admitted(bind_model, model_digest, mrr);
+                    }
+                    if (!admitted) {
+                        const std::string eb = "{\"error\":\"workload REJECTED: opening does not match the registered model\"}";
+                        const std::string er = "HTTP/1.1 403 Forbidden\r\nContent-Type: application/json\r\nContent-Length: "
                             + std::to_string(eb.size()) + "\r\nConnection: close\r\n\r\n" + eb;
                         send(fd, er.c_str(), er.size(), 0);
                         close(fd);
@@ -498,6 +574,7 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                 (std::uint64_t)time(nullptr), 0, false,
                 has_in, std::move(Ain), std::move(Bin), tag_a, tag_b});
                 if (has_in) g_work_queue.back().ic = ic;
+                if (bind_model != 0) g_work_queue.back().model_id = bind_model;
             }
             char wbuf[128];
             snprintf(wbuf, sizeof(wbuf),
@@ -520,6 +597,10 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             }
             content_type = "application/json";
     } else if (method == "POST" && path == "/register_model") {
+        // Phase 6.20 (DEC-s4): the REAL registry. The pre-s4 route fabricated
+        // a commitment and forgot it (the owned defect). Now: the commitment
+        // lands in the live Registry, the opening (digest, r) is kept for the
+        // dev-model admission path, and duplicates are REJECTED by the class.
         auto idp = post_body.find("\"model_id\":");
         if (idp == std::string::npos) {
             body = "{\"error\":\"missing model_id\"}";
@@ -530,12 +611,41 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             auto D = pouw::mcommit::weight_digest(w, 64);
             auto rr = mid * 31 + 7;
             auto Cm = pouw::mcommit::commit(D, rr);
-            api_register_model(mid, Cm.C);
-            char tmp[128];
-            std::snprintf(tmp, sizeof(tmp), "{\"model_id\":%llu,\"registered\":true}", (unsigned long long)mid);
+            bool ok = false;
+            {   std::lock_guard<std::mutex> lk(g_model_mutex);
+                ok = g_model_registry.register_model(mid, Cm);
+                if (ok) g_model_openings[mid] = {D, rr};
+            }
+            char tmp[192];
+            if (ok) {
+                std::snprintf(tmp, sizeof(tmp),
+                    "{\"model_id\":%llu,\"registered\":true,\"C\":%llu,\"note\":\"admission: submit_gemm with model_id+model_r\"}",
+                    (unsigned long long)mid, (unsigned long long)Cm.C);
+            } else {
+                std::snprintf(tmp, sizeof(tmp),
+                    "{\"model_id\":%llu,\"registered\":false,\"error\":\"already registered\"}",
+                    (unsigned long long)mid);
+            }
             body = tmp;
             content_type = "application/json";
         }
+    } else if (method == "GET" && path == "/models") {
+        // Phase 6.20: the public model directory — the discovery layer.
+        std::string js;
+        {   std::lock_guard<std::mutex> lk(g_model_mutex);
+            js = "{\"registry_size\":" + std::to_string(g_model_registry.size()) + ",\"models\":[";
+            bool first = true;
+            for (const auto& [mid, Cm] : g_model_registry.entries()) {
+                if (!first) js += ",";
+                first = false;
+                js += "{\"model_id\":" + std::to_string(mid)
+                    + ",\"C\":" + std::to_string(Cm.C) + "}";
+                if (js.size() > 16384) { js += ",\"...\":\"truncated\""; break; }
+            }
+        }
+        js += "]}";
+        body = js;
+        content_type = "application/json";
     } else if (method == "GET" && path.rfind("/claim_inputs/", 0) == 0) {
         // Phase 6.17 v2: the claim preimage — served to epoch-verifiers.
         // AUTH REQUIRED. Returns A/B hex + result hex for independent re-verification.
@@ -582,18 +692,38 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
         send(fd, nr.c_str(), nr.size(), 0);
         close(fd);
         return;
+    } else if (method == "GET" && path == "/dkg") {
+        // Phase 6.17 v2 s4: the DKG rotation receipt — PUBLIC. The node's
+        // threshold committee is re-dealt every epoch from the beacon chain
+        // (vss::deal with prev = the chain tip). Transparency route: the
+        // aggregate public key, the config, the share-verification count.
+        // No secret shares live on this route — aggregate pk C[0] is [f(0)]G2,
+        // a public commitment by construction.
+        char db[768];
+        std::snprintf(db, sizeof(db),
+            "{\"route\":\"dkg-rotation 6.17 v2 s4\",\"has\":%s,\"epoch\":%u,"
+            "\"n\":%u,\"t\":%u,\"shares_verified\":%u,\"agg_pk\":\"%s\","
+            "\"note\":\"committee re-dealt per epoch, seeded by the beacon chain tip; production capstone 224/112\"}",
+            ns.dkg_has ? "true" : "false", ns.dkg_epoch, ns.dkg_n, ns.dkg_t,
+            ns.dkg_shares_ok, ns.dkg_agg_pk_hex.c_str());
+        body = db;
+        content_type = "application/json";
     } else if (method == "GET" && path == "/verifier") {
         // Phase 6.17 v2 s2: the rotating epoch-verifier receipt — PUBLIC.
         // Transparency route: no key material, no preimage bytes — only the
         // rotation schedule and the last deep-audit verdict. Any fleet member
         // can re-derive the schedule from the chain (select_index is public).
-        char vb[720];
+        char vb[1100];
         std::snprintf(vb, sizeof(vb),
             "{\"route\":\"epoch-verifier 6.17 v2 s2\",\"epoch\":%u,\"rotations\":%llu,"
             "\"pool_size\":%zu,\"selected_work_id\":%llu,"
             "\"identity_ok\":%s,\"recompute_ran\":%s,\"recompute_ok\":%s,"
             "\"pass\":%s,\"has_receipt\":%s,\"claim_identity\":\"%s\","
-            "\"note\":\"sample rotates with the epoch beacon; recompute runs at the fleet rung (n<=64)\"}",
+            "\"pool\":{\"has\":%s,\"size\":%llu,\"tier1_ok\":%llu,\"tier1_bad\":%llu,"
+            "\"structure_bad\":%llu,\"unknown_work\":%llu,\"tier2_ran\":%llu,"
+            "\"tier2_ok\":%llu,\"tier2_bad\":%llu,\"tier2_skipped_budget\":%llu,"
+            "\"macs_spent\":%llu,\"pass\":%s},"
+            "\"note\":\"sample rotates with the epoch beacon; recompute runs at the MEASURED rung (n<=256, the 6.16 receipt); the pool receipt is aggregate (tier-1 for ALL claims)\"}",
             ns.verifier_epoch, (unsigned long long)ns.verifier_rotations,
             ns.verifier_pool, (unsigned long long)ns.verifier_work_id,
             ns.verifier_digest_ok ? "true" : "false",
@@ -601,7 +731,15 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             ns.verifier_recompute_ok ? "true" : "false",
             ns.verifier_pass ? "true" : "false",
             ns.verifier_has_receipt ? "true" : "false",
-            ns.verifier_identity_hex.c_str());
+            ns.verifier_identity_hex.c_str(),
+            ns.pool_has ? "true" : "false",
+            (unsigned long long)ns.pool_size,
+            (unsigned long long)ns.pool_tier1_ok, (unsigned long long)ns.pool_tier1_bad,
+            (unsigned long long)ns.pool_structure_bad, (unsigned long long)ns.pool_unknown_work,
+            (unsigned long long)ns.pool_tier2_ran, (unsigned long long)ns.pool_tier2_ok,
+            (unsigned long long)ns.pool_tier2_bad, (unsigned long long)ns.pool_tier2_skipped,
+            (unsigned long long)ns.pool_macs_spent,
+            ns.pool_pass ? "true" : "false");
         body = vb;
         content_type = "application/json";
     } else if (method == "GET" && path.rfind("/result/", 0) == 0) {
