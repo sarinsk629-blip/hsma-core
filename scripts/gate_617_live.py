@@ -14,7 +14,11 @@ INDEPENDENTLY predicts A/B and recomputes C mod p (Pallas) from the claim."""
 import glob, hashlib, json, os, re, signal, socket, subprocess, sys, time
 import urllib.request, urllib.error
 
-os.chdir(os.path.expanduser("~/hsma"))
+try:
+    os.chdir(os.path.expanduser("~/hsma"))          # the founder layout
+except FileNotFoundError:
+    # v6: the driver is self-locating — run it from any clone of this repo
+    os.chdir(os.path.dirname(os.path.abspath(__file__)) + "/..")
 HPP = "include/hsma/explorer.hpp"
 REASONS = []
 
@@ -71,7 +75,8 @@ if r.returncode != 0:
     REASONS.append("build"); print(r.stdout[-1500:] + r.stderr[-1500:])
 
 # ---- gate 2: tests ----
-cands = ["test_step46", "test_step47", "test_step52", "test_step53", "t46", "t47", "t52", "t53"]
+cands = ["test_step46", "test_step47", "test_step52", "test_step53", "test_step54",
+         "t46", "t47", "t52", "t53", "t54"]
 sh("ninja -C build " + " ".join(cands))
 tests = [c for c in cands if os.path.isfile(f"build/{c}") and os.access(f"build/{c}", os.X_OK)]
 print(f"[gate2 tests] binaries: {tests or 'NONE FOUND'}")
@@ -108,7 +113,8 @@ try:
     else:
         node = subprocess.Popen(["./build/epoch_node", str(nport)],
                                 stdout=open("node.log", "ab"), stderr=subprocess.STDOUT,
-                                start_new_session=True)
+                                start_new_session=True,
+                                env={**os.environ, "HSMA_TESTNET_CPU_FOLD": "1"})
         m = wait_log(r"\[explorer\] HTTP server listening on port (\d+)", "node.log", 60, since=mark)
         if not m:
             REASONS.append("live: explorer never bound"); print(tail("node.log", 20))
@@ -242,7 +248,34 @@ try:
                 else:
                     REASONS.append("live: faucet mint failed (auth or body rejected)")
 
-            # --- s2: the rotating epoch-verifier route (public, transparency) ---
+            # --- s3: the ROTATION leg — faucet n=80 through the testnet
+            # CPU-fold band (env-gated, loud). n>64 folds into the audit pool
+            # and the pulse gate fires the rotating epoch-verifier within a
+            # tick: the live positive receipt the s2 open-item asked for.
+            if good_h and mint_path:
+                stm, txtm = http("POST", base + mint_path, headers=good_h, body='{"n":80}')
+                print(f"[gate3 live] mint POST {mint_path} (rotation n=80, CPU band) -> {stm} {txtm[:130]}")
+                swm = re.search(r'"work_id":(\d+)', txtm)
+                if stm == 400:
+                    REASONS.append("live: rotation band mint 400 — HSMA_TESTNET_CPU_FOLD not active?")
+                elif 200 <= stm < 300 and swm:
+                    swid = int(swm.group(1))
+                    if not wait_log(rf"\[work\] work_id {swid}: VERIFIED", "node.log", 300, since=mark):
+                        REASONS.append(f"live: rotation work {swid} never VERIFIED")
+                    elif not wait_log(rf"\[claim\] work_id {swid} \(n=80\) folded into the accumulator", "node.log", 60, since=mark):
+                        REASONS.append(f"live: rotation work {swid} never FOLDED (n>64 gate)")
+                    elif not wait_log(r"\[verifier\] epoch \d+: rotation \d+ selected.*CLAIM VERIFIED", "node.log", 60, since=mark):
+                        REASONS.append("live: verifier rotation never fired (or claim REJECTED)")
+                    else:
+                        print(f"[gate3 live] rotation work {swid}: VERIFIED -> FOLDED -> verifier FIRED")
+                else:
+                    REASONS.append("live: rotation mint failed")
+
+            # --- s2/s3: the rotating epoch-verifier route — POSITIVE receipt.
+            # The rotation leg folded an n=80 claim into the pool and the
+            # pulse gate fired the rotation, so the route must now show an
+            # HONEST POSITIVE receipt — tier-1 PASS, tier-2 honestly n/a
+            # (n=80 is above the fleet rung; recompute_ran=false is the truth).
             st4, txt4 = http("GET", f"{base}/verifier")
             print(f"[gate3 live] GET /verifier -> {st4} {txt4[:130]}")
             if st4 != 200:
@@ -254,18 +287,22 @@ try:
                         "epoch", "rotations", "pool_size", "selected_work_id",
                         "identity_ok", "recompute_ran", "recompute_ok",
                         "pass", "has_receipt", "claim_identity"))
-                    # honest zero state: this driver mints n=8 only — claims fold
-                    # for n>64, so the pool is empty and no rotation has fired
-                    zero_ok = (v.get("pool_size") == 0
-                               and v.get("has_receipt") is False
-                               and v.get("pass") is False
-                               and v.get("rotations") == 0)
-                    print(f"[gate3 live] verifier schema={schema_ok} zero_state={zero_ok} "
-                          f"rotations={v.get('rotations')} pool={v.get('pool_size')}")
+                    # POSITIVE state: the rotation fired in-run over a real
+                    # folded claim. recompute_ran=false is the HONEST label —
+                    # n=80 is above the fleet rung; tier-2 did not run.
+                    pos_ok = (v.get("has_receipt") is True
+                              and v.get("pass") is True
+                              and v.get("identity_ok") is True
+                              and v.get("pool_size", 0) >= 1
+                              and v.get("rotations", 0) >= 1
+                              and v.get("recompute_ran") is False)
+                    print(f"[gate3 live] verifier schema={schema_ok} POSITIVE={pos_ok} "
+                          f"rotations={v.get('rotations')} pool={v.get('pool_size')} "
+                          f"work={v.get('selected_work_id')}")
                     if not schema_ok:
                         REASONS.append("live: /verifier schema incomplete")
-                    if not zero_ok:
-                        REASONS.append("live: /verifier zero-state dishonest")
+                    if not pos_ok:
+                        REASONS.append("live: /verifier rotation receipt not positive")
                 except Exception as e:
                     REASONS.append(f"live: /verifier parse error {e!r}")
     # ---- gate 4: survival ----
@@ -282,7 +319,8 @@ try:
         mark2 = os.path.getsize("node.log")
         node2 = subprocess.Popen(["./build/epoch_node", str(nport)],
                                  stdout=open("node.log", "ab"), stderr=subprocess.STDOUT,
-                                 start_new_session=True)
+                                 start_new_session=True,
+                                 env={**os.environ, "HSMA_TESTNET_CPU_FOLD": "1"})
         rebind = bool(wait_log(r"\[explorer\] HTTP server listening", "node.log", 60, since=mark2))
         try:
             os.killpg(os.getpgid(node2.pid), signal.SIGTERM); node2.wait(timeout=20)

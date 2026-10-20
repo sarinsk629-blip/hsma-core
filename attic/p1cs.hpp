@@ -1,3 +1,12 @@
+// =====================================================================
+// MOVED TO ATTIC (Phase 6.17 v2 s3 audit, DEF-375 follow-up).
+// This was the ORIGINAL P1-14a approach, abandoned mid-write (see the
+// inline "break; // DEBUG" below and the self-admitted wrong first-pass
+// ARK constraints it emits). DEC-233's clean restart lives at
+// include/hsma/poseidon_r1cs.hpp (Montgomery-clean, semantically pinned
+// to fp::poseidon3 by conformance/test_step54). Kept for history.
+// DO NOT INCLUDE — DO NOT BUILD.
+// =====================================================================
 // HSMA :: p1cs.hpp - P1-14a (GAP-07 at scale, DEC-233).
 // The Poseidon-3 R1CS gadget: embeds the permutation as R1CS constraints.
 // Each sbox (x^5) = 3 quadratic constraints (x2=x*x, x4=x2*x2, x5=x*x4).

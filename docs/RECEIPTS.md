@@ -17,6 +17,8 @@ in this repository that introduced or proves the mechanism behind it.
 | 10 | Oct 13 | `[quorum] epoch N: claim-decrees audited (structure+linkage)` — fires at every header exchange | Fleet-side claim auditing, digest-seeded sampling | a34fb30 |
 | 11 | Oct 19 (sandbox re-run) | `PREIMAGE byte-exact: a=True b=True \| C recompute=True \| cross=True \| deterministic=True` → `sha256(c)=c187874a447258ff1f925cda72d4d266cd415d6540b3350aee84b14b219ae2a7` | The s1 claim loop re-proven on foreign hardware, bit-identical digest (third independent run: phone, audit box, sandbox) | c134379 |
 | 12 | Oct 19 | `claim_inputs/2 (FAUCET) -> 200` + `FAUCET preimage: a==predicted=True b==predicted=True \| C==mod-p recompute=True` → `faucet sha256(c)=007124aec362e8d2a3b560dfecb6c60b5cbd4ac0d3750a41ccb634b0d3dc64b3` | **The faucet 404 is dead**: the node binds its self-generated inputs; the driver independently predicted A/B from the seed law and recomputed C mod p over F_p — preimage served for BOTH mint paths | (this commit) |
+| 13 | Oct 19 | `[claim] work_id 3 (n=80) folded` → `[verifier] epoch 1: rotation 1 selected pool[0/1] work 3 — identity PASS \| recompute n/a (above fleet rung) \| CLAIM VERIFIED` + `/verifier {has_receipt:true, pass:true, rotations:1, pool:1}` | **The first live rotation in project history** — the s2 open-item closed via the env-gated testnet CPU band (64<n<=96); the rotating verifier audited a real claim on real hardware — and REJECTED the first one (DEF-374 caught by the tripwire) | (this commit) |
+| 14 | Oct 19 | `test_step54: ALL PASS — 1088 rows EXACT, all SAT, gadget output == fp::poseidon3 (Montgomery-exact), tamper breaks SAT, 3 domains` | **"Poseidon-3 as R1CS" is now semantically TRUE** (DEF-375 fixed): the row count measured at production parameters, the gadget↔permutation bridge finally pinned | (this commit) |
 
 **The verification commands** (any of these reproduce the evidence):
 
@@ -29,6 +31,6 @@ ssh <anchor> "sudo journalctl -u hsma-node --no-pager | grep -E 'pouw-verify|cla
 ./scripts/gate.sh          # GATE GREEN
 ```
 
-**Counts at time of writing:** decisions = 62 · owned defects = 73 ·
-laws = 271 · conformance programs = 52 —
+**Counts at time of writing:** decisions = 63 · owned defects = 75 ·
+laws = 273 · conformance programs = 53 —
 live counts: `grep -c '^## DEC-' docs/DECISIONS.md`

@@ -1,20 +1,30 @@
 // HSMA :: poseidon_r1cs.hpp - P1-14a (DEC-233, the clean restart).
 // The Poseidon-3 permutation as R1CS constraints.
-// 
-// APPROACH: the emitter (step35.py) precomputes ALL witness values and
-// ALL constraint entries explicitly. The C++ header just carries the
-// generated data. No runtime constraint generation — everything is
-// emitted by the Python oracle, self-checked, and pinned as goldens.
 //
-// This eliminates the state-management bugs that blocked the previous
-// approach: the Python oracle computes each witness value step by step
-// (ARK, sbox, MDS per round), emits them as goldens, and the C++ test
-// verifies each intermediate value against the golden.
+// DOMAIN LAW (DEF-375 fix, s3 audit): the gadget is MONTGOMERY-CLEAN. Every
+// value that enters the witness system — inputs, IV, round constants, MDS
+// coefficients — lives in Montgomery form, and every helper op (fe_mul /
+// fe_add) is therefore the exact F_p semantic of the R1CS relation it emits:
+//   prod row : mont(a)·mont(b) = mont(c)   <=>   a·b = c over F_p
+//   lin row  : t·ONE = Σ mont(m)·mont(v)   <=>   t = Σ m·v over F_p
+// (the R factor cancels on both sides — the solution set is the permutation's
+// true graph, not a scaled shadow of it). The pre-s3 mk_fe stored canonical
+// limbs RAW: constants entered the witness in a different domain than the
+// Montgomery witness values, the emitted system was still self-consistent
+// (SAT held — the witness was computed by the same mangled ops it pins), but
+// it did NOT compute Poseidon-3. The goldens never caught it because no
+// golden ever crossed the gadget↔perm boundary; test_step54 now does exactly
+// that: full 1,088-row SAT + output == fp::poseidon3, Montgomery-exact.
+//
+// APPROACH: constraint generation is fully explicit here — the witness and
+// the A/B/C matrices are built by the same helpers, so every row is SAT by
+// construction and the ONLY meaningful proof is the semantic one above.
 //
 // The R1CS structure:
 //   Each sbox: 3 constraints (x2 = x*x, x4 = x2*x2, x5 = x*x4)
-//   Each linear op: 1 constraint per output variable
-//   The ONE wire (z[0] = 1) handles constants
+//   Each ARK: 1 linear constraint   Each MDS output: 4 (3 mul + 1 sum)
+//   The ONE wire (z[0] = 1) carries constants.
+//   Full parameters (rf_half=4, rp=56): 8·24 + 56·16 = 1088 rows exactly.
 //
 // CA-R142 applied: canonical arithmetic in the Python oracle (a*b % p)
 // CA-R158 applied: one variable per matrix side for products
@@ -25,8 +35,13 @@
 
 namespace hsma::pr1cs {
 
+// DEF-375 domain fix: canonical 4-limb input -> Montgomery form. The OLD
+// mk_fe stored the limbs raw — constants entered the witness in canonical
+// form while the witness values were Montgomery, so the "R1CS Poseidon" was
+// a different function than fp::poseidon3 (SAT-blind: both sides of every
+// row were computed by the same mangled helpers). RR-lift closes the domains.
 inline fp::fe mk_fe(const std::array<std::uint64_t,4>& c) noexcept {
-    fp::fe x{}; for (int k = 0; k < 4; ++k) x.l[k] = c[k]; return x;
+    return fp::fe_from_canonical_limbs(c);
 }
 
 

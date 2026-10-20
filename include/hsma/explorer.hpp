@@ -149,6 +149,20 @@ inline bool check_rate_limit(const std::string& key) {
     return true;
 }
 
+// Phase 6.17 v2 s3: the TESTNET CPU-fold band. The 6.16 verdict STANDS as the
+// default: n>64 on the CPU backend risks the heartbeat (verify cost grows
+// ~ (n/64)^3 · 615ms), so the API requires GPU for n>64. This env-gated band
+// exists for one purpose: a CPU-only testnet node must be able to produce the
+// s2 rotation receipt — claims fold into the audit pool ONLY at n>64, and an
+// empty pool means the rotating epoch-verifier never fires. Loud, bounded,
+// default OFF: 64 < n <= 96, the band is honest in every response it touches,
+// and the node prints the override at startup when active.
+inline bool cpu_fold_band_allowed(unsigned n) noexcept {
+    if (n <= 64 || n > 96) return false;
+    const char* e = std::getenv("HSMA_TESTNET_CPU_FOLD");
+    return e != nullptr && e[0] != '\0' && e[0] != '0';
+}
+
 
 // build the JSON API response
 inline std::string build_json(const NodeState& ns) noexcept {
@@ -402,8 +416,8 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
             close(fd);
             return;
         }
-        if (n > 64 && !pouw::gpu_available()) {
-            std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\"}";
+        if (n > 64 && !pouw::gpu_available() && !cpu_fold_band_allowed(n)) {
+            std::string gb = "{\"error\":\"n>64 requires GPU backend (CPU would stall the heartbeat)\",\"note\":\"CPU-only testnet nodes may set HSMA_TESTNET_CPU_FOLD=1 for the bounded receipt band 64<n<=96\"}";
             std::string gr = "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: "
                 + std::to_string(gb.size()) + "\r\nConnection: close\r\n\r\n" + gb;
             send(fd, gr.c_str(), gr.size(), 0);
@@ -490,6 +504,11 @@ inline void serve_request(int fd, const NodeState& ns) noexcept {
                 "{\"work_id\":%llu,\"status\":\"queued\",\"n\":%u}",
                 (unsigned long long)wid, n);
             body = wbuf;
+            if (n > 64 && !pouw::gpu_available()) {
+                // s3: the mint came through the testnet CPU-fold band — say so
+                body = body.substr(0, body.size() - 1)
+                     + ",\"backend\":\"cpu-fold-band (HSMA_TESTNET_CPU_FOLD; testnet receipt only)\"}";
+            }
             if (has_in) {
                 char tb[320];
                 std::snprintf(tb, sizeof(tb),

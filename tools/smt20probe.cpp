@@ -14,7 +14,11 @@
 using namespace hsma;
 
 static fp::fe limbs(const std::array<std::uint64_t,4>& c) {
-    fp::fe x{}; for (int k = 0; k < 4; ++k) x.l[k] = c[k]; return x;
+    // DEF-375: RR-lift — the gadget is Montgomery-clean since the s3 audit,
+    // so the mirror must consume the canonical constants in Montgomery too
+    // (the old raw store made [G-sem] a comparison of two identical mangles;
+    // now it is a genuine gadget-vs-mathematics cross-check).
+    return fp::fe_from_canonical_limbs(c);
 }
 // independent mirror of pr1cs::build's reduced permutation (values only) -
 // line-faithful to [S3]: ARK -> sbox -> MDS; partial rounds sbox lane 0 only;

@@ -3,7 +3,8 @@
 #include <cstdio>
 using namespace hsma;
 
-// plain modular multiplication (from p1cs.hpp)
+// plain modular multiplication (the p1cs.hpp plain_mul pattern; that
+// header now lives in attic/ — replaced by include/hsma/poseidon_r1cs.hpp)
 inline fp::fe pmul(const fp::fe& a, const fp::fe& b) {
     fp::fe rr{}; std::memcpy(rr.l.data(), pallas_gen::RR.data(), 32);
     fp::fe ma = fp::fe_mul(a, rr);

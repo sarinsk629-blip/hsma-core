@@ -448,10 +448,17 @@ int main(int argc, char* argv[]) {
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     std::thread(hb_watchdog).detach(); // P5-D // [G7] lesson: redirected stdout was fully buffered - logs stayed empty
     unsigned my_port = p2p::DEFAULT_PORT;
-    
+
     // parse arguments
     if (argc > 1) my_port = (unsigned)atoi(argv[1]);
-    
+
+    // Phase 6.17 v2 s3: loud, honest disclosure when the testnet CPU-fold
+    // band is active — every operator must see that the 6.16 GPU gate is
+    // relaxed for the bounded receipt band (64 < n <= 96) on THIS node.
+    if (explorer::cpu_fold_band_allowed(80))
+        std::printf("[testnet] HSMA_TESTNET_CPU_FOLD active — CPU fold band 64<n<=96 enabled "
+                    "(s2 rotation receipt tool; NOT the default, NOT for production)\n");
+
     // build the circuit matrices
     fcirc::build_matrices(A, B, C);
     
@@ -861,6 +868,23 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         // Phase 6.12: serialize C canonical-LE for result delivery
                         if (gvok) {
                             w.has_result = true;
+                            // Phase 6.12 (DEF-374 FIX, order): serialize the
+                            // result BEFORE the fold — the claim identity is
+                            // SHA256(work_id||n||ic||result_first32) and the
+                            // result prefix MUST be real bytes. The pre-s3
+                            // order folded first: result_bytes was still
+                            // empty, the guard silently dropped the prefix,
+                            // and every folded claim carried a weaker
+                            // identity that its OWN verifier would reject
+                            // (never observed before s3 — the live rotation
+                            // had never fired; the first CPU-band run caught
+                            // it within one tick).
+                            w.result_bytes.reserve(gC.size() * 32);
+                            for (const auto& fe : gC) {
+                                std::uint8_t ob[32];
+                                fp::fe_to_le_bytes(fe, reinterpret_cast<std::byte*>(ob));
+                                w.result_bytes.insert(w.result_bytes.end(), ob, ob + 32);
+                            }
                             // Phase 6.17 (Path A): verified GPU claims fold into the
                             // accumulator as claim-decrees. Payload: [digest(32) =
                             // SHA256(work_id||n||ic||result_first32)][work_id(8)][n(4)]
@@ -886,12 +910,6 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 std::printf("[claim] work_id %llu (n=%u) folded into the accumulator as a claim-decree\n",
                                     (unsigned long long)w.id, w.n);
                                 g_epoch_claims.push_back(pl);   // s2: the audit pool
-                            }
-                            w.result_bytes.reserve(gC.size() * 32);
-                            for (const auto& fe : gC) {
-                                std::uint8_t ob[32];
-                                fp::fe_to_le_bytes(fe, reinterpret_cast<std::byte*>(ob));
-                                w.result_bytes.insert(w.result_bytes.end(), ob, ob + 32);
                             }
                         }
                         g_work_done[w.id] = w;

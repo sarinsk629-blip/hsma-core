@@ -199,7 +199,7 @@ verifiable WITHOUT the witness
 | 2 | Field | Vesta F_q (516 goldens) | ✅ | Bilingual parity |
 | 3 | Hash | Poseidon-3, Pallas domain | ✅ | MDS proven, 80 RCs |
 | 4 | Hash | Poseidon-3, Vesta domain | ✅ | MDS proven, 80 RCs |
-| 5 | Hash | Poseidon-3 as R1CS (1,088 constraints) | ✅ | R1CS SAT: YES |
+| 5 | Hash | Poseidon-3 as R1CS (1,088 constraints, measured) | ✅ | SAT + semantic bridge to `poseidon3` (step54) |
 | 6 | BLS12-377 | F_r Montgomery CIOS kernel | ✅ | 64 DRBG pairs bit-exact |
 | 7 | BLS12-377 | G1 Jacobian arithmetic | ✅ | 48 golden triples |
 | 8 | BLS12-377 | Hash-to-G1 + Feldman DKG | ✅ | 34/34 share equations |
@@ -455,8 +455,8 @@ hsma-core/
 | Phase 2 | The testnet: P2P, validator nodes, explorer, weight consensus | ✅ |
 | Phase 3 | MSSC: votes, convergence, deadlock resolution, aggregate verify | ✅ |
 | Phase 4 | Zero-MEV: envelope, ordering, threshold, mempool, capstone | ✅ |
-| Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1) — every verified work is now claimable and auditable | ✅ |
-| **Next** | Fleet-positive rotation receipt (n>64 fold on GPU), DKG rotation, aggregate-verify integration | 🔜 |
+| Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1), **live rotation receipt + Poseidon R1CS semantic bridge (s3)** | ✅ |
+| **Next** | GPU-fleet rotation at production scale, DKG rotation, aggregate-verify integration | 🔜 |
 
 ---
 
