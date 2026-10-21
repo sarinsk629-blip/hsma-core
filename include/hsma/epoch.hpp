@@ -4,6 +4,8 @@
 // The order_root feeds the fold's decree_root input — the M2→fold bridge.
 // DEC-127; DEC-090.
 #pragma once
+#include <algorithm>
+#include <cstdio>
 #include <hsma/nivc.hpp>
 #include <hsma/threshold/m2.hpp>
 #include <hsma/fold.hpp>
@@ -38,23 +40,49 @@ inline EpochResult run(smt::Vault& vault, smt::Handle initial_root,
         threshold::m2::sort_key(keys[i].data(), beacon, cths[i].data());
     }
 
-    // sort by keys (byte-lex ascending)
+    // sort by keys (byte-lex ascending). DEF-389: std::sort — the O(n^2)
+    // exchange sort was the ceremony's second-oldest constant-cost relic.
     std::vector<unsigned> order(Rs.size());
     for (std::size_t i = 0; i < order.size(); ++i) order[i] = unsigned(i);
-    for (std::size_t a = 0; a < order.size(); ++a)
-        for (std::size_t b = a + 1; b < order.size(); ++b)
-            if (std::memcmp(keys[order[b]].data(), keys[order[a]].data(), 32) < 0)
-                { unsigned t = order[a]; order[a] = order[b]; order[b] = t; }
+    std::sort(order.begin(), order.end(), [&](unsigned a, unsigned b) {
+        return std::memcmp(keys[a].data(), keys[b].data(), 32) < 0;
+    });
 
-    // compute order_root
-    std::uint8_t sorted_hashes[4][32];
-    for (unsigned i = 0; i < 4; ++i)
-        std::memcpy(sorted_hashes[i], cths[order[i]].data(), 32);
+    // compute order_root — over ALL envelopes. DEF-389: the old code copied
+    // exactly 4 cths into a fixed [4][32] and committed the root of the FIRST
+    // FOUR: fewer than 4 envelopes read out of bounds (UB), more than 4 let
+    // the tail be reordered WITHOUT changing the order root — the MEV freeze
+    // did not bind the full order at production volume. The commitment is
+    // size-exact: allocation, fill, and hash share ONE size expression.
+    std::vector<std::array<std::uint8_t, 32>> sorted(Rs.size());
+    for (std::size_t i = 0; i < sorted.size(); ++i)
+        std::memcpy(sorted[i].data(), cths[order[i]].data(), 32);
     std::uint8_t oroot[32];
-    threshold::m2::order_root(oroot, sorted_hashes, 4);
-    result.order_root = fp::fe_from_canonical_limbs(
-        {*(const std::uint64_t*)oroot, *(const std::uint64_t*)(oroot+8),
-         *(const std::uint64_t*)(oroot+16), *(const std::uint64_t*)(oroot+24)});
+    threshold::m2::order_root(oroot,
+        reinterpret_cast<const std::uint8_t (*)[32]>(sorted.data()), sorted.size());
+    // DEF-399: the root is an arbitrary 256-bit hash; pallas p is ~2^254.18,
+    // so a raw limb load is NON-canonical ~65% of the time — and the SOS
+    // Montgomery kernel's operand law (a, b < p) makes that load corrupt the
+    // value (a reduction carry escapes T[7]). The field element of the root
+    // is its canonical REDUCTION: c mod p (at most 3 conditional subtractions),
+    // then the standard RR-lift. Same law whir.hpp's digest_scalar already
+    // runs for the same reason; the order freeze now runs it too.
+    std::array<std::uint64_t, 4> rl{};
+    for (int k = 0; k < 4; ++k)
+        for (int b = 0; b < 8; ++b)
+            rl[k] |= std::uint64_t(oroot[k*8 + b]) << (8*b);
+    {   fp::fe raw{{{rl[0], rl[1], rl[2], rl[3]}}};
+        for (int t = 0; t < 8 && !fp::is_canonical(raw); ++t)
+            fp::sub_assumed(raw.l.data(), raw.l.data(), fp::MOD.data());
+        for (int k = 0; k < 4; ++k) rl[k] = raw.l[k];
+    }
+    result.order_root = fp::fe_from_canonical_limbs(rl);
+    {   std::fprintf(stderr, "[dbgE] n=%zu sorted0=", sorted.size());
+        for (int i = 0; i < 8; ++i) std::fprintf(stderr, "%02x", sorted[0][i]);
+        std::fprintf(stderr, " oroot0=");
+        for (int i = 0; i < 8; ++i) std::fprintf(stderr, "%02x", oroot[i]);
+        std::fprintf(stderr, "\n");
+    }
 
     // φ₅-φ₇: the fold processes the entries
     smt::Handle root = initial_root;

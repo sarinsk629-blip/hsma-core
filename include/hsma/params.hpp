@@ -107,6 +107,9 @@ inline constexpr std::uint32_t STALL_LIMIT        = 50;
 
 static_assert(F_BP > 0 && F_BP < BP_ONE / 2, "f must be a minority fraction");
 static_assert(K_ESCALATED >= K_BASE, "escalation must grow the sample");
+// DEF-396: the automaton's tick holds sel[64]/tp[64]/tw[64] fixed arrays —
+// the sample size must be a compile-time fact, not a runtime surprise.
+static_assert(K_ESCALATED <= 64, "escalated sample exceeds the automaton's fixed pools");
 
 // ▶ LOAD-BEARING INEQUALITY #1 — Lemma 3.2 (Authenticated Quorum Impossibility)
 //   α > f/φ   ⇔   α·φ > f   (all in exact integer bp arithmetic)

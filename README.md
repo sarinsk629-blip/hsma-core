@@ -101,19 +101,24 @@ O(log N) verifier work
 
 ### 🗳️ Pillar 2: Metastable Sub-Sampled Consensus
 
-**Weight-proportional sampling with structural quorum impossibility.**
+**Weight-proportional sampling with structural quorum impossibility — now at production discipline.**
 
 ```
 α = 0.75 quorum threshold
 ε_quorum = 0 (impossible, not improbable)
 Beacon-gated deadlock resolution
-Convergence demonstrated: 6 rounds
+Signed order lock (0x0D ORDER_SIG)
+P2 production package: DEF-389..399 closed, CA-R372a..k
 ```
 
-- Avalanche-family, weight-proportional sampling
-- The flip mechanism: demonstrated (B → A)
-- 50/50 deadlock → beacon resolves deterministically
-- Aggregate verify: 3.0× speedup measured
+- Avalanche-family, weight-proportional sampling — the automaton finalizes the honest quorum at PRODUCTION parameters (K=20/40, beta=150, n=224) in exactly beta rounds
+- The live loop runs the proven laws: __int128 basis-point arithmetic (the u64 overflow class caught at 2^62), vote freshness (one epoch, one roster weight-root, one conflict set, round window ±1), vote wire v2 (claimed member verified with ONE pairing — the O(n) pairing scan is dead), identity-carried peers (consensus identity is a member id, never a port)
+- The ordering ceremony is LOCKED: the committee threshold-signs the order-lock preimage (0x0D) and decryption shares publish only under the attested lock — Lock (step 2) precedes Share (step 3) as the whitepaper specifies
+- The REAL threshold beacon (HSM_BEACON_V1, chained across epochs) keys the sort entropy — the constant "beacon_p4" literal (a position-grinding foothold) is dead
+- The order commitment is size-exact: every envelope's cth is bound at every volume (the 4-slot truncation is dead), and the root enters the field as its canonical reduction (DEF-399 — non-canonical loads corrupted the fold commitment ~65% of the time)
+- Bounded sampler: degenerate snapshots reach the floor arithmetic, never an infinite loop or a division by zero
+- THE THREE ZERO-MEV PROPERTIES ARE MACHINE-CHECKED (test_step66): no-front-running (order = pure function of public data, beacon-bound), order-before-knowledge (every (t-1)-subset TAG-FAILS; lock attests at exactly t), irreversibility (post-decrypt roots bit-identical; EVERY permutation breaks root AND signature — probability 0, an identity not a bound)
+- 65 conformance programs, GATE GREEN; gen chain byte-identical after the arithmetic fixes
 
 </td>
 </tr>

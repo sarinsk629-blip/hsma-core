@@ -4,6 +4,20 @@
 // WHITEPAPER PARAMETERS (section 3): alpha=0.75, phi_floor=0.50
 // TESTNET HONEST SCOPE: k=2, beta=5, round=1s. The convergence property
 // is in the FLIP, not the constant.
+//
+// P2 PRODUCTION PACKAGE (DEF-392/393/395, laws CA-R372d/e/g):
+//   - DEF-392: every basis-point cross-multiplication is unsigned __int128.
+//     The u64 form overflowed at agreeing*10000 >= 2^64 — weights grow until
+//     it fires; the proven automaton (consensus.hpp, DEC-138/E-7) always was
+//     128-bit. Same-width quorum math is a production incident on a timer.
+//   - DEF-395: consensus identity is a MEMBER ID, never a port number and
+//     never a vector index. tick() consumes (member_id, preference) pairs
+//     and attributes weight by identity lookup; the old zip of a map-ordered
+//     preference vector against a connection-ordered peer vector silently
+//     credited the wrong members' weights.
+//   - DEF-393: vote freshness is a helper here (vote_fresh) — a vote is
+//     state for ONE epoch, ONE weight root, ONE conflict set, and a bounded
+//     round window. Outside the window it is a replay, not an opinion.
 #pragma once
 #include <hsma/consensus.hpp>
 #include <hsma/msscvote.hpp>
@@ -13,6 +27,7 @@
 #include <hsma/p2p.hpp>
 #include <vector>
 #include <cstring>
+#include <utility>
 
 namespace hsma::msscloop {
 
@@ -41,9 +56,31 @@ struct NodeState {
     State state = State::Active;
     std::uint64_t self_weight = 0;
     std::uint64_t total_weight = 0;
-    struct Peer { std::uint32_t ip; std::uint16_t port; std::uint64_t weight; };
+    struct Peer { std::uint32_t ip; std::uint16_t port; std::uint64_t weight; std::uint64_t member; };
     std::vector<Peer> peers;
 };
+
+// DEF-395: weight attribution BY IDENTITY. A peer record carries the member
+// id its weight belongs to; looking up weight by anything else (port, index,
+// position in a map) credits the wrong voice.
+inline std::uint64_t weight_of(const NodeState& ns, std::uint64_t member) noexcept {
+    for (const auto& p : ns.peers) if (p.member == member) return p.weight;
+    return 0;
+}
+
+// DEF-393: the freshness gate. A vote is admissible for exactly ONE epoch,
+// ONE weight root, ONE conflict set, and a round window of +-1 (clock skew).
+// Everything else is a replay or a fork statement.
+inline bool vote_fresh(std::uint32_t vepoch, std::uint64_t vround,
+                       const Digest& vwr, const Digest& cur_wr,
+                       const Digest& vconflict, const Digest& cur_conflict,
+                       std::uint64_t cur_epoch, std::uint64_t cur_round) noexcept {
+    if (vepoch != std::uint32_t(cur_epoch)) return false;
+    if (!(vwr == cur_wr)) return false;
+    if (!(vconflict == cur_conflict)) return false;
+    const std::uint64_t d = vround >= cur_round ? vround - cur_round : cur_round - vround;
+    return d <= 1;
+}
 
 struct RoundResult {
     Kind kind;
@@ -52,45 +89,57 @@ struct RoundResult {
     bool flipped = false;
 };
 
+// preference vector: (member_id, preference) pairs — identity-carried.
 inline RoundResult tick(NodeState& ns, const Config& cfg,
-                        const std::vector<Digest>& peer_prefs) noexcept {
+                        const std::vector<std::pair<std::uint64_t, Digest>>& member_prefs) noexcept {
     RoundResult rr{};
     ns.rounds++;
 
-    std::uint64_t sampled = ns.self_weight;
-    for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i)
-        sampled += ns.peers[i].weight;
+    const Digest NO_PREF{};   // all-zero digest = "no preference yet"
+    const bool have_pref = !(ns.preference == NO_PREF);
+
+    // sampled = self + every REPORTED voter's weight (identity-attributed)
+    std::uint64_t sampled = have_pref ? ns.self_weight : 0;
+    for (const auto& [mid, pref] : member_prefs)
+        sampled += weight_of(ns, mid);
     if (ns.total_weight > 0 &&
-        sampled * 10000ull < cfg.phi_floor_bp * ns.total_weight) {
+        (unsigned __int128)sampled * 10000ull <
+            (unsigned __int128)cfg.phi_floor_bp * ns.total_weight) {
         rr.kind = Kind::FloorAbort;
         ns.stall++;
         return rr;
     }
     rr.sampled_weight = sampled;
 
-    std::uint64_t agreeing = ns.self_weight;
-    for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i)
-        if (peer_prefs[i] == ns.preference) agreeing += ns.peers[i].weight;
+    std::uint64_t agreeing = have_pref ? ns.self_weight : 0;
+    if (have_pref)
+        for (const auto& [mid, pref] : member_prefs)
+            if (pref == ns.preference) agreeing += weight_of(ns, mid);
     rr.agreeing_weight = agreeing;
 
-    // alpha check: agreeing * 10000 >= alpha_bp * sampled (integer, no division)
-    if (agreeing * 10000ull >= cfg.alpha_bp * sampled) {
+    // alpha check: agreeing * 10000 >= alpha_bp * sampled
+    // DEF-392: __int128 — the quorum comparison must be wider than its operands.
+    if ((unsigned __int128)agreeing * 10000ull >= (unsigned __int128)cfg.alpha_bp * sampled) {
         ns.confidence++;
         ns.stall = 0;
         rr.kind = (ns.confidence >= cfg.beta) ? Kind::Confirmed : Kind::NoQuorum;
         if (ns.confidence >= cfg.beta) ns.state = State::Finalized;
     } else {
-        if (ns.confidence > 0) rr.flipped = true;
+        if (have_pref && ns.confidence > 0) rr.flipped = true;
         ns.confidence = 0;
-        Digest majority = ns.preference;
-        std::uint64_t maj_w = ns.self_weight;
-        for (std::size_t i = 0; i < peer_prefs.size() && i < ns.peers.size(); ++i) {
-            if (peer_prefs[i] != ns.preference && ns.peers[i].weight > maj_w) {
-                majority = peer_prefs[i];
-                maj_w = ns.peers[i].weight;
+        // plurality by weight among the REPORTED preferences (identity-attributed);
+        // lex-ascending digest tiebreak — deterministic across the fleet.
+        Digest majority = have_pref ? ns.preference : NO_PREF;
+        std::uint64_t maj_w = have_pref ? ns.self_weight : 0;
+        bool any = have_pref;
+        for (const auto& [mid, pref] : member_prefs) {
+            const std::uint64_t w = weight_of(ns, mid);
+            if (w == 0) continue;
+            if (!any || w > maj_w || (w == maj_w && pref.byte_less(majority))) {
+                majority = pref; maj_w = w; any = true;
             }
         }
-        if (majority != ns.preference) {
+        if (any && majority != ns.preference) {
             ns.preference = majority;
             rr.flipped = true;
         }
@@ -103,6 +152,13 @@ inline RoundResult tick(NodeState& ns, const Config& cfg,
 }
 
 // ---- P3-3 (DEC-274): the beacon-gated stall breaker ----
+// DEF-392b: the breaker resolves REAL conflicts. The frozen candidate set is
+// the caller's ACTUAL conflicting preferences (harvested from verified votes)
+// — the old body fabricated a peer preference from the string "decreeB",
+// which made the breaker a test harness wearing a production signature.
+// The beacon is the REAL threshold beacon (DEC-200: threshold::beacon is the
+// sole producer) — a constant or hashed-literal beacon here would key the
+// tiebreak to attacker-known entropy.
 struct BreakerResult {
     bool suspended = false;
     bool resolved = false;
@@ -113,7 +169,8 @@ struct BreakerResult {
 inline BreakerResult breaker_tick(NodeState& ns, const Config& cfg,
                                   const threshold::beacon::Committee& committee,
                                   std::uint64_t next_epoch,
-                                  const Digest& prev_beacon) noexcept {
+                                  const Digest& prev_beacon,
+                                  const std::vector<Digest>& frozen_candidates) noexcept {
     BreakerResult br{};
     if (ns.state != State::Suspended) {
         if (ns.stall >= cfg.stall_limit && ns.state == State::Active) {
@@ -122,16 +179,12 @@ inline BreakerResult breaker_tick(NodeState& ns, const Config& cfg,
         }
         if (!br.suspended) return br;
     }
-    auto beacon = threshold::beacon::epoch_beacon(committee, next_epoch, prev_beacon);
-    std::vector<Digest> frozen = {ns.preference};
-    Digest peer_pref = consensus::sha256d((const std::uint8_t*)"decreeB", 7);
-    if (ns.preference == peer_pref)
-        peer_pref = consensus::sha256d((const std::uint8_t*)"decreeA", 7);
-    frozen.push_back(peer_pref);
-    consensus::Snapshot dummy{};
-    dummy.w = {1}; dummy.total = 1; dummy.self_row = 0;
-    dummy.ids = {Digest{}};
-    consensus::Automaton auto_(dummy, next_epoch);
+    // A stall breaker with fewer than two REAL candidates has nothing to
+    // break: report the suspension, refuse to invent a winner.
+    if (frozen_candidates.size() < 2) { br.suspended = true; return br; }
+
+    const auto beacon = threshold::beacon::epoch_beacon(committee, next_epoch, prev_beacon);
+    const std::vector<Digest> frozen = frozen_candidates;   // the REAL conflict set
     br.stagger_ms = consensus::Automaton::resolve_breaker(frozen, beacon, ns.conflict, &br.winner);
     br.resolved = true;
     ns.preference = br.winner;

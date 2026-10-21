@@ -221,6 +221,14 @@ static std::map<std::size_t, std::vector<std::pair<std::uint64_t, threshold::g2:
 static std::uint8_t g_order_root[32] = {};
 static threshold::g2::G2Pt g_xe;   // the committee's aggregate public key
 static bool g_order_committed = false;
+
+// ---- P2 production package state (DEF-390/391/393/395/398) ----
+static consensus::Digest g_prev_beacon{};       // the REAL beacon chain (zero digest = genesis)
+static consensus::Digest g_weight_root{};       // H(TAG || roster(id,weight)) - the vote fork filter
+static std::uint32_t g_pool_epoch = 0;          // the epoch the current mempool ceremony belongs to
+struct OrderLock { msscvote::AggregateVerify av{}; std::uint8_t oroot[32]{}; bool attested = false; };
+static std::map<std::uint32_t, OrderLock> g_order_locks;   // epoch -> lock attestation
+static std::map<int, std::uint64_t> g_fd_member;           // fd -> verified member identity (DEF-395)
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
 
@@ -309,6 +317,72 @@ static std::vector<int> peer_fds;
 static std::map<int, std::uint64_t> g_fd_weights;
 // Phase 6.9: per-peer P2P enforcement — source-IP ban map (accept + recv paths)
 static std::map<std::uint32_t, std::uint64_t> g_peer_bans;
+// DEF-391: step 3 (Share) happens only after step 2 (Lock) is ATTESTED.
+// ONE 0x0C sync batch per peer carries ALL stored shares.
+static void publish_locked_shares() {
+    auto it = g_order_locks.find(g_pool_epoch);
+    if (it == g_order_locks.end() || !it->second.attested) {
+        std::printf("[order] share publication REFUSED - no attested lock for epoch %u\n",
+            (unsigned)g_pool_epoch);
+        return;
+    }
+    for (int fd : peer_fds) send_sync_batch(fd);
+    std::printf("[order] lock ATTESTED for epoch %u - shares published (0x0C, one msg/peer)\n",
+        (unsigned)g_pool_epoch);
+}
+
+// DEF-391: the lock attestation ingest - verify the claim with ONE pairing,
+// accumulate, attest at the threshold. The attested root is stored WITH the
+// lock: a foreign root never mixes into this epoch's accumulator.
+static void order_lock_ingest(std::uint32_t epoch, const std::uint8_t oroot[32],
+                              const msscvote::Pt& sigma, std::uint64_t member,
+                              const threshold::g2::G2Pt& Y) {
+    auto& L = g_order_locks[epoch];
+    if (L.av.count == 0) std::memcpy(L.oroot, oroot, 32);
+    if (std::memcmp(L.oroot, oroot, 32) != 0) {
+        std::printf("[order] 0x0D root MISMATCH for epoch %u - refused\n", (unsigned)epoch);
+        return;
+    }
+    auto pre = msscvote::order_sig_preimage(epoch, oroot);
+    if (!msscvote::verify_vote_member(sigma, pre, Y)) {
+        std::printf("[order] 0x0D from member %llu FAILED pairing - refused\n",
+            (unsigned long long)member);
+        return;
+    }
+    msscvote::agg_accumulate(L.av, sigma, Y);
+    std::printf("[order] 0x0D member %llu -> lock %u partials for epoch %u\n",
+        (unsigned long long)member, L.av.count, (unsigned)epoch);
+    if ((unsigned)L.av.count >= (unsigned)g_cfg_t_eff && msscvote::agg_verify(L.av, pre)) {
+        L.attested = true;
+        std::printf("[order] LOCK ATTESTED for epoch %u (t=%u, one aggregate pairing)\n",
+            (unsigned)epoch, (unsigned)g_cfg_t_eff);
+        if (epoch == g_pool_epoch && g_order_committed
+            && std::memcmp(L.oroot, g_order_root, 32) == 0)
+            publish_locked_shares();
+    }
+}
+
+// DEF-398: the ceremony is PER-EPOCH. Every structure that belongs to the
+// epoch's ceremony dies with it - the old node ordered ONCE per process
+// lifetime and carried envelopes, shares, votes and locks across epochs,
+// where the DKG rotation had already made them foreign. Undecrypted
+// envelopes are dropped with a forensics count (their cth is in this log).
+static void reset_epoch_ceremony() {
+    std::size_t undec = 0;
+    for (const auto& me : g_mempool) if (!me.decrypted) ++undec;
+    if (undec) std::printf("[order] epoch %u close: %zu envelope(s) undecrypted - dropped\n",
+        current_epoch, undec);
+    g_order_committed = false;
+    g_mempool.clear();
+    g_env_index.clear();
+    g_dec_shares.clear();
+    g_thr_shares.clear();
+    g_peer_prefs.clear();
+    g_agg_batches.clear();
+    g_order_locks.clear();
+    std::printf("[order] ceremony state reset for epoch %u\n", current_epoch);
+}
+
 // Phase 6.17 s2: this epoch's claim-decree payloads — the quorum-audit sample
 // pool. Cleared at epoch completion (the next epoch's claims are new claims).
 static std::vector<std::vector<std::uint8_t>> g_epoch_claims;
@@ -605,6 +679,7 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         decree_count = 0;
         g_epoch_claims.clear();   // 6.17 s2: the next epoch's claims are new claims
         g_quorum_audited_this_pool = false;   // the next pool gets its own audit
+        reset_epoch_ceremony();   // DEF-398: the ceremony is PER-EPOCH
         rotate_dkg();             // s4: the committee re-dealt from the NEW chain tip
     }
 }
@@ -656,6 +731,29 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             g_members.push_back({j, threshold::g2::Pmul(threshold::g2::gen(), k)});
         }
         std::printf("[vote] test committee registered: 3 members\n");
+        // DEF-393: the vote fork filter - H("HSM_WROOT_V1" || u32 BE count ||
+        // per-member (u64 BE id || u64 BE weight)), members in id order.
+        // A vote is admissible only inside the roster it claims; both nodes
+        // derive the SAME digest from the SAME committee.toml.
+        {   std::vector<std::pair<std::uint64_t, std::uint64_t>> roster;
+            for (const auto& cm : g_cfg_members) roster.push_back({cm.id, cm.weight});
+            if (!g_from_config) roster = {{1, 60}, {2, 40}};
+            std::sort(roster.begin(), roster.end());
+            std::vector<std::uint8_t> buf;
+            const char* TAG_WR = "HSM_WROOT_V1";
+            buf.insert(buf.end(), TAG_WR, TAG_WR + 12);
+            for (int i = 3; i >= 0; --i)
+                buf.push_back(std::uint8_t((roster.size() >> (8*i)) & 0xFF));
+            for (const auto& [id, w] : roster) {
+                for (int i = 7; i >= 0; --i) buf.push_back(std::uint8_t((id >> (8*i)) & 0xFF));
+                for (int i = 7; i >= 0; --i) buf.push_back(std::uint8_t((w >> (8*i)) & 0xFF));
+            }
+            g_weight_root = consensus::sha256d(buf.data(), buf.size());
+            std::printf("[vote] weight_root (roster fork filter): ");
+            std::uint8_t wrb[32]; g_weight_root.to_bytes(wrb);
+            for (int i = 0; i < 8; ++i) std::printf("%02x", wrb[i]);
+            std::printf("...\n");
+        }
     }
     {   g_self_member = (my_port == p2p::DEFAULT_PORT) ? 1 : 2;
         g_own_share = hsma::threshold::dkg::share_for(g_test_poly, g_self_member); // P5-A: real t-of-n share
@@ -667,7 +765,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         g_mssc.self_weight = (g_self_member == 1) ? 60 : 40;
         g_mssc.total_weight = 100;
         if (g_self_member == 1)
-            g_mssc.peers.push_back({0x7F000001, 31234, 40});
+            g_mssc.peers.push_back({0x7F000001, 31234, 40, 2});   // DEF-395: member id
         else
                                         // P5-E+/Gate-3: peers from config when present
                             // P5-H+/Gate-3 v2: peers are DYNAMIC — rebuilt from active
@@ -849,6 +947,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     // P2-08: DEFECT-171 - epoch 0 complete; the node now accepts epoch 1 decrees
     ++current_epoch;
     decree_count = 0;
+    reset_epoch_ceremony();   // DEF-398: the ceremony is PER-EPOCH (boot path too)
     rotate_dkg();   // s4: the node's epoch committee, derived from the chain it just started
     
     // launch the explorer server on port 8080 (my_port + 8080-31233 = my_port + 6847)
@@ -1006,7 +1105,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             int fd = p2p::connect_peer(sa.ip, sa.port);
                             if (fd >= 0) {
                                 peer_fds.push_back(fd);
-                                g_mssc.peers.push_back({sa.ip, sa.port, 30});
+                                g_mssc.peers.push_back({sa.ip, sa.port, 30, 0});   // DEF-395: identity bound on first verified vote
                                 g_mssc.total_weight += 30;
                                 std::printf("[reconnect] SUCCESS — reconnected to seed\n");
                                 break;
@@ -1188,22 +1287,25 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
 
                 g_ns_shared.hb_consensus = g_hb_consensus.load(std::memory_order_relaxed);
                 {
-                    auto pre = msscvote::vote_preimage(0,
-                        consensus::sha256d((const std::uint8_t*)"wr",2),
-                        g_mssc.conflict, g_mssc.rounds,
+                    // DEF-393: REAL epoch + REAL weight root in the preimage -
+                    // votes are state for THIS epoch, THIS roster, THIS conflict.
+                    // DEF-394: v2 carries the claimed member (one pairing to verify).
+                    auto pre = msscvote::vote_preimage((std::uint32_t)current_epoch,
+                        g_weight_root, g_mssc.conflict, g_mssc.rounds,
                         g_mssc.preference);
                     auto sig = msscvote::sign_vote(g_own_share, pre);
-                    auto msg = msscvote::encode_vote(0,
-                        consensus::sha256d((const std::uint8_t*)"wr",2),
-                        g_mssc.conflict, g_mssc.rounds,
-                        g_mssc.preference, sig);
+                    auto msg = msscvote::encode_vote_v2((std::uint32_t)current_epoch,
+                        g_weight_root, g_mssc.conflict, g_mssc.rounds,
+                        g_mssc.preference, sig, g_self_member);
                     for (int fd : peer_fds) p2p::send_message(fd, msg);
                 }
                 // P5-B hygiene: stale single-sig batches die with the round (testnet scope)
                 if (g_agg_batches.size() > 128) g_agg_batches.clear();
                 if (!g_peer_prefs.empty()) {
-                    std::vector<consensus::Digest> pp;
-                    for (const auto& [id, pref] : g_peer_prefs) pp.push_back(pref);
+                    // DEF-395: (member_id, preference) PAIRS - weight attribution
+                    // by identity, never by map position or connection order.
+                    std::vector<std::pair<std::uint64_t, consensus::Digest>> pp(
+                        g_peer_prefs.begin(), g_peer_prefs.end());
                                         auto tick_t0 = std::chrono::steady_clock::now();
                     auto rr = msscloop::tick(g_mssc, g_cfg, pp);
                     auto tick_t1 = std::chrono::steady_clock::now();
@@ -1225,6 +1327,25 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         g_mssc.preference == consensus::sha256d((const std::uint8_t*)"decreeA",7) ? "A" : "B",
                         g_mssc.confidence, (int)rr.kind);
 
+                    // P3-3 (DEC-274) LIVE wiring: on suspension the breaker
+                    // resolves the REAL conflict set (verified vote preferences)
+                    // under the REAL threshold beacon - the fabricated-"decreeB"
+                    // breaker body is dead (DEF-392b).
+                    if (g_mssc.state == consensus::State::Suspended) {
+                        std::vector<consensus::Digest> frozen{g_mssc.preference};
+                        for (const auto& [mid, p] : g_peer_prefs)
+                            if (!(p == g_mssc.preference)) frozen.push_back(p);
+                        threshold::beacon::Committee bcom;
+                        for (std::uint64_t j = 1; j <= g_cfg_t_eff && j <= g_dkg_T.n; ++j) {
+                            bcom.ids.push_back(j);
+                            bcom.shares.push_back(threshold::dkg::share_for(g_test_poly, j));
+                        }
+                        auto br = msscloop::breaker_tick(g_mssc, g_cfg, bcom,
+                            (std::uint64_t)current_epoch + 1ull, g_prev_beacon, frozen);
+                        std::printf("[mssc] breaker: suspended=%d resolved=%d stagger=%llu ms\n",
+                            (int)br.suspended, (int)br.resolved,
+                            (unsigned long long)br.stagger_ms);
+                    }
                 }
             }
         }
@@ -1274,7 +1395,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         // Their stake-derived weight replaces this when the economic
                         // layer is bound to real bonds (P5-E production).
                         {   std::uint64_t default_w = 30;  // testnet default peer weight
-                            g_mssc.peers.push_back({0, (std::uint16_t)new_fd, default_w});  // ip=0: discovered via 0x09
+                            g_mssc.peers.push_back({0, (std::uint16_t)new_fd, default_w, 0});  // ip=0: discovered via 0x09; DEF-395: identity on first verified vote
                             g_fd_weights[new_fd] = default_w;
                             g_mssc.total_weight += default_w;
                             std::printf("[committee] peer JOINED: fd=%d weight=%llu, fleet total=%llu\n",
@@ -1373,7 +1494,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                     if (dfd >= 0) {
                                         peer_fds.push_back(dfd);
                                         g_fd_weights[dfd] = 30; // DEF-255 symmetry: record by fd
-                                        g_mssc.peers.push_back({ip, prt, 30});
+                                        g_mssc.peers.push_back({ip, prt, 30, 0});   // DEF-395: identity bound on first verified vote
                                         g_mssc.total_weight += 30;
                                         std::printf("[peers] dialed announced peer %u.%u.%u.%u:%u (direct link)\n",
                                             (ip>>24)&255, (ip>>16)&255, (ip>>8)&255, ip&255, prt);
@@ -1411,7 +1532,16 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                     (unsigned long long)mid, eix, v.size()); }
                         // P5-C retrigger (DEF-237) + DEF-P3-05/06: the duplicated body is
                         // retired — the ONE shared decrypt path serves both call sites.
-                        if (g_order_committed) (void)try_decrypt_envelope(eix);
+                        // DEF-391: shares for an UNLOCKED epoch are refused - a share
+                        // set without an attested lock is a timeline fork, not gossip.
+                        {   auto lit = g_order_locks.find(g_pool_epoch);
+                            const bool lock_ok = g_order_committed
+                                || (lit != g_order_locks.end() && lit->second.attested);
+                            if (!lock_ok)
+                                std::printf("[thr] 0x08 share REFUSED - no attested lock for epoch %u\n",
+                                    (unsigned)g_pool_epoch);
+                            else if (g_order_committed) (void)try_decrypt_envelope(eix);
+                        }
                         }
                     } else if (msg.type == 0x0B) {
                         // DEF-P3-08: SYNC_REQ — answer with the full share set (one message)
@@ -1445,10 +1575,19 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 if (!have) { g_thr_shares[eix].push_back({mid, Dj}); ++got; }
                             }
                             std::printf("[sync] 0x0C batch: %u records, %zu new\n", cnt, got);
-                            // a late batch can complete pending envelopes
-                            if (g_order_committed)
-                                for (std::size_t ei = 0; ei < g_mempool.size(); ++ei)
-                                    (void)try_decrypt_envelope(ei);
+                            // DEF-391: same lock law as 0x08 - the batch is ingested
+                            // (state for the attested epoch) but decryption runs only
+                            // under a committed order.
+                            {   auto lit = g_order_locks.find(g_pool_epoch);
+                                const bool lock_ok = g_order_committed
+                                    || (lit != g_order_locks.end() && lit->second.attested);
+                                if (!lock_ok)
+                                    std::printf("[thr] 0x0C batch REFUSED - no attested lock for epoch %u\n",
+                                        (unsigned)g_pool_epoch);
+                                else if (g_order_committed)
+                                    for (std::size_t ei = 0; ei < g_mempool.size(); ++ei)
+                                        (void)try_decrypt_envelope(ei);
+                            }
                         }
                     } else if (msg.type == 0x06) {
                         // P3-1b (DEC-271): the MSSC vote wire path
@@ -1457,16 +1596,42 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             (int)dv.ok, dv.epoch, (unsigned long long)dv.round);
                         bool accepted = false; std::uint64_t member = 0;
                         if (dv.ok) {
+                            // DEF-393 (CA-R372e): the freshness gate - ONE epoch,
+                            // ONE weight root, ONE conflict set, round window +-1.
+                            // Everything else is a replay or a fork statement.
+                            const bool fresh = msscloop::vote_fresh(dv.epoch, dv.round,
+                                dv.weight_root, g_weight_root,
+                                dv.conflict, g_mssc.conflict,
+                                current_epoch, g_mssc.rounds);
+                            if (!fresh) {
+                                std::printf("[vote] REJECT stale/forked (epoch %u round %llu; cur %u/%llu)\n",
+                                    dv.epoch, (unsigned long long)dv.round,
+                                    current_epoch, (unsigned long long)g_mssc.rounds);
+                            }
                             auto pre = msscvote::vote_preimage(dv.epoch, dv.weight_root,
                                                                dv.conflict, dv.round, dv.preference);
-                            std::printf("[voted] members=%zu\n", g_members.size());
-                            for (const auto& [jid, Y] : g_members) {
-                                if (threshold::g2::PisInf(Y)) continue;
-                                const bool v = msscvote::verify_vote(dv.sigma, pre, Y);
-                                std::printf("[voted] member %llu verify=%d\n",
-                                    (unsigned long long)jid, (int)v);
-                                if (v) {
-                                    accepted = true; member = jid;
+                            std::printf("[voted] members=%zu fresh=%d\n", g_members.size(), (int)fresh);
+                            if (fresh && dv.has_member) {
+                                // DEF-394 (CA-R372f): ONE pairing against the CLAIMED
+                                // key - the claim is verified, never scanned for.
+                                const threshold::g2::G2Pt* Yc = nullptr;
+                                for (const auto& [jid, Yj] : g_members)
+                                    if (jid == dv.member) { Yc = &Yj; break; }
+                                if (Yc && !threshold::g2::PisInf(*Yc)
+                                        && msscvote::verify_vote_member(dv.sigma, pre, *Yc)) {
+                                    accepted = true; member = dv.member;
+                                    std::printf("[voted] member %llu verify=1 (claimed, 1 pairing)\n",
+                                        (unsigned long long)member);
+                                }
+                            } else if (fresh) {
+                                // legacy 204B payload: the O(n) scan (rollout compat)
+                                for (const auto& [jid, Y] : g_members) {
+                                    if (threshold::g2::PisInf(Y)) continue;
+                                    const bool v = msscvote::verify_vote(dv.sigma, pre, Y);
+                                    std::printf("[voted] member %llu verify=%d\n",
+                                        (unsigned long long)jid, (int)v);
+                                    if (v) {
+                                        accepted = true; member = jid;
                                     // P3-3b: accumulate into the batch (for future aggregate verify)
                                     // P5-B: batch by (round, preference) — same-message aggregation only
                                     { std::array<std::uint8_t, 40> bkey{};
@@ -1490,12 +1655,19 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                       } }
                                     break;
                                 }
+                                }
                             }
                         } else {
                             std::printf("[voted] DECODE FAILED\n");
                         }
                         if (accepted) {
                             g_peer_prefs[member] = dv.preference;
+                            // DEF-395: bind the transport to the identity - the
+                            // consensus voice is the MEMBER, verified by pairing.
+                            g_fd_member[peer_fds[i]] = member;
+                            for (auto& pr : g_mssc.peers)
+                                if (pr.member == 0 && pr.port == (std::uint16_t)peer_fds[i])
+                                    pr.member = member;
                             // P5-E: equivocation detection (double-sign -> 100% slash)
                             {
                                 const std::uint8_t* pb2 = (const std::uint8_t*)&dv.preference;
@@ -1513,9 +1685,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                     // FloorAbort trap: zeroing peer weight WITHOUT contracting
                                     // total_weight drops sampled below phi_floor -> node suspension.
                                     // Correct semantics: the adversary leaves numerator AND denominator.
-                                    const std::uint16_t mport = (member == 1) ? 31233 : 31234;
+                                    // DEF-395 (CA-R372g): consensus identity is a MEMBER ID,
+                                    // never a port number - the port hack excised the wrong
+                                    // voice the moment the fleet exceeded two members.
                                     for (auto& pr : g_mssc.peers)
-                                        if (pr.port == mport && pr.weight > 0) {
+                                        if (pr.member == member && pr.weight > 0) {
                                             g_mssc.total_weight -= pr.weight;
                                             std::printf("[stake] member %llu consensus voice REMOVED: weight %llu -> 0, network total %llu -> %llu\n",
                                                 (unsigned long long)member, (unsigned long long)pr.weight,
@@ -1535,6 +1709,22 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             std::printf("[vote] VERIFIED from member %llu (epoch %u, round %llu)\n", (unsigned long long)member, dv.epoch, (unsigned long long)dv.round);
                         } else
                             std::printf("[vote] REJECT (bad signature or unknown member)\n");
+                    } else if (msg.type == 0x0D) {
+                        // DEF-391: the order-lock attestation (P2 production).
+                        // The lock is a SIGNED statement; shares exist only under it.
+                        auto dOS = msscvote::decode_order_sig(msg);
+                        if (!dOS.ok) {
+                            std::printf("[order] 0x0D DECODE FAILED (size %zu)\n", msg.payload.size());
+                        } else {
+                            const threshold::g2::G2Pt* Y = nullptr;
+                            for (const auto& [jid, Yj] : g_members)
+                                if (jid == dOS.member) { Y = &Yj; break; }
+                            if (Y && !threshold::g2::PisInf(*Y))
+                                order_lock_ingest(dOS.epoch, dOS.oroot, dOS.sigma, dOS.member, *Y);
+                            else
+                                std::printf("[order] 0x0D unknown member %llu\n",
+                                    (unsigned long long)dOS.member);
+                        }
                     } else if (msg.type == 0x07) {
                         // P4-3 (DEC-279): the encrypted mempool envelope
                         auto de = m2env::decode_envelope(msg);
@@ -1567,22 +1757,32 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             g_mempool.push_back(std::move(entry));
                             std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
                                 g_mempool.size(), de.ct.size());
-                            // P5-C: broadcast our DEC_SHARE (0x08) — {eix u32, member u32, D_j 192B}
-                            {   std::size_t eix = g_mempool.size() - 1;
-                                std::vector<std::uint8_t> pl(200, 0);
-                                pl[0] = std::uint8_t(eix); pl[1] = std::uint8_t(eix>>8);
-                                pl[2] = std::uint8_t(eix>>16); pl[3] = std::uint8_t(eix>>24);
-                                pl[4] = std::uint8_t(g_self_member);
-                                std::memcpy(pl.data()+8, g_dec_shares.back().data(), 192);
-                                for (int fd : peer_fds) {
-                                    p2p::Message m08{}; m08.type = 0x08; m08.payload = pl;
-                                    p2p::send_message(fd, m08);
-                                }
-                                std::printf("[thr] own D_j broadcast for envelope %zu (member %u)\n",
-                                    eix, g_self_member); }
+                            // DEF-391 (CA-R372c): the own share is COMPUTED here
+                            // (stored in g_dec_shares) but PUBLISHED only after the
+                            // attested lock - the whitepaper ceremony is Lock, THEN
+                            // Share. Pre-lock publication is a timeline fork: shares
+                            // that exist before the order is signed let t colluders
+                            // decrypt before the ordering is attested.
+                            if (g_mempool.size() == 1) g_pool_epoch = current_epoch;
                             // the ordering ceremony: when we have 3 envelopes
                             if (g_mempool.size() >= (std::size_t)K_ENTRIES && !g_order_committed) {
-                                const auto beacon = consensus::sha256d((const std::uint8_t*)"beacon_p4", 9);
+                                // DEF-390 (CA-R372b): the REAL threshold beacon
+                                // (DEC-200: threshold::beacon is the sole producer).
+                                // The old sort-key entropy was sha256d("beacon_p4") -
+                                // a CONSTANT: position grinding becomes precomputation.
+                                // Testnet honest scope: the beacon t-subset rides the
+                                // dealt poly; production splits into per-member
+                                // partials + permissionless aggregation.
+                                if (g_mempool.size() >= 1 && g_pool_epoch == 0)
+                                    g_pool_epoch = current_epoch;
+                                threshold::beacon::Committee bcom;
+                                for (std::uint64_t j = 1; j <= g_cfg_t_eff && j <= g_dkg_T.n; ++j) {
+                                    bcom.ids.push_back(j);
+                                    bcom.shares.push_back(threshold::dkg::share_for(g_test_poly, j));
+                                }
+                                const auto beacon = threshold::beacon::epoch_beacon(
+                                    bcom, g_pool_epoch, g_prev_beacon);
+                                g_prev_beacon = beacon;   // the beacon chain advances
                                 std::vector<std::array<std::uint8_t,32>> sks(g_mempool.size());
                                 {
                                     std::uint8_t beacon_arr[32]; beacon.to_bytes(beacon_arr);
@@ -1606,9 +1806,28 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 std::printf("[mempool] ORDER COMMITTED: root=");
                                 for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
                                 std::printf("\n");
+                                // DEF-391: THE LOCK ATTESTATION - the committee signs
+                                // the order-lock preimage BEFORE any decryption share
+                                // exists. Shares publish only when the threshold of
+                                // partials aggregates to a verified lock.
+                                {   auto lpre = msscvote::order_sig_preimage(g_pool_epoch, g_order_root);
+                                    auto lsig = msscvote::sign_order(g_own_share, lpre);
+                                    auto lm = msscvote::encode_order_sig(g_pool_epoch, g_order_root, lsig, g_self_member);
+                                    for (int fd : peer_fds) p2p::send_message(fd, lm);
+                                    std::printf("[order] own lock partial broadcast (epoch %u, 0x0D)\n",
+                                        (unsigned)g_pool_epoch);
+                                    const threshold::g2::G2Pt* Yself = nullptr;
+                                    for (const auto& [jid, Yj] : g_members)
+                                        if (jid == g_self_member) { Yself = &Yj; break; }
+                                    if (Yself)
+                                        order_lock_ingest(g_pool_epoch, g_order_root, lsig,
+                                                          g_self_member, *Yself);
+                                }
                                 // P5-C + DEF-P3-05/06: the ONE shared decrypt path —
                                 // stored-hdr DEM key, stored-serialization own share,
                                 // batch-Lagrange aggregation (P3 production core).
+                                // Runs on the LOCAL share + any shares already present;
+                                // the attested-lock publication tops it up.
                                 for (std::size_t ei = 0; ei < g_mempool.size(); ++ei)
                                     (void)try_decrypt_envelope(ei);
                             }
@@ -1702,6 +1921,27 @@ else
                         if (g_mssc.total_weight < g_mssc.self_weight)
                             g_mssc.total_weight = g_mssc.self_weight;
                     }
+                    // DEF-395: the departed peer's RECORD leaves the sampling list
+                    // and its verified vote state dies with the connection - a
+                    // removed connection must not keep a voice via stale records.
+                    // DEF-397: teardown forgets the rate-limit bucket.
+                    {   auto pm = g_fd_member.find(peer_fds[i]);
+                        const std::uint64_t lost_member =
+                            (pm != g_fd_member.end()) ? pm->second : 0;
+                        for (std::size_t pi = 0; pi < g_mssc.peers.size(); ++pi) {
+                            const bool by_id = lost_member != 0
+                                && g_mssc.peers[pi].member == lost_member;
+                            const bool by_fd = g_mssc.peers[pi].member == 0
+                                && g_mssc.peers[pi].port == (std::uint16_t)peer_fds[i];
+                            if (by_id || by_fd) {
+                                g_mssc.peers.erase(g_mssc.peers.begin() + pi);
+                                break;
+                            }
+                        }
+                        if (lost_member) g_peer_prefs.erase(lost_member);
+                        g_fd_member.erase(peer_fds[i]);
+                    }
+                    p2p::peer_forget(peer_fds[i]);
                     close(peer_fds[i]);
                     peer_fds.erase(peer_fds.begin() + i);
                     --i;

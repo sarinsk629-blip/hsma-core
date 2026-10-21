@@ -65,3 +65,23 @@ live counts: `grep -c '^## DEC-' docs/DECISIONS.md`
 
 **Counts at time of writing:** conformance programs = 63 ·
 live counts: `grep -c '^## ' docs/DECISIONS.md`
+
+## P2 production package (Pillar 2: Consensus) — evidence
+
+| # | Evidence | Command | Result |
+|---|----------|---------|--------|
+| P2-P1 | Automaton at production params (K=20/40, beta=150, n=224) finalizes | `./build/test_step65` | finalized at exactly round 150 — PASS |
+| P2-P2 | DEF-389: order commitment size-exact (pipeline n=1/4/7 vs reference; n=2048 equivariance + tail-binding) | `./build/test_step65` | roots match reference; changed tail cth moves the root — PASS |
+| P2-P3 | DEF-392: the u64-overflow catch (agreeing=2^62, sampled=2^63 must be Switched) | `./build/test_step65` | Switched, confidence 0 — PASS |
+| P2-P4 | DEF-393: freshness matrix (epoch/root/conflict/round-window, 6 negatives) | `./build/test_step65` | all rejections + in-window acceptance — PASS |
+| P2-P5 | DEF-394: vote wire v2 (212B), claimed member verified with ONE pairing; wrong claim rejected; legacy 204B compatible | `./build/test_step65` | 1-pairing accept, wrong-claim reject — PASS |
+| P2-P6 | DEF-391: ORDER_SIG 0x0D (140B) — t-th partial attests, foreign root refused, wire tamper detected | `./build/test_step65` | threshold attestation + 3 negatives — PASS |
+| P2-P7 | DEF-392b: REAL beacon (deterministic, epoch-bound, not a literal) + REAL breaker (2-candidate resolve, 1-candidate refused) | `./build/test_step65` | 7 checks — PASS |
+| P2-P8 | PROPERTY 1 (no front-running): order = pure function of public (beacon, cth); beacon-bound; no plaintext input | `./build/test_step66` | 4/4 PASS |
+| P2-P9 | PROPERTY 2 (order-before-knowledge): 6 random (t-1)-subsets TAG-FAIL; t shares decrypt exactly; lock attests at exactly t; forged DLEQ rejected | `./build/test_step66` | 7/7 PASS |
+| P2-P10 | PROPERTY 3 (irreversibility): post-decrypt root bit-identical; 8 permutations ALL break root+signature; late envelope excluded; disjoint t-subsets -> same D_agg | `./build/test_step66` | 6/6 PASS |
+| P2-P11 | Full suite after the 11-defect fix package | `ctest` | 43/43 (41 legacy + step65 + step66) |
+| P2-P12 | Gen-chain regression after DEF-399 (canonical reduction in the order-root lift) | `python3 scripts/gen_run_new.py; git diff generated/` | steps 7..35 regenerate byte-identical (0 insertions/deletions) |
+| P2-P13 | Verification gate (clean build + presence asserts + DEC-090 lint + ctest) | `./scripts/gate.sh` | GATE GREEN |
+
+**Defects owned this package:** DEF-389 (4-slot order freeze) · DEF-390 (constant beacon) · DEF-391 (shares pre-lock, unsigned lock) · DEF-392 (u64 quorum math) · DEF-393 (no vote freshness) · DEF-394 (O(n) pairing scan) · DEF-395 (port identity) · DEF-396 (unbounded sampler) · DEF-397 (limiter leak) · DEF-398 (one-shot ceremony) · DEF-399 (non-canonical root lift) — laws CA-R372a..k.

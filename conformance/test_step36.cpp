@@ -13,6 +13,8 @@ int main(){
     int fails = 0; auto C = [&](bool ok, const char* w){ if(!ok){ std::printf("FAIL: %s\n", w); ++fails; } };
 
     // M4 + M5: PARTITION then HEAL — a REAL victim, not a zero-state.
+    // (P2 production API: peers carry member ids; preferences are
+    //  (member_id, digest) pairs — DEF-395.)
     {   msscloop::Config cfg{};                       // alpha 75%, beta 5 (testnet scope)
         msscloop::NodeState v{};
         v.conflict    = consensus::sha256d((const std::uint8_t*)"conflict0", 9);
@@ -20,8 +22,8 @@ int main(){
         v.self_weight = 40;                           // the minority node (like our phone)
         v.total_weight = 100;
         // peers: the honest majority (A, 60) + adversary (B, 40) — the real topology
-        v.peers.push_back({0x7F000001, 31233, 60});   // honest majority weight 60
-        v.peers.push_back({0x7F000002, 31235, 40});   // adversary weight 40
+        v.peers.push_back({0x7F000001, 31233, 60, 1});   // member 1: honest majority weight 60
+        v.peers.push_back({0x7F000002, 31235, 40, 3});   // member 3: adversary weight 40
 
         // M5: TOTAL SILENCE — the automaton gets no input; state must not move.
         const auto p0 = v.preference; const auto c0 = v.confidence; const auto r0 = v.rounds;
@@ -33,14 +35,14 @@ int main(){
         // All sampled peers now report B: 40 (adv) of the victim's 40+40 visible... but
         // self_weight 40 still anchors A. The question: can B-only input FINALIZE B?
         for (unsigned r = 0; r < 60; ++r) {
-            std::vector<consensus::Digest> pp(2, dB);   // both visible peers report B
+            std::vector<std::pair<std::uint64_t, consensus::Digest>> pp = {{3, dB}};   // member 3 reports B
             (void)msscloop::tick(v, cfg, pp);
         }
         // Containment assertion (the strongest true form): after the partition the
         // victim may have tentatively moved — but when honest data returns, it MUST
         // reconverge to A. The heal is the proof; the drift is survivable.
         for (unsigned r = 0; r < 60; ++r) {
-            std::vector<consensus::Digest> pp(1, dA);   // honest majority visible again
+            std::vector<std::pair<std::uint64_t, consensus::Digest>> pp = {{1, dA}};   // member 1 visible again
             (void)msscloop::tick(v, cfg, pp);
         }
         C(v.preference == dA, "M4: reconverged to honest A after partition heals");
@@ -52,11 +54,13 @@ int main(){
         msscloop::NodeState v{};
         v.conflict = consensus::sha256d((const std::uint8_t*)"conflict1", 9);
         v.preference = dA; v.self_weight = 40; v.total_weight = 100;
-        v.peers.push_back({0x7F000001, 31233, 60});
-        for (unsigned r = 0; r < 60; ++r) { std::vector<consensus::Digest> pp(1, dB);
+        v.peers.push_back({0x7F000001, 31233, 60, 1});
+        for (unsigned r = 0; r < 60; ++r) {
+            std::vector<std::pair<std::uint64_t, consensus::Digest>> pp = {{1, dB}};
             (void)msscloop::tick(v, cfg, pp); }
         // record whatever state the partition drove; then heal:
-        for (unsigned r = 0; r < 60; ++r) { std::vector<consensus::Digest> pp(1, dA);
+        for (unsigned r = 0; r < 60; ++r) {
+            std::vector<std::pair<std::uint64_t, consensus::Digest>> pp = {{1, dA}};
             (void)msscloop::tick(v, cfg, pp); }
         C(v.preference == dA, "M4b: honest majority restores A");
     }

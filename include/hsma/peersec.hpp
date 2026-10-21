@@ -28,9 +28,17 @@ inline std::uint64_t now_ms() noexcept {
         std::chrono::steady_clock::now().time_since_epoch()).count();
 }
 
+// DEF-397: the fd window map lives at namespace scope so teardown can
+// actually forget a closed fd (a function-local static would be unreachable
+// from the disconnect path — the leak would stay).
+inline std::map<int, PeerLimit>& peer_window_map() noexcept {
+    static std::map<int, PeerLimit> lm;                 // fd -> window (main loop only)
+    return lm;
+}
+
 // true = allowed. one sliding second per fd. call on EVERY message BEFORE processing.
 inline bool peer_allow(int fd) noexcept {
-    static std::map<int, PeerLimit> lm;                 // fd -> window (main loop only)
+    auto& lm = peer_window_map();
     const std::uint64_t now = now_ms();
     auto it = lm.find(fd);
     if (it == lm.end() || now - it->second.window_start_ms >= 1000) {
@@ -39,6 +47,12 @@ inline bool peer_allow(int fd) noexcept {
     }
     if (++it->second.count > PEER_MSGS_PER_SEC) return false;
     return true;
+}
+
+// DEF-397: teardown must forget. A per-connection bucket that outlives the
+// connection is a leak the adversary fills with connect/disconnect churn.
+inline void peer_forget(int fd) noexcept {
+    peer_window_map().erase(fd);
 }
 
 // ip (host-order u32) -> banned-until ms. exceeded peers rejoin after the window.

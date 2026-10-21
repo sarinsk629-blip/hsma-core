@@ -104,8 +104,27 @@ public:
         sn_.ids[sn_.self_row].to_bytes(seed + o); o += 32;
         static_assert(159 == 15+8+32+32+32+8+32);
 
+        // DEF-396: a degenerate snapshot (zero total weight) must reach the
+        // floor arithmetic, not the modulo. Division by zero is not a state
+        // machine transition.
+        if (sn_.total == 0) {
+            cv.confidence = 0; ++cv.stall_counter;
+            lg.kind = std::uint8_t(Kind::FloorAbort);
+            lg.confidence = cv.confidence; lg.stall = cv.stall_counter;
+            if (cv.stall_counter >= params::STALL_LIMIT) { cv.state = State::Suspended; lg.kind |= F_SUSP; }
+            return lg;
+        }
+
+        // DEF-396: bounded rejection sampling. A committee whose non-self mass
+        // cannot supply k distinct members (or whose weights concentrate on
+        // self) used to spin here FOREVER — a liveness trap keyed to the weight
+        // distribution. 64x the sample size in attempts, then the shortfall
+        // flows into the phi-floor check like any other under-sample.
+        constexpr std::uint64_t DRAW_ATTEMPT_CAP = 4096;
         std::size_t sel[64]; std::uint64_t ctr = 0; std::size_t n = 0;
-        while (n < k) {
+        std::uint64_t attempts = 0;
+        while (n < k && attempts < DRAW_ATTEMPT_CAP) {
+            ++attempts;
             const std::uint64_t pick =
                 detail::drbg_word(seed, o, ctr++) % sn_.total;
             const std::size_t idx = std::size_t(
@@ -136,6 +155,7 @@ public:
             if (!merged) { tp[nt] = v->preference; tw[nt] = sn_.w[v->voter]; ++nt; }
         }
         lg.S = S;
+        lg.k_used = k;   // the REQUESTED sample size; S reflects who actually voted
 
         const unsigned __int128 lhs =
             (unsigned __int128)S * 10000ull * sn_.w.size();

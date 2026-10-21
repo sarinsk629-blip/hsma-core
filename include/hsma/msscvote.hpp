@@ -69,6 +69,16 @@ inline bool verify_vote(const Pt& sigma, const std::vector<std::uint8_t>& pre,
 }
 
 // ---- wire: type 0x06, payload = preimage(108) || sig(96) = 204 bytes ------
+// DEF-394 (v2): payload = preimage(108) || sig(96) || member(u64 BE) = 212.
+// The vote preimage stays EXACTLY DEC-016 (no member field — a preimage
+// change is a fork); the member id rides OUTSIDE the preimage as a CLAIM
+// that the pairing CHECKS: verify_vote_member does ONE pairing against
+// Y[claimed] — a wrong claim fails the pairing and is rejected. The old
+// signer-finding scan tried every member key (O(n) pairings per vote;
+// ~45 s worst case at n=224). Legacy 204B payloads still decode (scan path)
+// so the fleet can roll v2 out without a hard fork.
+inline constexpr unsigned VOTE_PAYLOAD_V2 = PREIMAGE_SIZE + SIG_SIZE + 8;  // 212
+
 inline p2p::Message encode_vote(std::uint32_t epoch, const Digest& wr,
                                 const Digest& conf, std::uint64_t round,
                                 const Digest& pref, const Pt& sigma) noexcept {
@@ -83,15 +93,31 @@ inline p2p::Message encode_vote(std::uint32_t epoch, const Digest& wr,
     return m;
 }
 
+// v2: the sender CLAIMS a member id; the verifier checks the claim with one
+// pairing (CA-R372f: the wire carries a claimed identity that the pairing
+// CHECKS, never a scan that guesses).
+inline p2p::Message encode_vote_v2(std::uint32_t epoch, const Digest& wr,
+                                   const Digest& conf, std::uint64_t round,
+                                   const Digest& pref, const Pt& sigma,
+                                   std::uint64_t member) noexcept {
+    p2p::Message m = encode_vote(epoch, wr, conf, round, pref, sigma);
+    if (m.payload.size() != VOTE_PAYLOAD) return m;   // propagate the empty-sig guard
+    for (int i = 7; i >= 0; --i) m.payload.push_back((member >> (8*i)) & 0xFF);
+    return m;
+}
+
 struct DecodedVote {
     std::uint32_t epoch{}; std::uint64_t round{};
     Digest weight_root{}, conflict{}, preference{};
     Pt sigma{};
+    std::uint64_t member{};   // v2: the CLAIMED signer (checked, not trusted)
+    bool has_member{false};   // true => payload was 212B (v2)
     bool ok{false};
 };
 inline DecodedVote decode_vote(const p2p::Message& m) noexcept {
     DecodedVote d{};
-    if (m.type != 0x06 || m.payload.size() != VOTE_PAYLOAD) return d;
+    if (m.type != 0x06) return d;
+    if (m.payload.size() != VOTE_PAYLOAD && m.payload.size() != VOTE_PAYLOAD_V2) return d;
     const std::uint8_t* p = m.payload.data();
     d.epoch = (std::uint32_t(p[0])<<24)|(std::uint32_t(p[1])<<16)|(std::uint32_t(p[2])<<8)|p[3];
     d.weight_root = Digest::from_bytes(p+OFF_WROOT);
@@ -104,9 +130,21 @@ inline DecodedVote decode_vote(const p2p::Message& m) noexcept {
             ax[i] = (ax[i]<<8) | p[PREIMAGE_SIZE + i*8 + b];
             ay[i] = (ay[i]<<8) | p[PREIMAGE_SIZE + 48 + i*8 + b];
         } }
+    if (m.payload.size() == VOTE_PAYLOAD_V2) {
+        d.has_member = true;
+        for (int i = 0; i < 8; ++i)
+            d.member = (d.member << 8) | p[PREIMAGE_SIZE + SIG_SIZE + i];
+    }
     d.sigma = threshold::g1::from_affine(ax, ay);
     d.ok = true;
     return d;
+}
+
+// DEF-394: single-pairing verification against the CLAIMED member's key.
+// O(1) crypto per vote; the claim is verified, never trusted.
+inline bool verify_vote_member(const Pt& sigma, const std::vector<std::uint8_t>& pre,
+                               const threshold::g2::G2Pt& Y_claimed) noexcept {
+    return verify_vote(sigma, pre, Y_claimed);
 }
 
 
@@ -149,6 +187,85 @@ inline bool agg_verify(const AggregateVerify& av,
     if (!threshold::g1::to_affine(av.sigma_agg, sx, sy)) return false;
     if (!threshold::g1::to_affine(H, hx, hy)) return false;
     return threshold::bls_verify_aff(sx, sy, hx, hy, av.Y_agg);
+}
+
+// ---- ORDER_SIG (DEF-391): the LOCK ATTESTATION — wire type 0x0D ---------
+// The ceremony's step-2 ("Lock") is not a private thought: it is a SIGNED
+// statement. Each committee member threshold-signs the canonical order-lock
+// preimage the moment the order root is committed and BEFORE any decryption
+// share exists; anyone can aggregate the partials and hold
+//     e(sigma_lock_agg, G2gen) == e(H(order_preimage), Y_agg)
+// as the attestation that THIS committee committed THIS order. A share set
+// for an epoch whose lock is unattested is refused: shares exist only under
+// a signed lock (CA-R372c).
+//
+// Canonical order-lock preimage (NO discretionary bytes, mirrors DEC-016):
+//   TAG(16) || epoch(u32 BE) || order_root(32)  = 52 bytes
+inline constexpr char TAG_ORDERLOCK[] = "HSM_ORDERLOCK_V1";   // 16 chars
+inline constexpr unsigned ORDER_PREIMAGE_SIZE =
+    sizeof(TAG_ORDERLOCK) - 1 + 4 + 32;                          // 52
+// wire: epoch(4) || oroot(32) || sigma(96) || member-claim(8) = 140.
+// The member id rides OUTSIDE the preimage as a CLAIM the pairing checks
+// (same law as the v2 vote wire, CA-R372f).
+inline constexpr unsigned ORDER_SIG_WIRE = 4 + 32 + SIG_SIZE + 8;    // 140
+
+inline std::vector<std::uint8_t> order_sig_preimage(
+    std::uint32_t epoch, const std::uint8_t oroot[32]) noexcept {
+    std::vector<std::uint8_t> b;
+    b.reserve(ORDER_PREIMAGE_SIZE);
+    b.insert(b.end(), TAG_ORDERLOCK, TAG_ORDERLOCK + sizeof(TAG_ORDERLOCK) - 1);
+    for (int i = 3; i >= 0; --i) b.push_back((epoch >> (8*i)) & 0xFF);
+    b.insert(b.end(), oroot, oroot + 32);
+    return b;
+}
+
+inline Pt sign_order(const threshold::Fr& S_j,
+                     const std::vector<std::uint8_t>& pre) noexcept {
+    return threshold::sig::partial(S_j, threshold::hash_to_g1(pre.data(), pre.size()));
+}
+
+// wire 0x0D: epoch(u32 BE) || order_root(32) || sigma(96) || member(u64 BE)
+inline p2p::Message encode_order_sig(std::uint32_t epoch,
+                                     const std::uint8_t oroot[32],
+                                     const Pt& sigma,
+                                     std::uint64_t member) noexcept {
+    p2p::Message m; m.type = 0x0D;
+    for (int i = 3; i >= 0; --i) m.payload.push_back((epoch >> (8*i)) & 0xFF);
+    m.payload.insert(m.payload.end(), oroot, oroot + 32);
+    std::uint64_t ax[6], ay[6];
+    if (!threshold::g1::to_affine(sigma, ax, ay)) return m;   // inf -> caller checks size
+    for (int i = 0; i < 6; ++i) for (int b = 7; b >= 0; --b)
+        m.payload.push_back((ax[i] >> (8*b)) & 0xFF);
+    for (int i = 0; i < 6; ++i) for (int b = 7; b >= 0; --b)
+        m.payload.push_back((ay[i] >> (8*b)) & 0xFF);
+    for (int i = 7; i >= 0; --i) m.payload.push_back((member >> (8*i)) & 0xFF);
+    return m;
+}
+
+struct DecodedOrderSig {
+    std::uint32_t epoch{};
+    std::uint8_t oroot[32]{};
+    std::uint64_t member{};   // the CLAIMED signer (checked, not trusted)
+    Pt sigma{};
+    bool ok{false};
+};
+inline DecodedOrderSig decode_order_sig(const p2p::Message& m) noexcept {
+    DecodedOrderSig d{};
+    if (m.type != 0x0D || m.payload.size() != ORDER_SIG_WIRE) return d;
+    const std::uint8_t* p = m.payload.data();
+    d.epoch = (std::uint32_t(p[0])<<24)|(std::uint32_t(p[1])<<16)|(std::uint32_t(p[2])<<8)|p[3];
+    std::memcpy(d.oroot, p + 4, 32);
+    std::uint64_t ax[6], ay[6];
+    for (int i = 0; i < 6; ++i) { ax[i]=0; ay[i]=0;
+        for (int b = 0; b < 8; ++b) {
+            ax[i] = (ax[i]<<8) | p[36 + i*8 + b];
+            ay[i] = (ay[i]<<8) | p[36 + 48 + i*8 + b];
+        } }
+    for (int i = 0; i < 8; ++i)
+        d.member = (d.member << 8) | p[36 + SIG_SIZE + i];
+    d.sigma = threshold::g1::from_affine(ax, ay);
+    d.ok = true;
+    return d;
 }
 
 } // namespace hsma::msscvote
