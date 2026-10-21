@@ -142,14 +142,17 @@ inline Pt Padd(const Pt& P, const Pt& Q){
   fe6 Z3=mmul(QC,mmul(QC,mmul(QC,P.z,Q.z),H),mfrom(QC,two));
   return Pt{X3,Y3,Z3};
 }
+// Same clamp law as g2.hpp: leading-zero rounds are Pdbl(inf)=inf — skipping
+// them is result-identical; canonical fr scalars (< 2^253) save ~131 rounds.
 inline Pt Pmul(const Pt& P, const fe6& k){
+  const int bl = mont::bitlen(k);
+  if (bl == 0) return Pt{};
   Pt r{};
-  for(int i=5;i>=0;--i){
-    for(int b=63;b>=0;--b){
+  for(int i=bl/64,e=bl-1;i>=0;--i)
+    for(int b=(i==bl/64?(e&63):63);b>=0;--b){
       r=Pdbl(r);
       if((k[i]>>b)&1ULL) r=Padd(r,P);
     }
-  }
   return r;
 }
 

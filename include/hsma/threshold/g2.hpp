@@ -103,10 +103,14 @@ inline G2Pt Padd(const G2Pt& P, const G2Pt& Q) {
     return G2Pt{X3, Y3, Z3};
 }
 
+// Pmul clamp law (P1): mont::bitlen skips the leading-zero rounds (Pdbl(inf)
+// = inf, result-identical); canonical fr scalars (< 2^253) save ~131 rounds.
 inline G2Pt Pmul(const G2Pt& P, const fe6& k) {
+    const int bl = mont::bitlen(k);
+    if (bl == 0) return G2Pt{};               // [0]P = inf
     G2Pt r{};
-    for (int i = 5; i >= 0; --i)
-        for (int b = 63; b >= 0; --b) {
+    for (int i = bl / 64, e = bl - 1; i >= 0; --i)
+        for (int b = (i == bl / 64 ? (e & 63) : 63); b >= 0; --b) {
             r = Pdbl(r);
             if ((k[i] >> b) & 1ULL) r = Padd(r, P);
         }

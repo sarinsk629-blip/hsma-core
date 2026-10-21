@@ -131,10 +131,13 @@ Ordering committed BEFORE decryption
 ε_MEV = 0 (structural, not economic)
 ```
 
-- 10 encrypted envelopes → ordered → decrypted → folded
-- The DEM tag catches tampered ciphertexts
-- Non-members cannot decrypt (proven)
-- 1 member alone cannot decrypt (proven)
+- 2048 encrypted envelopes/epoch → O(1) dedup → ordered (ALL keys) → decrypted → folded
+- The DEM tag catches tampered ciphertexts; blame_scan names the member
+- Non-members cannot decrypt (proven); 1 member alone cannot decrypt (proven)
+- DLEQ-authenticated shares inline (~1.25 ms); the audit pairing law e(G1,D_agg)==e(Y1_agg,R) async
+- Second-implementation proof: the t=112 transcript is bit-identical across the C++ and Python planes
+- Multi-region: three disjoint t-subsets → same D_agg → same plaintext (geography-independence)
+- Late-joiner sync: the epoch's shares ride ONE message (0x0B/0x0C), not O(n)
 
 </td>
 <td width="50%" valign="top">
@@ -458,7 +461,8 @@ hsma-core/
 | Phase 6.17 v2 | The claim lifecycle closed: preimage route (s1), rotating epoch-verifier (s2), faucet write-back (s1.1), **live rotation receipt + Poseidon R1CS semantic bridge (s3)** | ✅ |
 | Phase 6.17 v2 s4 | **The fleet layer**: pool aggregate-verify (tier-1 ALL + measured-budget tier-2), DKG rotation wired (per-epoch committee from the chain tip, `/dkg`), the 6.16 MEASURED rung (256³ = 629 ms), **6.18 rung-1: 1,024³ block-sharded (256 proofs, sampled verify)**, **6.19 rung-1: attention as 8 provable GEMM legs**, **6.20: the REAL model registry** (`/models`, admission binding) | ✅ |
 | Phase 6.17 v2 s5 | **The AI PoUW pillar's final package**: 6.14 CLOSES (the certified softmax producer, SoftmaxBatch = one trace / two LogUp sides, oracle drift 0.01335), **the 6.19 fence SHUT** (P_h derived from the proven scores — the doctored-P attack dies in the verifier's re-derivation), **6.15 the honest rung** (LayerNorm table+fixup: RCP mean/variance + interpolated rsqrt, drift 0.00803, exact-LayerNorm = registered circuit work), **6.18 rung-2** (the fold-of-folds through the real mfold — DEF-379 found+fixed by its first k>1 caller), the full audit: DEF-377/378/379/380 owned, 61 conformance programs + GATE617 GREEN | ✅ |
-| **Next** | The 6.18 headline (block-sharded 10,000³ on the GPU fleet — scale, not design), node wiring for attention/model-admission workloads, the P1-13 epoch-scale fold instantiation | 🔜 |
+| **P3 production** | **The Zero-MEV pillar reaches mainnet-grade**: the threshold law runs at the CAPSTONE (DKG n=224/t=112, all-224 Feldman, the golden transcript bit-identical across the C++ and Python implementations — 262 KB, in the gen chain), **batch Lagrange 150x** (176→1.17 ms, bit-identical), **DLEQ share auth inline** (1.25 ms/share; pairing = the async audit law e(G1,D_agg)==e(Y1_agg,R), blame_scan owns forensics), the mempool at VOLUME (2048 envelopes: O(1) dedup 0.5 µs, ceremony 1.9 ms = reference root, late-joiner sync ONE message), multi-region decrypt (3 disjoint t-subsets → same D_agg), the node on ONE shared decrypt path — DEF-381..388 owned (zero-point cth, fixed r=42, O(n) dedup, 3-of-2048 sort fill, guessed hdr, uninit own share, O(t²) inversions, no aggregate verify) | ✅ |
+| **Next** | The 6.18 headline (block-sharded 10,000³ on the GPU fleet — scale, not design), node wiring for attention/model-admission workloads, the P1-13 epoch-scale fold instantiation, the P3 224-node fleet soak | 🔜 |
 
 ---
 

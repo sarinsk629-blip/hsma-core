@@ -43,3 +43,25 @@ ssh <anchor> "sudo journalctl -u hsma-node --no-pager | grep -E 'pouw-verify|cla
 **Counts at time of writing:** decisions = 68 · owned defects = 80 ·
 laws = 280 · conformance programs = 61 —
 live counts: `grep -c '^## DEC-' docs/DECISIONS.md`
+
+## P3-PROD — the Zero-MEV pillar's production package (measured at the capstone)
+
+| # | Evidence | Command | Result |
+|---|----------|---------|--------|
+| P3-P1 | DKG at the capstone: deal + all-224 Feldman verifies | `./build/test_step63` | deal 391 ms; 224 verifies 907 ms — PASS |
+| P3-P2 | Second-implementation bit-identity (Python oracle vs C++) | `python3 scripts/gen/steps/step36.py` + `./build/test_step63` | C_k(112) + Y_j(224) + D_j(112) + D_agg + X_E + R — ALL bit-identical |
+| P3-P3 | Batch Lagrange vs reference (t=112) | `./scripts/p3_core_check` (or step63 kernel path) | 176.4 ms -> 1.17 ms (150x), bit-identical coefficients |
+| P3-P4 | DLEQ share auth at scale | `./build/test_step63` | 112 proves 461 ms (4.1 ms/sh), 112 verifies 140 ms (1.25 ms/sh); forgery + tamper negatives PASS |
+| P3-P5 | Checked aggregation + the audit law | `./build/test_step63` | agg 140 ms; e(G1,D_agg)==e(Y1_agg,R) PASS; Y1_agg == [f(0)]G1gen |
+| P3-P6 | Envelope roundtrip at scale, carried-hdr law | `./build/test_step63` | cth law + wire decode + stored-hdr decrypt PASS (112-share committee) |
+| P3-P7 | 2048-envelope volume + O(1) dedup | `./build/test_step64` | 2048 pushes 1.1 ms (0.5 us/insert); 300-dup replay 0 dup-stores |
+| P3-P8 | Ordering ceremony at volume vs reference sort | `./build/test_step64` | 1.9 ms, root == independent reference (2148 entries) |
+| P3-P9 | Late-joiner sync: ONE message for the epoch | `./build/test_step64` | 2048 records, 417,796 bytes, roundtrip identity; truncated batch rejected |
+| P3-P10 | Multi-region threshold independence | `./build/test_step64` | members 1-112 / 57-168 / 113-224 all decrypt -> same D_agg digest 5b5e8cd3 |
+| P3-P11 | Full suite | `ctest` | 41/41 (39 legacy + step63 + step64) |
+| P3-P12 | Chain regression tripwire | `git stash; ./scripts/gen_run_new.py; git diff generated/` | steps 7..35 regenerate byte-identical |
+
+**Defects owned this package:** DEF-381 (cth zero-point) · DEF-382 (fixed r=42) · DEF-383 (O(n) dedup) · DEF-384 (3-of-2048 sort fill) · DEF-385 (guessed hdr) · DEF-386 (uninit own share) · DEF-387 (O(t^2) inversions) · DEF-388 (no aggregate verify) — laws CA-R371a..h.
+
+**Counts at time of writing:** conformance programs = 63 ·
+live counts: `grep -c '^## ' docs/DECISIONS.md`

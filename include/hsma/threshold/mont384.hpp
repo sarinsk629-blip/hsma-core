@@ -137,4 +137,17 @@ inline fe6 mpow (const MCtx& C, const fe6& a, const fe6& e){
   }
   return r;
 }
+// True bit-length of a 6-limb little-endian scalar (P1: Pmul clamp law).
+// Leading-zero double-and-add rounds are identity ops on the point at
+// infinity — skipping them is result-identical for ANY scalar encoding;
+// canonical fr scalars (< 2^253) save ~131 rounds per multiplication.
+inline int bitlen(const fe6& k){
+  for(int i=5;i>=0;--i){
+    if(k[i]==0) continue;
+    int b=63;
+    while(b>0 && !((k[i]>>b)&1ULL)) --b;
+    return i*64+b+1;
+  }
+  return 0;
+}
 } // namespace hsma::threshold::mont

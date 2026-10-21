@@ -12,6 +12,7 @@
 #include <hsma/threshold/m2.hpp>
 #include <hsma/threshold/g2.hpp>
 #include <hsma/p2p.hpp>
+#include <random>
 #include <vector>
 #include <cstring>
 
@@ -35,31 +36,51 @@ inline std::vector<std::uint8_t> pt_to_bytes(const G2Pt& P) noexcept {
     return std::vector<std::uint8_t>(buf, buf + 192);
 }
 
-// the sender: encrypt payload under the committee's X_E
-// (X_E is the aggregate public key: X_E = Y2 = [S]G2gen from DEC-030)
-inline Envelope encrypt(
-    const std::vector<std::uint8_t>& payload,
-    const G2Pt& X_E,
-    std::uint64_t epoch) noexcept
-{
-    Envelope env;
+// the ephemeral scalar: OS entropy (production law), uniform in [0, r).
+// 253-bit masked draws (r ~ 0.84 * 2^253 -> 16% rejection) x 64 attempts:
+// failure probability ~10^-50. Fails CLOSED — a predictable ephemeral key is
+// a MEA foothold, so there is no silent deterministic fallback.
+inline bool fr_from_os(threshold::Fr& out) {
+    std::uint8_t raw[32];
+    for (int attempt = 0; attempt < 64; ++attempt) {
+        for (int w = 0; w < 8; ++w) {
+            const std::uint32_t v = std::random_device{}();
+            for (int b = 0; b < 4; ++b) raw[w*4 + b] = std::uint8_t(v >> (8*b));
+        }
+        raw[31] &= 0x1F;                         // uniform in [0, 2^253)
+        std::uint64_t lim[4];
+        for (int i = 0; i < 4; ++i) {
+            lim[i] = 0;
+            for (int b = 0; b < 8; ++b) lim[i] |= std::uint64_t(raw[i*8 + b]) << (8*b);
+        }
+        if (threshold::fr_from_limbs(out, lim)) return true;
+    }
+    return false;
+}
 
-    // (1) the ephemeral keypair: r random, R = [r]G2gen
-    // (testnet: r is deterministic for the probe; production uses RNG)
-    // the shared secret: ss = [r]X_E (the sender computes it from the public key)
-    // for the testnet probe: r = a fixed scalar, ss = [r]X_E
-    threshold::Fr r_fr{}; threshold::fr_from_u64(r_fr, 42);  // testnet: r=42, production: RNG
+// the sender: encrypt payload under the committee's X_E (PRODUCTION: OS-random r)
+inline bool encrypt(Envelope& env,
+                    const std::vector<std::uint8_t>& payload,
+                    const G2Pt& X_E,
+                    std::uint64_t epoch) noexcept
+{
+    // (1) the ephemeral keypair: r random (253-bit, OS entropy), R = [r]G2gen.
+    //     P3-01 FIX: R is computed FIRST — the old path hashed env.R (the zero
+    //     point) into cth before R existed, breaking content addressing.
+    threshold::Fr r_fr{};
+    if (!fr_from_os(r_fr)) return false;       // fail closed
     threshold::mont::fe6 rk{}; threshold::fr_to_fe6(r_fr, rk);
-    // ss = [r]X_E
+    env.R = threshold::g2::Pmul(threshold::g2::gen(), rk);
+    // the shared secret: ss = [r]X_E (the sender computes it from the public key)
     G2Pt ss_pt = threshold::g2::Pmul(X_E, rk);
     auto ss = pt_to_bytes(ss_pt);
     auto xe = pt_to_bytes(X_E);
 
     // (2) the header: 56 bytes (epoch + flags + reserved)
     {
-    std::uint8_t sender[32] = {};   // testnet: zero sender
-    threshold::m2::ser_hdr(env.hdr, epoch, sender, 0, 0);
-}
+        std::uint8_t sender[32] = {};   // testnet: zero sender
+        threshold::m2::ser_hdr(env.hdr, epoch, sender, 0, 0);
+    }
 
     // (3) the DEM key
     std::uint8_t k[32];
@@ -68,15 +89,37 @@ inline Envelope encrypt(
     // (4) the encryption
     env.ct = payload;
     threshold::m2::dem_encrypt(env.ct, env.tag, k, env.hdr, payload.data(), payload.size());
-    // the ciphertext's hash (for ordering)
-    // the R serialization feeds ct_hash
+    // the ciphertext's hash (for ordering + dedup): H(ser(R) || ct) — R NOW EXISTS
     auto r_ser = pt_to_bytes(env.R);
     threshold::m2::ct_hash(env.cth, r_ser.data(), env.ct.data(), env.ct.size());
+    return true;
+}
 
-    // (5) the ephemeral R: for the probe, R = [r]G2gen
-    // (we need a G2gen call - the rk is the scalar)
-    env.R = threshold::g2::Pmul(threshold::g2::gen(), rk);
-
+// DETERMINISTIC MODE (goldens + conformance only): the pinned-ephemeral path.
+// r_u64 is the caller-pinned ephemeral scalar (the historic testnet r=42 law
+// survives here, explicitly, never implicitly).
+inline Envelope encrypt_det(const std::vector<std::uint8_t>& payload,
+                            const G2Pt& X_E,
+                            std::uint64_t epoch,
+                            std::uint64_t r_u64) noexcept
+{
+    Envelope env;
+    threshold::Fr r_fr{}; threshold::fr_from_u64(r_fr, r_u64);
+    threshold::mont::fe6 rk{}; threshold::fr_to_fe6(r_fr, rk);
+    env.R = threshold::g2::Pmul(threshold::g2::gen(), rk);   // P3-01: R before cth
+    G2Pt ss_pt = threshold::g2::Pmul(X_E, rk);
+    auto ss = pt_to_bytes(ss_pt);
+    auto xe = pt_to_bytes(X_E);
+    {
+        std::uint8_t sender[32] = {};
+        threshold::m2::ser_hdr(env.hdr, epoch, sender, 0, 0);
+    }
+    std::uint8_t k[32];
+    threshold::m2::kdf(k, ss.data(), xe.data(), env.hdr);
+    env.ct = payload;
+    threshold::m2::dem_encrypt(env.ct, env.tag, k, env.hdr, payload.data(), payload.size());
+    auto r_ser = pt_to_bytes(env.R);
+    threshold::m2::ct_hash(env.cth, r_ser.data(), env.ct.data(), env.ct.size());
     return env;
 }
 

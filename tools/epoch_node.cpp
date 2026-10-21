@@ -16,6 +16,7 @@
 #include <hsma/pouw/gemm_backend.hpp>
 #include <hsma/sha256.hpp>
 #include <array>
+#include <unordered_map>
 #include <hsma/peersec.hpp>
 #include <hsma/msscvote.hpp>
 #include <hsma/msscloop.hpp>
@@ -205,6 +206,15 @@ struct MempoolEntry {
 };
 static std::vector<MempoolEntry> g_mempool;
 static std::vector<std::vector<std::uint8_t>> g_dec_shares;  // our shares per envelope
+// DEF-P3-03: O(1) envelope dedup — cth-keyed hash index alongside the pool.
+// The old path linear-scanned g_mempool per incoming envelope (O(n^2)/epoch).
+struct CthKey { std::uint8_t b[32]; bool operator==(const CthKey& o) const { return std::memcmp(b, o.b, 32) == 0; } };
+struct CthHash { std::size_t operator()(const CthKey& k) const {
+    std::size_t h = 1469598103934665603ull;
+    for (int i = 0; i < 32; ++i) { h ^= k.b[i]; h *= 1099511628211ull; }
+    return h; } };
+static std::unordered_map<CthKey, std::size_t, CthHash> g_env_index;
+static void handle_decree(const std::vector<std::uint8_t>& payload);  // fwd: try_decrypt below
 // P5-C: collected decryption shares per envelope — (member_id, D_j) pairs.
 // Decryption fires when the count of DISTINCT member x's reaches t=2.
 static std::map<std::size_t, std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>>> g_thr_shares;
@@ -213,6 +223,84 @@ static threshold::g2::G2Pt g_xe;   // the committee's aggregate public key
 static bool g_order_committed = false;
 static unsigned pouw_inner = 64;          // P2-07: file-scope - one truth, all sites
 static std::uint64_t pouw_weight = 0;     // last self-verified PoUW receipt
+
+// DEF-P3-05/06: the ONE shared threshold-decrypt path (the duplicated bodies
+// are retired). Own share is reconstructed from the STORED serialization —
+// never from uninitialized stack arrays. The DEM key binds the WIRE-CARRIED
+// envelope header (CA-R203: carried, not assumed/guessed). Aggregation runs
+// the batch-Lagrange kernel (1 inversion total). Decrypt failure hands the
+// forensics to the async audit (blame_scan / verify_aggregate), not the hot path.
+static bool try_decrypt_envelope(std::size_t eix) {
+    if (eix >= g_mempool.size()) return false;
+    auto& me = g_mempool[eix];
+    if (me.decrypted) return true;
+    std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> shares;
+    if (eix < g_dec_shares.size() && g_dec_shares[eix].size() >= 192) {
+        const auto& ser = g_dec_shares[eix];
+        std::uint64_t xa[6], xb[6], ya[6], yb[6];
+        for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
+            for (int b = 0; b < 8; ++b) {
+                xa[i] |= (std::uint64_t)ser[i*8+b] << (8*b);
+                xb[i] |= (std::uint64_t)ser[48+i*8+b] << (8*b);
+                ya[i] |= (std::uint64_t)ser[96+i*8+b] << (8*b);
+                yb[i] |= (std::uint64_t)ser[144+i*8+b] << (8*b);
+            } }
+        shares.push_back({g_self_member, threshold::g2::from_affine(xa, xb, ya, yb)});
+    }
+    for (const auto& [mid, Dj] : g_thr_shares[eix]) shares.push_back({mid, Dj});
+    for (std::size_t a = 0; a < shares.size(); ++a)
+        for (std::size_t b2 = a+1; b2 < shares.size(); ++b2)
+            if (shares[a].first == shares[b2].first) return false;   // dup x: refuse
+    if (shares.size() < 2) {
+        std::printf("[thr] envelope %zu: %zu/%u shares, waiting\n", eix, shares.size(), 2u);
+        return false;
+    }
+    threshold::g2::G2Pt D_agg{};
+    if (!hsma::threshold::vss::agg_dec_share(D_agg, shares)) {
+        std::printf("[thr] envelope %zu: agg FAILED\n", eix);
+        return false;
+    }
+    auto ss_b = m2env::pt_to_bytes(D_agg);
+    auto xe_b = m2env::pt_to_bytes(g_xe);
+    std::uint8_t k[32];
+    threshold::m2::kdf(k, ss_b.data(), xe_b.data(), me.env.hdr);   // STORED hdr (CA-R203)
+    std::vector<std::uint8_t> pl;
+    if (!threshold::m2::dem_decrypt(pl, k, me.env.hdr,
+            me.env.ct.data(), me.env.ct.size(), me.env.tag)) {
+        std::printf("[decrypt] envelope %zu: TAG FAILED (async audit owns blame)\n", eix);
+        return false;
+    }
+    me.decrypted = true;
+    me.payload = pl;
+    std::printf("[decrypt] envelope %zu: \"%s\" (tag OK) [shared path]\n",
+        eix, std::string(pl.begin(), pl.end()).c_str());
+    if (pl.size() < 32) {
+        std::vector<std::uint8_t> padded = pl;
+        while (padded.size() < 32) padded.push_back(0);
+        handle_decree(padded);
+    } else {
+        handle_decree(pl);
+    }
+    return true;
+}
+
+// DEF-P3-08: late-joiner STATE SYNC — the full share set rides ONE 0x0C
+// message (O(1) messages/epoch), not one 0x08 per share (O(n)).
+static void send_sync_batch(int fd) {
+    const std::size_t cnt = std::min(g_dec_shares.size(), g_mempool.size());
+    std::vector<std::uint8_t> pl;
+    for (int i = 0; i < 4; ++i) pl.push_back(std::uint8_t(cnt >> (8*i)));   // LE (wire law)
+    for (std::size_t sx = 0; sx < cnt; ++sx) {
+        pl.push_back(std::uint8_t(sx)); pl.push_back(std::uint8_t(sx>>8));
+        pl.push_back(std::uint8_t(sx>>16)); pl.push_back(std::uint8_t(sx>>24));
+        for (int i = 0; i < 8; ++i) pl.push_back(std::uint8_t(g_self_member >> (8*i)));
+        const auto& ser = g_dec_shares[sx];
+        pl.insert(pl.end(), ser.begin(), ser.begin() + 192);
+    }
+    p2p::Message mb{}; mb.type = 0x0C; mb.payload = std::move(pl);
+    p2p::send_message(fd, mb);
+    std::printf("[sync] 0x0C batch: %zu share records -> fd %d\n", cnt, fd);
+}
 static const char* pouw_verify = "PENDING";
 static std::uint32_t g_hash[4] = {0,0,0,0}; // P2-10a (DEFECT-190 fix): last completed epoch's P.v limbs - the REAL state fingerprint
 
@@ -661,6 +749,10 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         if (fd >= 0) {
             peer_fds.push_back(fd);
             std::printf("[peer] connected to seed\n");
+            // DEF-P3-08: late-joiner pulls committee state (one 0x0C back)
+            {   p2p::Message req{}; req.type = 0x0B;   // SYNC_REQ
+                p2p::send_message(fd, req);
+                std::printf("[sync] 0x0B SYNC_REQ -> seed\n"); }
         } else {
             // DEFECT-183's lesson: a silent -1 hid this for six sessions
             std::printf("[seed] connect to %u.%u.%u.%u:%u FAILED\n",
@@ -1174,17 +1266,8 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                         // share — otherwise dedup-silence + one-broadcast starves it
                         // (the cross-ceremony waiting x10). g_dec_shares aligns 1:1
                         // with g_mempool (both push together, dedup skips both).
-                        for (std::size_t sx = 0; sx < g_dec_shares.size() && sx < g_mempool.size(); ++sx) {
-                            std::vector<std::uint8_t> pl(200, 0);
-                            pl[0] = std::uint8_t(sx); pl[1] = std::uint8_t(sx>>8);
-                            pl[2] = std::uint8_t(sx>>16); pl[3] = std::uint8_t(sx>>24);
-                            pl[4] = std::uint8_t(g_self_member);
-                            std::memcpy(pl.data()+8, g_dec_shares[sx].data(), 192);
-                            p2p::Message m08{}; m08.type = 0x08; m08.payload = pl;
-                            p2p::send_message(new_fd, m08);
-                        }
-                        if (!g_dec_shares.empty())
-                            std::printf("[thr] rebroadcast %zu stored shares to new peer\n", g_dec_shares.size());
+                        // DEF-P3-08: ONE batch message replaces the O(n) 0x08 spam.
+                        if (!g_dec_shares.empty()) send_sync_batch(new_fd);
 
                         // Gate-3 v2: DYNAMIC peer addition — the new connection joins
                         // the MSSC sampling list immediately with a default weight.
@@ -1326,50 +1409,46 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             if (!have) { v.push_back({mid, Dj});
                                 std::printf("[thr] 0x08: share from member %llu for envelope %zu (collected %zu)\n",
                                     (unsigned long long)mid, eix, v.size()); }
-                        // P5-C retrigger (DEF-237): the ORDER-COMMITTED decrypt loop is one-shot;
-                        // a share arriving after commitment must attempt its own decrypt. tech debt:
-                        // body duplicated from the ORDER-COMMITTED loop — extract to fn at P5-C polish.
-                        if (g_order_committed && eix < g_mempool.size() && !g_mempool[eix].decrypted) {
-                            std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> sh2;
-                            {   auto& dsb2 = g_dec_shares[eix];
-                                std::uint64_t da2[6], db2[6], ya2[6], yb2[6];
-                                for (int i = 0; i < 6; ++i) { da2[i]=0; db2[i]=0; ya2[i]=0; yb2[i]=0;
-                                    for (int b = 0; b < 8; ++b) {
-                                        da2[i] |= (std::uint64_t)dsb2[i*8+b] << (8*b);
-                                        db2[i] |= (std::uint64_t)dsb2[48+i*8+b] << (8*b);
-                                        ya2[i] |= (std::uint64_t)dsb2[96+i*8+b] << (8*b);
-                                        yb2[i] |= (std::uint64_t)dsb2[144+i*8+b] << (8*b);
-                                    } }
-                                sh2.push_back({g_self_member, threshold::g2::from_affine(da2, db2, ya2, yb2)});
-                            }
-                            for (const auto& [m9, d9] : g_thr_shares[eix]) sh2.push_back({m9, d9});
-                            bool dup9 = false;
-                            for (std::size_t a = 0; a < sh2.size() && !dup9; ++a)
-                                for (std::size_t b3 = a+1; b3 < sh2.size(); ++b3)
-                                    if (sh2[a].first == sh2[b3].first) { dup9 = true; break; }
-                            if (!dup9 && sh2.size() >= 2) {
-                                threshold::g2::G2Pt Dagg2{};
-                                if (hsma::threshold::vss::agg_dec_share(Dagg2, sh2)) {
-                                    auto ss2 = m2env::pt_to_bytes(Dagg2);
-                                    auto xe2 = m2env::pt_to_bytes(g_xe);
-                                    std::uint8_t hdr2[56] = {};
-                                    { std::uint8_t snd2[32] = {}; threshold::m2::ser_hdr(hdr2, 7, snd2, (std::uint64_t)eix, 100); }
-                                    std::uint8_t k2[32];
-                                    threshold::m2::kdf(k2, ss2.data(), xe2.data(), hdr2);
-                                    std::vector<std::uint8_t> pl2;
-                                    bool ok2 = threshold::m2::dem_decrypt(pl2, k2, hdr2,
-                                        g_mempool[eix].env.ct.data(), g_mempool[eix].env.ct.size(), g_mempool[eix].env.tag);
-                                    if (ok2) {
-                                        g_mempool[eix].decrypted = true; g_mempool[eix].payload = pl2;
-                                        pl2.push_back('\n');
-                                        std::printf("[decrypt] envelope %zu: \"%s\" (tag OK) [via 0x08 retrigger]\n",
-                                            eix, std::string(pl2.begin(), pl2.end()-1).c_str());
-                                        std::vector<std::uint8_t> dp(pl2.begin(), pl2.end()-1);
-                                        handle_decree(dp);
-                                    } else std::printf("[decrypt] envelope %zu: TAG FAILED [retrigger]\n", eix);
-                                }
-                            }
+                        // P5-C retrigger (DEF-237) + DEF-P3-05/06: the duplicated body is
+                        // retired — the ONE shared decrypt path serves both call sites.
+                        if (g_order_committed) (void)try_decrypt_envelope(eix);
                         }
+                    } else if (msg.type == 0x0B) {
+                        // DEF-P3-08: SYNC_REQ — answer with the full share set (one message)
+                        send_sync_batch(peer_fds[i]);
+                    } else if (msg.type == 0x0C) {
+                        // DEF-P3-08: SYNC_BATCH — ingest (eix, member, D_j) records
+                        if (msg.payload.size() >= 4 && (msg.payload.size() - 4) % 204 == 0) {
+                            const std::uint32_t cnt = (std::uint32_t)msg.payload[0]
+                                | ((std::uint32_t)msg.payload[1] << 8)
+                                | ((std::uint32_t)msg.payload[2] << 16)
+                                | ((std::uint32_t)msg.payload[3] << 24);
+                            std::size_t got = 0;
+                            for (std::uint32_t r = 0; r < cnt; ++r) {
+                                const std::uint8_t* p = msg.payload.data() + 4 + r * 204;
+                                const std::size_t eix = (std::size_t)p[0] | ((std::size_t)p[1] << 8)
+                                    | ((std::size_t)p[2] << 16) | ((std::size_t)p[3] << 24);
+                                std::uint64_t mid = 0;
+                                for (int i = 0; i < 8; ++i) mid |= (std::uint64_t)p[4+i] << (8*i);
+                                std::uint64_t xa[6], xb[6], ya[6], yb[6];
+                                for (int i = 0; i < 6; ++i) { xa[i]=0; xb[i]=0; ya[i]=0; yb[i]=0;
+                                    for (int b = 0; b < 8; ++b) {
+                                        xa[i] |= (std::uint64_t)p[12+i*8+b] << (8*b);
+                                        xb[i] |= (std::uint64_t)p[60+i*8+b] << (8*b);
+                                        ya[i] |= (std::uint64_t)p[108+i*8+b] << (8*b);
+                                        yb[i] |= (std::uint64_t)p[156+i*8+b] << (8*b);
+                                    } }
+                                auto Dj = threshold::g2::from_affine(xa, xb, ya, yb);
+                                bool have = false;
+                                for (const auto& [m0, d0] : g_thr_shares[eix])
+                                    if (m0 == mid) { have = true; break; }
+                                if (!have) { g_thr_shares[eix].push_back({mid, Dj}); ++got; }
+                            }
+                            std::printf("[sync] 0x0C batch: %u records, %zu new\n", cnt, got);
+                            // a late batch can complete pending envelopes
+                            if (g_order_committed)
+                                for (std::size_t ei = 0; ei < g_mempool.size(); ++ei)
+                                    (void)try_decrypt_envelope(ei);
                         }
                     } else if (msg.type == 0x06) {
                         // P3-1b (DEC-271): the MSSC vote wire path
@@ -1459,12 +1538,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                     } else if (msg.type == 0x07) {
                         // P4-3 (DEC-279): the encrypted mempool envelope
                         auto de = m2env::decode_envelope(msg);
-                        // P5-C: envelope dedup by cth — a repeated envelope IS the same
-                        // envelope; re-storing it poisons eix indexing across ceremonies
-                        // (DEF-241: the cross-ceremony poisoning, both nodes 0/0).
-                        bool dup_env = false;
-                        for (const auto& q : g_mempool)
-                            if (std::memcmp(q.env.cth, de.cth, 32) == 0) { dup_env = true; break; }
+                        // P5-C + DEF-P3-03: envelope dedup by cth — O(1) hash index.
+                        // A repeated envelope IS the same envelope; re-storing it
+                        // poisons eix indexing across ceremonies (DEF-241).
+                        CthKey ck{}; std::memcpy(ck.b, de.cth, 32);
+                        const bool dup_env = (g_env_index.count(ck) != 0);
                         if (dup_env) std::printf("[mempool] envelope DUPLICATE by cth — skipped\n");
                         if (de.ok && !dup_env) {
                             MempoolEntry entry;
@@ -1472,6 +1550,10 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             entry.env.ct = de.ct;
                             std::memcpy(entry.env.tag, de.tag, 32);
                             std::memcpy(entry.env.cth, de.cth, 32);
+                            // DEF-P3-05: the wire-carried header is STATE now —
+                            // the decrypt path keys the DEM from THIS hdr (CA-R203).
+                            std::memcpy(entry.env.hdr, de.hdr, 56);
+                            g_env_index[ck] = g_mempool.size();
                             // compute our dec_share
                             // DEF-234 conform: the decrypt contribution must be [f(0)]R
                             // (the sender keys the DEM from f(0)). Testnet scope: this node
@@ -1502,18 +1584,21 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             if (g_mempool.size() >= (std::size_t)K_ENTRIES && !g_order_committed) {
                                 const auto beacon = consensus::sha256d((const std::uint8_t*)"beacon_p4", 9);
                                 std::vector<std::array<std::uint8_t,32>> sks(g_mempool.size());
-                                for (int i = 0; i < 3; ++i)
-                                    {
-    std::uint8_t beacon_arr[32]; beacon.to_bytes(beacon_arr);
-    threshold::m2::sort_key(sks[i].data(), beacon_arr, g_mempool[i].env.cth);
-    }
+                                {
+                                    std::uint8_t beacon_arr[32]; beacon.to_bytes(beacon_arr);
+                                    // DEF-P3-04: EVERY envelope gets its sort key. The old
+                                    // loop filled only the first 3 of a pool-sized array —
+                                    // uninitialized memory fed the sort the moment volume
+                                    // exceeded 3 (latent UB at scale).
+                                    for (std::size_t i = 0; i < g_mempool.size(); ++i)
+                                        threshold::m2::sort_key(sks[i].data(), beacon_arr, g_mempool[i].env.cth);
+                                }
                                 std::vector<unsigned> order(g_mempool.size());
                                 for (unsigned oi = 0; oi < g_mempool.size(); ++oi) order[oi] = oi;
                                 std::sort(order.begin(), order.end(), [&](unsigned a, unsigned b) {
                                     return memcmp(sks[a].data(), sks[b].data(), 32) < 0;
                                 });
                                 std::vector<std::array<std::uint8_t,32>> sorted(g_mempool.size());
-                                for (int i = 0; i < 3; ++i) sorted[i] = std::array<std::uint8_t,32>{};
                                 for (std::size_t i = 0; i < g_mempool.size(); ++i) std::memcpy(sorted[i].data(), g_mempool[order[i]].env.cth, 32);
                                 threshold::m2::order_root(g_order_root,
                                     reinterpret_cast<const std::uint8_t (*)[32]>(sorted.data()), sorted.size());
@@ -1521,85 +1606,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                 std::printf("[mempool] ORDER COMMITTED: root=");
                                 for (int i = 0; i < 8; ++i) std::printf("%02x", g_order_root[i]);
                                 std::printf("\n");
-                                // P5-C: threshold decrypt — requires t=2 DISTINCT member shares.
-                                // Our own D_j is stored (writer, own share now). Peers' D_j arrive
-                                // via message 0x08 into g_thr_shares. Decrypt fires only when the
-                                // collected x-set reaches t — the negative test (1 node alone)
-                                // must show NO decrypt. DEF-234's dealer shortcut is retired.
-                                for (std::size_t ei = 0; ei < g_mempool.size(); ++ei) {
-                                    auto& me = g_mempool[ei];
-                                    if (me.decrypted) continue;
-                                    // collect: our own share (from g_dec_shares) + any peer shares (0x08)
-                                    std::vector<std::pair<std::uint64_t, threshold::g2::G2Pt>> shares;
-                                    {   // own
-                                        auto& dsb = g_dec_shares[ei];
-                                        std::uint64_t da[6], db[6], ya[6], yb[6];
-                                        shares.push_back({g_self_member, threshold::g2::from_affine(da, db, ya, yb)});
-                                    }
-                                    for (const auto& [mid, Dj] : g_thr_shares[ei])
-                                        shares.push_back({mid, Dj});
-                                    // distinct-x check
-                                    bool dup = false;
-                                    for (std::size_t a = 0; a < shares.size() && !dup; ++a)
-                                        for (std::size_t b2 = a+1; b2 < shares.size(); ++b2)
-                                            if (shares[a].first == shares[b2].first) { dup = true; break; }
-                                    if (dup) { std::printf("[thr] duplicate member share — skipped\n"); continue; }
-                                    if (shares.size() < 2) { std::printf("[thr] envelope %zu: %zu/%u shares, waiting\n", ei, shares.size(), 2u); continue; }
-                                    threshold::g2::G2Pt D_agg{};
-                                    if (!hsma::threshold::vss::agg_dec_share(D_agg, shares)) { std::printf("[thr] agg FAILED\n"); continue; }
-                                    std::printf("[thr] envelope %zu: threshold met (%zu shares, members %u,%u)\n",
-                                        ei, shares.size(), (unsigned)shares[0].first, (unsigned)shares[1].first);
-                                    std::uint64_t da[6], db[6], ya[6], yb[6];
-                                    // the DEM key (D_agg from agg_dec_share above)
-                                    auto ss_b = m2env::pt_to_bytes(D_agg);
-                                    auto xe_b = m2env::pt_to_bytes(g_xe);
-                                    std::uint8_t hdr[56] = {};
-                                    // P4-3b fix: the hdr must match the envfaucet's LOCAL hdr
-                                    // (nonce=ei since the envfaucet uses nonce=i for envelope i,
-                                    //  fee=100 since the envfaucet uses fee=100)
-                                    { std::uint8_t snd[32] = {}; threshold::m2::ser_hdr(hdr, 7, snd, (std::uint64_t)ei, 100); }
-                                    std::uint8_t k[32];
-                                    threshold::m2::kdf(k, ss_b.data(), xe_b.data(), hdr);
-                                    // DEF-224 debug: the byte-level trace
-                                    std::printf("[dbg-node] xe: ");
-                                    for (int i = 0; i < 8; ++i) std::printf("%02x", xe_b[i]);
-                                    std::printf("\n");
-                                    std::printf("[dbg-node] ss_full: ");
-                                    for (int i = 0; i < 192; ++i) std::printf("%02x", ss_b[i]);
-                                    std::printf("\n");
-                                    std::printf("[dbg-node] hdr_full: ");
-                                    for (int i = 0; i < 56; ++i) std::printf("%02x", hdr[i]);
-                                    std::printf("\n");
-                                    std::printf("[dbg] D_agg: "); 
-                                    for (int i = 0; i < 8; ++i) std::printf("%02x", ss_b[i]);
-                                    std::printf(" | hdr: ");
-                                    for (int i = 0; i < 8; ++i) std::printf("%02x", hdr[i]);
-                                    std::printf(" | k: ");
-                                    for (int i = 0; i < 4; ++i) std::printf("%02x", k[i]);
-                                    std::printf("\n");
-                                    // the decryption
-                                    std::vector<std::uint8_t> pl;
-                                    bool ok = threshold::m2::dem_decrypt(pl, k, hdr,
-                                        me.env.ct.data(), me.env.ct.size(), me.env.tag);
-                                    if (ok) {
-                                        me.decrypted = true;
-                                        me.payload = pl;
-                                        pl.push_back('\n');
-                                        std::printf("[decrypt] envelope %zu: \"%s\" (tag OK)\n",
-                                            ei, std::string(pl.begin(), pl.end()-1).c_str());
-                                        // feed the fold pipeline
-                                        std::vector<std::uint8_t> decree_payload(pl.begin(), pl.end()-1);
-                                        if (decree_payload.size() >= 32) {
-                                            handle_decree(decree_payload);
-                                        } else {
-                                            // pad to 32 bytes for the digest
-                                            while (decree_payload.size() < 32) decree_payload.push_back(0);
-                                            handle_decree(decree_payload);
-                                        }
-                                    } else {
-                                        std::printf("[decrypt] envelope %zu: TAG FAILED\n", ei);
-                                    }
-                                }
+                                // P5-C + DEF-P3-05/06: the ONE shared decrypt path —
+                                // stored-hdr DEM key, stored-serialization own share,
+                                // batch-Lagrange aggregation (P3 production core).
+                                for (std::size_t ei = 0; ei < g_mempool.size(); ++ei)
+                                    (void)try_decrypt_envelope(ei);
                             }
                         }
                     } else if (msg.type == p2p::EPOCH_HEADER) {

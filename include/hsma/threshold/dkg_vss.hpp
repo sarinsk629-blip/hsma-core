@@ -9,6 +9,7 @@
 #include <hsma/threshold/poly.hpp>
 #include <hsma/threshold/dkg.hpp>
 #include <hsma/threshold/g2.hpp>
+#include <hsma/threshold/m2.hpp>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -20,6 +21,8 @@ struct Transcript {
     Poly f{};                       // degree t-1; f(0) = epoch secret
     std::vector<g2::G2Pt> C;        // Feldman commitments C_k = [c_k]G2gen
     std::vector<g2::G2Pt> Y;        // member publics Y_j = [f(j)]G2gen, j = 1..n
+    std::vector<g1::Pt>   Y1;       // P3-A: G1-side publics Y1_j = [f(j)]G1gen, j = 1..n
+                                    // (the aggregate audit law e(G1,D_agg)==e(Y1_agg,R))
 };
 
 // The parameter law, in code: honest threshold t > n/2, t >= 2, production ceiling 224.
@@ -79,6 +82,15 @@ inline bool deal(Transcript& T, std::uint64_t epoch, std::uint64_t n, std::uint6
         fr_to_fe6(sj, k);
         T.Y[j] = g2::Pmul(g2::gen(), k);
     }
+    // P3-A: the G1-side publics for the aggregate audit law (one-time per epoch)
+    T.Y1.assign(n + 1, g1::Pt{});
+    T.Y1[0] = g1::Pmul(g1::gen(), mont::fe6{});   // [0]G1 = inf placeholder
+    for (std::uint64_t j = 1; j <= n; ++j) {
+        Fr sj = dkg::share_for(T.f, j);
+        mont::fe6 k{};
+        fr_to_fe6(sj, k);
+        T.Y1[j] = g1::Pmul(g1::gen(), k);
+    }
     return true;
 }
 
@@ -124,6 +136,8 @@ inline bool verify_own(const Transcript& T, std::uint64_t j, const mont::fe6& s_
 // Requires exactly t participants (n=3, t=2 testnet: any 2 of 3).
 
 // Lagrange coefficient for participant x_j over the full participating x-set.
+// (Reference implementation — O(t) Fermat inversions. The production hot path
+// is agg_dec_share below, which uses the batch kernel: 1 inversion total.)
 inline Fr lagrange_at_zero(const std::vector<std::uint64_t>& xs, std::uint64_t xj) {
     Fr num{}, den{}, t{};
     fr_from_u64(num, 1); fr_from_u64(den, 1);
@@ -139,20 +153,91 @@ inline Fr lagrange_at_zero(const std::vector<std::uint64_t>& xs, std::uint64_t x
     return fr_mul(num, dinv);                   // lambda_j = num * den^{-1}
 }
 
+// P2: the BATCH kernel (poly.hpp lagrange_zero_batch) — bit-identical to the
+// per-coefficient reference, ONE inversion total. This is the production
+// aggregation path at t=112 (12,432 inversions -> 1).
+inline bool lagrange_batch_at_zero(std::vector<Fr>& lam,
+                                   const std::vector<std::uint64_t>& xs) {
+    std::vector<Fr> fx(xs.size(), Fr{});
+    for (std::size_t i = 0; i < xs.size(); ++i)
+        if (!fr_from_u64(fx[i], xs[i])) return false;
+    return lagrange_zero_batch(lam, fx);
+}
+
 // Aggregate t decryption-share POINTS into [f(0)]R (G2 points).
 // shares: pairs of (member_id, D_j). Must contain exactly t entries.
+// PRODUCTION PATH: batch Lagrange (1 inversion) — bit-identical to the
+// reference per-coefficient walk.
 inline bool agg_dec_share(g2::G2Pt& D_out,
                           const std::vector<std::pair<std::uint64_t, g2::G2Pt>>& shares) {
     if (shares.empty()) return false;
     std::vector<std::uint64_t> xs;
     for (const auto& [j, D] : shares) xs.push_back(j);
     if ((std::uint64_t)xs.size() != shares.size()) return false;
+    std::vector<Fr> lam;
+    if (!lagrange_batch_at_zero(lam, xs)) return false;
     bool first = true;
-    for (const auto& [j, Dj] : shares) {
-        Fr lam = lagrange_at_zero(xs, j);
-        mont::fe6 lk{}; fr_to_fe6(lam, lk);
-        g2::G2Pt term = g2::Pmul(Dj, lk);
+    for (std::size_t i = 0; i < shares.size(); ++i) {
+        mont::fe6 lk{}; fr_to_fe6(lam[i], lk);
+        g2::G2Pt term = g2::Pmul(shares[i].second, lk);
         D_out = first ? term : g2::Padd(D_out, term);
+        first = false;
+    }
+    return true;
+}
+
+// ── P3-A: CHECKED aggregation (the production law) ──────────────────────────
+// Every participant must (1) be a valid member of the transcript, (2) prove
+// log_G(Y_j) == log_R(D_j) inline via Chaum-Pedersen DLEQ (no pairing), and
+// (3) the participant set must carry at least t DISTINCT x's. The aggregate
+// audit law e(G1gen, D_agg) == e(Y1_agg, R) runs async via verify_aggregate.
+struct CheckedShare {
+    std::uint64_t j{};
+    g2::G2Pt D{};
+    m2::Dleq proof{};
+};
+
+inline bool agg_dec_share_checked(g2::G2Pt& D_out,
+                                  const std::vector<CheckedShare>& shares,
+                                  const Transcript& T,
+                                  const g2::G2Pt& R) {
+    if (shares.size() < T.t) return false;                 // below threshold: reject
+    std::vector<std::uint64_t> xs;
+    xs.reserve(shares.size());
+    for (const auto& s : shares) {
+        if (s.j == 0 || s.j > T.n) return false;           // not a transcript member
+        for (std::uint64_t prev : xs)
+            if (prev == s.j) return false;                 // duplicate x: reject
+        xs.push_back(s.j);
+    }
+    for (std::size_t i = 0; i < shares.size(); ++i)
+        if (!m2::dleq_verify(shares[i].proof, R, T.Y[shares[i].j], shares[i].D))
+            return false;                                  // unauthenticated share
+    std::vector<Fr> lam;
+    if (!lagrange_batch_at_zero(lam, xs)) return false;
+    bool first = true;
+    for (std::size_t i = 0; i < shares.size(); ++i) {
+        mont::fe6 lk{}; fr_to_fe6(lam[i], lk);
+        g2::G2Pt term = g2::Pmul(shares[i].D, lk);
+        D_out = first ? term : g2::Padd(D_out, term);
+        first = false;
+    }
+    return true;
+}
+
+// P3-A: the G1-side aggregate public Y1_agg = sum_j lambda_j * Y1_j over the
+// SAME participating x-set (feeds verify_aggregate's audit law).
+inline bool agg_public_g1(g1::Pt& out,
+                          const std::vector<std::uint64_t>& xs,
+                          const Transcript& T) {
+    std::vector<Fr> lam;
+    if (!lagrange_batch_at_zero(lam, xs)) return false;
+    bool first = true;
+    for (std::size_t i = 0; i < xs.size(); ++i) {
+        if (xs[i] == 0 || xs[i] > T.n) return false;
+        mont::fe6 lk{}; fr_to_fe6(lam[i], lk);
+        g1::Pt term = g1::Pmul(T.Y1[xs[i]], lk);
+        out = first ? term : g1::Padd(out, term);
         first = false;
     }
     return true;
