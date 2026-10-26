@@ -6,18 +6,19 @@
 
 [![HSMA Gate](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml/badge.svg)](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml)
 [![Gate](https://img.shields.io/badge/gate-34%2F34_GREEN-brightgreen?style=for-the-badge)](https://github.com/sarinsk629-blip/hsma-core)
-[![Decisions](https://img.shields.io/badge/decisions-281-blue?style=for-the-badge)](docs/DECISIONS.md)
-[![Defects Owned](https://img.shields.io/badge/defects_owned-223-red?style=for-the-badge)](docs/DECISIONS.md)
-[![Laws](https://img.shields.io/badge/laws-203-orange?style=for-the-badge)](docs/DECISIONS.md)
+[![Decisions](https://img.shields.io/badge/decisions-288-blue?style=for-the-badge)](docs/DECISIONS.md)
+[![Defects Owned](https://img.shields.io/badge/defects_owned-109-red?style=for-the-badge)](docs/DECISIONS.md)
+[![Laws](https://img.shields.io/badge/laws-317-orange?style=for-the-badge)](docs/DECISIONS.md)
 [![Headers](https://img.shields.io/badge/headers-41-blueviolet?style=for-the-badge)]
-[![π_E](https://img.shields.io/badge/π_E-1600_bytes-critical?style=for-the-badge)]
+[![π_E](https://img.shields.io/badge/π_E-5,488B_tau_free_measured-brightgreen?style=for-the-badge)]
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)]
 
 **A verified Layer 1 protocol where consensus weight derives from verified AI inference,
 the mempool is cryptographically unreadable before ordering,
-and entire epochs compress into 1,600-byte recursive proofs.**
+and entire epochs compress into a 5,488-byte recursive proof —
+1.9 KB at testnet scale, logarithmic in state width, 2.2 ms to verify.**
 
-**Built by one person. 73 defects owned. Zero hiding.**
+**Built by one person. 109 defects owned. Zero hiding.**
 
 [📄 Whitepaper PDF](https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf) •
 [📝 LaTeX Source](docs/whitepaper_v4.tex) •
@@ -236,32 +237,51 @@ k=1024 in 250 s — per-fold FLAT at 244 ms (linear)
 
 ---
 
-## 📐 The π_E Receipt
+## 📐 The π_E Receipt — measured at BOTH scales
 
-| Component | Size (bytes) |
-|---|---:|
-| T1 (opening transcript) | 544 |
-| T2 (batched fold transcript) | 768 |
-| OOD (8 points + commitment) | 288 |
-| **Total π_E** | **1,600** |
-| **Budget** | 73,728 |
-| **Utilization** | **2.2%** |
+π_E is O(nv): it grows with the **logarithm** of the state width, not the
+constraint count. The exact wire law (tau-free, DEF-404): **π_E = 256·nv + 624 bytes**.
+The original 1,600-byte receipt (DEC-235) was the golden-scale struct-form
+measurement — the live wire numbers below are the honest, serializer-measured
+sizes (DEF-403: the node no longer reports a hardcoded literal).
 
-> **Verify without the witness.** The verifier recomputes the independent f_b identity — O(k·nv) by eq-linearity — without access to the prover's witness data.
+| Component | Testnet (k=10, nv=5) | Production (k=476, nv=19) |
+|---|---:|---:|
+| Header (C, ood_commit, C2, v, fb_true) | 160 | 160 |
+| T1 (opening transcript) | 744 | 2,536 |
+| T2 (batched fold transcript) | 744 | 2,536 |
+| OOD (8 evals) | 256 | 256 |
+| **Total π_E (tau-free wire, MEASURED)** | **1,904** | **5,488** |
+| **Budget** | 73,728 | 73,728 |
+| **Utilization** | **2.6%** | **7.4%** |
+| **Verify** | <2 ms | **2.2 ms** |
+
+> **Why it grew, and why that is the design working:** testnet state pads to
+> 2⁵, production state to 2¹⁹ — 14 doublings × 256 B = +3,584 B, exactly
+> 1,904 → 5,488. Meanwhile the proven constraints grew 800 rows → 67.1M rows
+> (an 83,896× increase): the proof grew 3.4×. Each doubling of the chain costs
+> +256 B — that is the whole succinctness claim, now with receipts at both ends.
+
+> **Verify without the witness.** The verifier recomputes the independent f_b identity — O(k·nv) by eq-linearity — without access to the prover's witness data. The wire also drops tau (8×nv field elements the verifier re-derives from C): 10,352 B struct-form → 5,488 B at production (DEF-404).
 
 ---
 
-## 📈 Production Scale
+## 📈 Production Scale — measured from the actual COO (DEF-407)
 
-| Component | Constraints |
+| Component | Rows (per entry) |
 |---|---:|
-| f_exec transition (8 × 476) | 3,808 |
-| Poseidon hash (1,088 × 3 × 476) | 1,553,664 |
-| SMT opening (5,120 × 2 × 476) | 4,874,240 |
-| **Total** | **6,431,712** |
-| **10⁶ target** | **EXCEEDED (6.4×)** |
+| f_exec transition | 8 |
+| pt_hash (full Poseidon-3, domain-IV'd) | 1,088 |
+| SMT opening × 2 (depth-64, FULL perm) | 139,906 |
+| **Entry circuit (measured)** | **141,002** |
+| **Monolith equivalent (× k=476)** | **67,116,952** |
 
-The scaling is **linear in k** — confirmed at k=1, 5, 10, 50, 100.
+> The previously registered 6,431,712 priced the SMT at the reduced permutation;
+> the production SMT hashes with the full Poseidon-3. The real circuit is ~10×
+> bigger — and it still folds inside the window: **k=476 in 117.4 s** (5.1×
+> headroom on the 600 s epoch), 246.7 ms/fold, O(1) 41-byte accumulator,
+> k=1024 in 250.1 s (per-fold FLAT). Linear in k — confirmed at k=1, 5, 10,
+> 50, 100, 476, 1024.
 
 ---
 
@@ -349,9 +369,9 @@ The vote REJECT printf carried a literal backslash-n from an escaping-layer coll
 │                               │                                  │
 │                               ▼                                  │
 │   ┌───────────────────────────────────────────────────────┐     │
-│   │              π_E (1,600 bytes)                         │     │
+│   │           π_E (5,488 bytes production)                 │     │
 │   │   verifiable WITHOUT the witness                       │     │
-│   │   118 ms on ARM64                                      │     │
+│   │   2.2 ms verify · tau-free wire · O(log) size          │     │
 │   └───────────────────────────┬───────────────────────────┘     │
 │                               │                                  │
 │                               ▼                                  │
@@ -496,7 +516,7 @@ MIT
 
 **Built by one person. The Satoshi path: build → publish → verify → wait.**
 
-*223 defects owned. 276 laws. 64 decisions. π_E exists.*
+*109 defects owned. 317 laws. 288 decisions. π_E exists — 5,488 B, measured.*
 
 # ***Zero hiding.***
 
