@@ -20,6 +20,7 @@
 #include <hsma/pcs.hpp>      // fp::Sponge, dom
 #include <hsma/poseidon.hpp> // fp::poseidon3
 #include <hsma/nifs.hpp>     // feq, the Step-21 proven fold family
+#include <hsma/sha256.hpp>   // the v2 production transcript (DEF-405 law)
 #include <vector>
 #include <cassert>
 #include <cstdint>
@@ -139,7 +140,131 @@ inline MultifoldResult multifold(const SparseMat& A, const SparseMat& B, const S
     M.folded = U;
     M.folded.u = fp::fe_add(U.u, fp::fe_zero());
     for (unsigned j = 0; j < k; ++j) {
-        const std::vector<fp::fe> Tj = cross_term(A, B, C, M.folded, js[j]);
+        // k=1 fast path: M.folded IS U at j=0, so the applied cross-term is
+        // the SAME field element as the transcript's T[0] - recomputing it is
+        // bit-identical waste; skip (halves the k=1 fold cost, the node's path).
+        const std::vector<fp::fe> Tj = (j == 0 && k == 1)
+            ? M.T[0] : cross_term(A, B, C, M.folded, js[j]);
+        M.T[j] = Tj;                       // the cross-term actually applied
+        M.folded.u = fp::fe_add(M.folded.u, M.r[j]);
+        for (std::size_t t = 0; t < M.folded.z.size(); ++t)
+            M.folded.z[t] = fp::fe_add(M.folded.z[t],
+                                       fp::fe_mul(M.r[j], js[j].z[t]));
+        for (std::size_t i = 0; i < M.folded.E.size(); ++i)
+            M.folded.E[i] = fp::fe_add(M.folded.E[i],
+                                       fp::fe_mul(M.r[j], Tj[i]));
+    }
+    return M;
+}
+
+// ---- the PRODUCTION multifold (v2, DEF-405) ------------------------------
+// THE MEASURED PROBLEM: the v1 transcript absorbs witness vectors
+// ELEMENT-WISE into a Poseidon sponge. At production circuit width
+// (141,002-row entry circuit, ~145k vars) that is ~700k permutations per
+// fold at 34us each - 6.3 s PER FOLD, 50 min per k=476 epoch (p4bench,
+// measured). The fold ALGEBRA was never the bottleneck; the transcript was.
+//
+// THE v2 LAW (CA-R373a): the FS transcript binds the CANONICAL BYTES of the
+// vectors through a STREAMING SHA-256 - one hash pass over O(n) BYTES per
+// fold (bytes are ~600x cheaper than field permutations), challenges via
+// the PROVEN whir::digest_scalar reduction (256-bit digest -> F_p, the
+// CA-R132 family). Same binding surface as v1 (u, z, E, and each instance's
+// (u, z, E, T)), same sequential fold application (DEF-379's chained
+// cross-terms), different transport. v1 stays the GOLDEN-SCALE law (steps
+// 31-33 / test_step62/63/65/66 pin its r stream); v2 is production scale.
+// Both are machine-checked; selection is explicit by function name.
+//
+// Bit-exactness: field ops are EXACT (no floats - DEC-090), the fold
+// identity is transcript-independent (exact for ANY r), and test_step67
+// proves v2 at k=476 with SAT at every milestone.
+struct MultifoldResult2 {
+    Relaxed folded{};
+    std::vector<std::vector<fp::fe>> T;   // k cross-terms (as applied)
+    std::vector<fp::fe> r;                // k FS challenges
+    std::uint8_t seed[32]{};              // the v2 transcript digest
+};
+
+inline void _v2_absorb_fe(::hsma::digest::Sha256& h, const fp::fe& x) {
+    std::byte b[32];
+    fp::fe_to_le_bytes(x, b);            // canonicalizes internally (CA-R132)
+    h.update(reinterpret_cast<const std::uint8_t*>(b), 32);
+}
+inline void _v2_absorb_vec(::hsma::digest::Sha256& h, const std::vector<fp::fe>& v) {
+    for (const auto& x : v) _v2_absorb_fe(h, x);
+}
+
+inline MultifoldResult2 multifold_v2(const SparseMat& A, const SparseMat& B, const SparseMat& C,
+                                     const Relaxed& U,
+                                     const std::vector<Relaxed>& js) noexcept {
+    MultifoldResult2 M;
+    const unsigned k = (unsigned)js.size();
+    for (const auto& J : js) {   // the same scheme precondition (CA-R135)
+        assert(feq(J.u, fp::fe_one()) && "mfold_v2: incoming instances must be fresh (u=1)");
+        for (const auto& e : J.E)
+            assert(fp::fe_is_zero(e) && "mfold_v2: incoming instances must be fresh (E=0)");
+    }
+    M.T.resize(k);
+    for (unsigned j = 0; j < k; ++j) M.T[j] = cross_term(A, B, C, U, js[j]);
+
+    // THE v2 TRANSCRIPT: one streaming SHA-256 over the same binding surface
+    // v1 spelled element-wise. Absorb order (the law): u_U, z_U, E_U, then
+    // per instance j: u_j, z_j, E_j, T_j.
+    ::hsma::digest::Sha256 h;
+    _v2_absorb_fe(h, U.u);
+    _v2_absorb_vec(h, U.z);
+    _v2_absorb_vec(h, U.E);
+    for (unsigned j = 0; j < k; ++j) {
+        _v2_absorb_fe(h, js[j].u);
+        _v2_absorb_vec(h, js[j].z);
+        _v2_absorb_vec(h, js[j].E);
+        _v2_absorb_vec(h, M.T[j]);
+    }
+    h.finish(M.seed);
+
+    // challenges: r_j = digest_scalar(SHA256("HSMA_MFOLD_V2|R" || seed || j_le64))
+    // (the whir::digest_scalar law: canonical LE -> <=8 subtracts -> F_p)
+    M.r.resize(k);
+    for (unsigned j = 0; j < k; ++j) {
+        std::uint8_t msg[32 + 15 + 8];
+        std::memcpy(msg, "HSMA_MFOLD_V2|R", 15);
+        std::memcpy(msg + 15, M.seed, 32);
+        std::uint8_t jb[8];
+        for (int b = 0; b < 8; ++b) jb[b] = std::uint8_t(j >> (8 * b));
+        std::memcpy(msg + 47, jb, 8);
+        std::uint8_t dg[32];
+        ::hsma::digest::sha256(reinterpret_cast<const std::uint8_t*>(msg), sizeof msg, dg);
+        std::array<std::uint64_t, 4> l{};
+        for (int b = 0; b < 4; ++b)
+            for (int by = 0; by < 8; ++by) l[b] |= (std::uint64_t)dg[8 * b + by] << (8 * by);
+        // <= 8 subtracts of p (digest < 2^256, p ~ 2^254.4)
+        for (int t = 0; t < 8; ++t) {
+            // can_geq_p inline (pallas modulus)
+            const std::uint64_t P[4] = {0x8c46eb2100000001ull, 0x224698fc0994a8ddull, 0ull, 0x4000000000000000ull};
+            bool geq = false;
+            for (int i = 3; i >= 0; --i) {
+                if (l[i] != P[i]) { geq = l[i] > P[i]; break; }
+                if (i == 0) geq = true;
+            }
+            if (!geq) break;
+            std::uint64_t borrow = 0;
+            for (int i = 0; i < 4; ++i) {
+                const std::uint64_t bi = P[i] + borrow;
+                if (l[i] >= bi) { l[i] -= bi; borrow = 0; }
+                else { l[i] -= bi; borrow = 1; }
+            }
+        }
+        M.r[j] = fp::fe_from_canonical_limbs(l);
+    }
+
+    // THE FOLD, SEQUENTIALLY (DEF-379's chained application, unchanged)
+    M.folded = U;
+    M.folded.u = fp::fe_add(U.u, fp::fe_zero());
+    for (unsigned j = 0; j < k; ++j) {
+        // k=1 fast path: M.folded IS U at j=0, so the applied cross-term is
+        // the SAME field element as the transcript's T[0] - recomputing it is
+        // bit-identical waste; skip (halves the k=1 fold cost, the node's path).
+        const std::vector<fp::fe> Tj = (j == 0 && k == 1)
+            ? M.T[0] : cross_term(A, B, C, M.folded, js[j]);
         M.T[j] = Tj;                       // the cross-term actually applied
         M.folded.u = fp::fe_add(M.folded.u, M.r[j]);
         for (std::size_t t = 0; t < M.folded.z.size(); ++t)

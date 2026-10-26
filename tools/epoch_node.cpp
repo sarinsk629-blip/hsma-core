@@ -8,6 +8,7 @@
 // K_ENTRIES: 10 decree entries per epoch (golden scale)
 #include <hsma/p2p.hpp>
 #include <hsma/mfold.hpp>
+#include <hsma/nivc.hpp>
 #include <hsma/fexec_circuit.hpp>
 #include <hsma/whir.hpp>
 #include <hsma/explorer.hpp>
@@ -56,12 +57,24 @@ using hsma::explorer::g_work_mutex;
 // the epoch state
 static unsigned current_epoch = 0;
 static unsigned decree_count = 0;
-static constexpr unsigned K_ENTRIES = 10;
+static constexpr unsigned K_ENTRIES = 10;   // the golden-scale default (DEC-102)
+// DEF-400: the production k is WIRED, not frozen. --k-entries (1..65536);
+// production epoch = 476 (DEC-238). The mempool ceremony trigger, the fold
+// lifecycle and the explorer all follow g_k_entries.
+static unsigned g_k_entries = K_ENTRIES;
+// DEF-401/402: the NIVC epoch accumulator (41B, the proven PC machine,
+// Step 16/DEC-209) + the PROVEN digest law. The testnet honest boundary:
+// the SMT-gated fold_step (real accounts) lands with the fleet integration;
+// the node runs the f_head/exec-absorption/f_close chain verbatim.
+static nivc::Accumulator g_acc{};
+static unsigned g_entry_seq = 0;             // the per-epoch entry index
+static fp::fe g_epoch_droot = fp::fe_zero(); // testnet: no decree SMT yet (honest)
 
 // the folding state
 static mfold::SparseMat A, B, C;
 static mfold::Relaxed accumulator;
-static std::vector<std::array<std::uint64_t,4>> digest_chain;
+static std::vector<std::array<std::uint64_t,4>> digest_chain;   // (legacy limbs, unused by the fold path)
+static std::vector<fp::fe> digest_chain_fe;   // DEF-402: the PROVEN fe chain
 // P3-1b (DEC-271): the test committee. HONEST SCOPE: the poly is a PUBLIC
 // test constant (both sides derive Y_j from it); live DKG rotation = P3-2+.
 static threshold::Poly g_test_poly;   // Poly lives at threshold level (poly.hpp:10, [R-P2])
@@ -545,6 +558,29 @@ static fp::fe ld(const std::array<std::uint64_t,4>& c) {
     return fp::fe_mul(x, rr);
 }
 
+// DEF-402: the fe-native witness builder - the proven law's values, no
+// limb round-trips. Z_PTHASH = Z_COMPUTED = pt (binding row SAT by
+// construction); Z_DNEW carries the gossip-verified chain tip.
+static std::vector<fp::fe> build_witness_fe(
+    const fp::fe& dprev, const fp::fe& dnew, const fp::fe& pt) {
+    std::vector<fp::fe> z(fcirc::NZ, fp::fe_zero());
+    z[fcirc::Z_DPREV] = dprev;
+    z[fcirc::Z_DNEW] = dnew;
+    z[fcirc::Z_PTHASH] = pt;
+    z[fcirc::Z_COMPUTED] = pt;
+    z[fcirc::Z_NONCES] = fp::fe_from_u64(7);
+    z[fcirc::Z_NONCEPT] = fp::fe_from_u64(8);
+    z[fcirc::Z_LT] = fp::fe_one();
+    z[fcirc::Z_SELF] = fp::fe_zero();
+    z[fcirc::Z_ISPAD] = fp::fe_zero();
+    z[fcirc::Z_PC] = fp::fe_from_u64(1);
+    z[fcirc::Z_SELEXEC] = fp::fe_one();
+    z[fcirc::Z_NOTPAD] = fp::fe_one();
+    z[fcirc::Z_H] = fp::fe_mul(z[fcirc::Z_PC], z[fcirc::Z_PC]);
+    z[fcirc::Z_ONE] = fp::fe_one();
+    return z;
+}
+
 // witness builder (the same as the f_exec golden)
 static std::vector<fp::fe> build_witness(
     const std::array<std::uint64_t,4>& dprev,
@@ -567,13 +603,45 @@ static std::vector<fp::fe> build_witness(
     return z;
 }
 
-// digest chain: d_{i+1} = SHA256-like XOR-fold (deterministic)
-static std::array<std::uint64_t,4> next_digest(
-    const std::array<std::uint64_t,4>& prev, unsigned step) {
-    std::array<std::uint64_t,4> nxt{};
-    for (int k = 0; k < 4; ++k)
-        nxt[k] = prev[k] ^ (std::uint64_t)(step * 7 + 13);
-    return nxt;
+// DEF-402: the digest chain follows the PROVEN F_exec law (fold.hpp,
+// Step 14) - NOT a synthetic XOR. The entry's pt binds (amount, fee, nonce)
+// through fold::pt_hash_of (P3(HSM_PT_v1, e1, e2)); the chain step is the
+// exec absorption (P3(HSM_FOLD_v1, d_prev, pt)). Both sides derive the same
+// (amount, fee, nonce) from (epoch, idx) - a pure function - so every node
+// reconstructs identical witnesses and the header digest is library-exact
+// (lightclient.hpp chain-continuity consumes exactly this law).
+struct EntryTerms { unsigned __int128 amount; std::uint64_t fee; std::uint64_t nonce; };
+static EntryTerms entry_terms(unsigned epoch, unsigned idx) {
+    std::uint8_t m[8];                                   // (epoch, idx) LE
+    for (int i = 0; i < 4; ++i) m[i] = std::uint8_t(epoch >> (8 * i));
+    for (int i = 0; i < 4; ++i) m[4 + i] = std::uint8_t(idx >> (8 * i));
+    const auto d = consensus::sha256d(m, sizeof m);      // 64 spread bits
+    const std::uint64_t h = d.l[0] ^ (d.l[1] << 1);
+    EntryTerms t;
+    t.amount = (((unsigned __int128)(h & 0xFFFFFFFFull)) << 64)
+             | (unsigned __int128)((h >> 32) | 1ull);              // nonzero
+    t.fee    = 5 + (h % 7);
+    t.nonce  = (std::uint64_t)idx + 1;
+    return t;
+}
+static fp::fe entry_pt(const EntryTerms& t) {
+    return fold::pt_hash_of(t.amount, (unsigned __int128)t.fee, t.nonce);
+}
+// the chain step: d_new = P3(HSM_FOLD_v1, d_prev, pt)  (the F_exec law)
+static fp::fe chain_step(const fp::fe& dprev, const fp::fe& pt) {
+    return poseidon3(dom::Dom::HSM_FOLD_v1, dprev, pt);
+}
+static fp::fe fe_from_payload(const std::vector<std::uint8_t>& p) {
+    std::byte b[32];
+    for (int i = 0; i < 32; ++i) b[i] = std::byte(p[i]);
+    const auto r = fp::fe_from_le_bytes(b);        // DEC-105: canonical-only
+    return r.value;
+}
+// the chain advances in BOTH representations: the fe chain (the fold law)
+// and the limb view (the PoUW/verifier/peer consumers read the same bytes)
+static void chain_push(const fp::fe& v) {
+    digest_chain_fe.push_back(v);
+    digest_chain.push_back(fp::fe_to_canonical(v).l);
 }
 
 // handle an incoming decree entry: add it to the current epoch
@@ -589,6 +657,30 @@ static bool seen_or_add(const std::vector<std::uint8_t>& p) {
     return false;
 }
 
+// DEF-403: the ONE epoch-header builder (both call sites). The digest
+// field carries the NIVC accumulator tip (canonical LE, the real epoch
+// chain), the size field the MEASURED tau-free π_E wire size.
+static void gossip_epoch_header(const whir::Proof& P) {
+    const auto wire = whir::wire_encode(P);
+    p2p::Message hdr{};
+    hdr.type = p2p::EPOCH_HEADER;
+    // payload (DERIVED, 52B): epoch@0(4) digest@4(4xu32) size@20(4)
+    //   inner@24(4) weight@28(8) hash@36(4xu32) - DEFECT-184
+    p2p::put_u32(hdr.payload, current_epoch);
+    const fp::fe dcanon = fp::fe_to_canonical(g_acc.digest);
+    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
+    p2p::put_u32(hdr.payload, (std::uint32_t)wire.size());   // MEASURED (DEF-403)
+    p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
+    p2p::put_u64(hdr.payload, pouw_weight); // P2-07: the weight (u64)
+    fp::fe ocanon = fp::fe_to_canonical(P.v);
+    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
+    for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
+    g_ns_shared.pi_e_size = (unsigned)wire.size();           // the explorer too
+    for (int fd : peer_fds) p2p::send_message(fd, hdr);
+    std::printf("[gossip] epoch %u header sent to %zu peers (pi_E wire %zu B)\n",
+        current_epoch, peer_fds.size(), wire.size());
+}
+
 static void handle_decree(const std::vector<std::uint8_t>& payload) {
     auto decree_t0 = std::chrono::steady_clock::now();
     // P2-08: DEFECT-170 - a re-received decree would DOUBLE-FOLD into the
@@ -596,23 +688,27 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
     if (seen_or_add(payload)) { std::printf("[decree] duplicate entry - skipped\n"); return; }
     if (payload.size() < 32) return;
     
-    // extract the digest from the payload (first 32 bytes = 4 u64 limbs)
-    std::array<std::uint64_t,4> dnew{};
-    for (int k = 0; k < 4; ++k)
-        for (int j = 0; j < 8; ++j)
-            dnew[k] |= (std::uint64_t)payload[8*k + j] << (8*j);
+    // DEF-402: the payload IS the chain tip - canonical LE of the epoch's
+    // d_new (the sender computed it under the PROVEN law; we parse it under
+    // the canonical-only boundary, DEC-105).
+    const fp::fe dnew = fe_from_payload(payload);
     
-    // chain: dprev = the last digest in the chain
-    auto dprev = digest_chain.back();
-    digest_chain.push_back(dnew);
+    // chain: dprev = the last digest in the chain (fp::fe, the proven law)
+    const fp::fe dprev = digest_chain_fe.back();
+    chain_push(dnew);
     
-    // build the witness and add to the fold
-    auto z = build_witness(dprev, dnew);
+    // witness: the (amount, fee, nonce) terms are a pure function of
+    // (epoch, idx); the pt binding and the chain link are library-exact.
+    const auto terms = entry_terms(current_epoch, g_entry_seq++);
+    const fp::fe pt = entry_pt(terms);
+    auto z = build_witness_fe(dprev, dnew, pt);
     
     mfold::Relaxed Ji = mfold::fresh(z, fcirc::NROWS);
     if (mfold::sat_relaxed(A, B, C, Ji) != fcirc::NROWS) {
         std::printf("[fold] instance UNSAT — skipping\n");
+        digest_chain_fe.pop_back();
         digest_chain.pop_back();
+        --g_entry_seq;
         return;
     }
     
@@ -620,10 +716,15 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
     accumulator = M.folded;
     ++decree_count;
     
-    std::printf("[fold] decree %u/%u folded, SAT\n", decree_count, K_ENTRIES);
+    // DEF-401: the NIVC exec absorption - the same law fold::f_exec applies
+    // at its digest update (P3(FOLD, digest, pt)); count + 41B O(1) wire.
+    g_acc.digest = poseidon3(dom::Dom::HSM_FOLD_v1, g_acc.digest, pt);
+    ++g_acc.count;
+    
+    std::printf("[fold] decree %u/%u folded, SAT\n", decree_count, g_k_entries);
     
     // when the epoch is full, produce the π_E
-    if (decree_count >= K_ENTRIES) {
+    if (decree_count >= g_k_entries) {
         std::printf("[pi_E] epoch %u complete — producing π_E...\n", current_epoch);
         
         // the evals vector: z'(16) || E'(8) || u(1) = 25 elements
@@ -648,31 +749,22 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         std::printf("[pi_E] epoch %u: wrap_verify %s (stage=%u)\n",
             current_epoch, ok ? "ACCEPT" : "REJECT", stage);
         
+        // DEF-401: the NIVC CLOSE seals the epoch (P3(FOLD, digest, count),
+        // PC -> CLOSE) - the header now carries the REAL epoch accumulator
+        // tip, not a dead witness wire.
+        nivc::fold_close(g_acc);
+        
         // P2-08: fresh weight for the epoch that just completed
         run_epoch_pouw();
         decree_count = 0; // P2-08b: kept (idempotent with the tail reset)
-        // gossip the epoch header to all peers
-        p2p::Message hdr{};
-        hdr.type = p2p::EPOCH_HEADER;
-        // payload (DERIVED, 52B): epoch@0(4) digest@4(4xu32) size@20(4)
-        //   inner@24(4) weight@28(8) hash@36(4xu32) - DEFECT-184
-        p2p::put_u32(hdr.payload, current_epoch); // P2-08b: the completed epoch (tail advances after)
-        // digest from the accumulator's first z value
-        fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
-        for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
-        p2p::put_u32(hdr.payload, 1600);
-    p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
-    p2p::put_u64(hdr.payload, pouw_weight); // P2-07: the weight (u64)
-        // hash: use the output variable's canonical form
-        fp::fe ocanon = fp::fe_to_canonical(P.v);
-        for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
-        for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
+        // DEF-403: ONE shared header builder; the size field is the MEASURED
+        // wire size of this π_E (tau-free wire form), never a constant.
+        gossip_epoch_header(P);
         
-        // gossip to all peers
-        for (int fd : peer_fds)
-            p2p::send_message(fd, hdr);
-        
-        std::printf("[gossip] epoch %u header sent to %zu peers\n", current_epoch, peer_fds.size());
+        // DEF-401: the next epoch opens on the closed digest (DEC-239's
+        // cross-epoch chaining; PC returns to EXEC with count reset).
+        nivc::fold_head(g_acc, g_acc.digest, g_epoch_droot);
+        g_entry_seq = 0;
         
         // reset for the next epoch
         ++current_epoch;
@@ -690,7 +782,20 @@ int main(int argc, char* argv[]) {
     unsigned my_port = p2p::DEFAULT_PORT;
 
     // parse arguments
-    if (argc > 1) my_port = (unsigned)atoi(argv[1]);
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--k-entries") == 0 && i + 1 < argc) {
+            const long v = std::atol(argv[i + 1]);
+            if (v < 1 || v > 65536) {
+                std::printf("--k-entries must be in 1..65536 (got %s)\n", argv[i + 1]);
+                return 1;
+            }
+            g_k_entries = (unsigned)v;
+            ++i;
+        }
+    }
+    if (argc > 1 && argv[1][0] != '-') my_port = (unsigned)atoi(argv[1]);
+    if (g_k_entries != K_ENTRIES)
+        std::printf("[fold] production k wired: %u entries/epoch (DEF-400)\n", g_k_entries);
 
     // Phase 6.17 v2 s3: loud, honest disclosure when the testnet CPU-fold
     // band is active — every operator must see that the 6.16 GPU gate is
@@ -790,17 +895,27 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     {
     }
     
-    // the initial accumulator: fresh with d0->d1
-    auto d1 = next_digest(d0, 0);
-    digest_chain.push_back(d1);
-    auto z = build_witness(d0, d1);
-    accumulator = mfold::fresh(z, fcirc::NROWS);
+    // the initial accumulator: fresh with d0->d1 under the PROVEN law
+    // (genesis pt from (epoch 0, idx 0); d1 = P3(FOLD, d0, pt0))
+    {
+        const auto t0g = entry_terms(0, 0);
+        const fp::fe pt0 = entry_pt(t0g);
+        const fp::fe d0fe = fp::fe_from_canonical_limbs(d0);
+        digest_chain_fe.push_back(d0fe);
+        const fp::fe d1 = chain_step(d0fe, pt0);
+        chain_push(d1);
+        auto z = build_witness_fe(d0fe, d1, pt0);
+        accumulator = mfold::fresh(z, fcirc::NROWS);
+        // DEF-401: the NIVC epoch machine opens here (PC: HEAD -> EXEC)
+        nivc::fold_head(g_acc, d0fe, g_epoch_droot);
+        g_entry_seq = 1;
+    }
     
     decree_count = 0;
     
     std::printf("═══════════════════════════════════════\n");
     std::printf("  HSMA EPOCH NODE — P2-02\n");
-    std::printf("  port: %u | k_entries: %u | epoch: %u\n", my_port, K_ENTRIES, current_epoch);
+    std::printf("  port: %u | k_entries: %u | epoch: %u\n", my_port, g_k_entries, current_epoch);
     std::printf("═══════════════════════════════════════\n");
     
     // create the listening socket
@@ -859,23 +974,29 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         }
     }
     
-    // generate local decree entries to fill the epoch
-    std::printf("[node] generating %u local decree entries...\n", K_ENTRIES);
-    for (unsigned i = 0; i < K_ENTRIES; ++i) {
-        auto dprev = digest_chain.back();
-        auto dnew = next_digest(dprev, decree_count + current_epoch * K_ENTRIES);
-        digest_chain.push_back(dnew);
+    // generate local decree entries to fill the epoch (the PROVEN law)
+    std::printf("[node] generating %u local decree entries...\n", g_k_entries);
+    for (unsigned i = 1; i <= g_k_entries; ++i) {   // genesis + k locals = the original count semantics
+        const fp::fe dprev = digest_chain_fe.back();
+        const auto terms = entry_terms(current_epoch, g_entry_seq++);
+        const fp::fe pt = entry_pt(terms);
+        const fp::fe dnew = chain_step(dprev, pt);
+        chain_push(dnew);
         
-        auto z = build_witness(dprev, dnew);
+        auto z = build_witness_fe(dprev, dnew, pt);
         mfold::Relaxed Ji = mfold::fresh(z, fcirc::NROWS);
         if (mfold::sat_relaxed(A, B, C, Ji) != fcirc::NROWS) {
             std::printf("[fold] local decree %u UNSAT\n", i);
+            --g_entry_seq;
             continue;
         }
         
         mfold::MultifoldResult M = mfold::multifold(A, B, C, accumulator, {Ji});
         accumulator = M.folded;
         ++decree_count;
+        // the NIVC exec absorption rides every fold
+        g_acc.digest = poseidon3(dom::Dom::HSM_FOLD_v1, g_acc.digest, pt);
+        ++g_acc.count;
     }
     
     // produce the π_E
@@ -902,21 +1023,14 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     
     run_epoch_pouw(); // P2-08: shared - main + handle_decree
 
-    // gossip the epoch header
-    p2p::Message hdr{};
-    hdr.type = p2p::EPOCH_HEADER;
-    p2p::put_u32(hdr.payload, current_epoch);
-    fp::fe dcanon = fp::fe_to_canonical(accumulator.z[0]);
-    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)dcanon.l[k]);
-    p2p::put_u32(hdr.payload, 1600);
-    p2p::put_u32(hdr.payload, pouw_inner);   // P2-07: the weight rides the header
-    p2p::put_u64(hdr.payload, pouw_weight);
-    fp::fe ocanon = fp::fe_to_canonical(P.v);
-    for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
-    for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
+    // DEF-401: the genesis epoch seals through the NIVC close
+    nivc::fold_close(g_acc);
+    // DEF-403: the ONE shared header builder (measured size)
+    gossip_epoch_header(P);
     
-    for (int fd : peer_fds) p2p::send_message(fd, hdr);
-    std::printf("[gossip] epoch header sent to %zu peers\n", peer_fds.size());
+    // the next epoch opens on the closed digest
+    nivc::fold_head(g_acc, g_acc.digest, g_epoch_droot);
+    g_entry_seq = 0;
     
     std::printf("\n═══════════════════════════════════════\n");
     std::printf("  EPOCH %u COMPLETE — π_E PRODUCED\n", current_epoch);
@@ -930,13 +1044,15 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     explorer::NodeState ns;
     g_ns_shared.epoch = current_epoch;
     g_ns_shared.decree_count = decree_count;
-    g_ns_shared.k_entries = K_ENTRIES;
-    {   fp::fe dc = fp::fe_to_canonical(accumulator.z[0]);
+    g_ns_shared.k_entries = g_k_entries;   // DEF-400: the wired k
+    {   // DEF-401: the explorer shows the REAL NIVC accumulator tip
+        fp::fe dc = fp::fe_to_canonical(g_acc.digest);
         char hex[128]; hex[0] = 0;
         for (int k = 3; k >= 0; --k) { char tmp[20]; snprintf(tmp, sizeof(tmp), "%016llx", (unsigned long long)dc.l[k]); strcat(hex, tmp); }
         g_ns_shared.state_root_hex = hex; }   // P5-C: the missed write (DEF-247 final)
     g_ns_shared.pi_e_status = ok ? "ACCEPT" : "PENDING";
-    g_ns_shared.pi_e_size = 1600;
+    // DEF-403: pi_e_size is MEASURED (set by gossip_epoch_header); the
+    // startup path lands here with the genesis epoch's real size.
     g_ns_shared.total_rows = (unsigned)A.row.size();   // P5-C: the missed write
     g_ns_shared.total_vars = (unsigned)(fcirc::NZ * (decree_count + 1));  // vars scale with entries
     g_ns_shared.port = my_port;
@@ -988,15 +1104,15 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         static unsigned epoch_pulse_timer = 0;
         if (++epoch_pulse_timer >= 60) {
             epoch_pulse_timer = 0;
-            if (decree_count < K_ENTRIES) {
+            if (decree_count < g_k_entries) {
                 std::printf("[epoch-pulse] injecting synthetic decree %u/%u\n",
-                    decree_count + 1, K_ENTRIES);
+                    decree_count + 1, g_k_entries);
                 std::vector<std::uint8_t> pl(64, 0);
                 const auto& db = digest_chain.back();
                 for (int k = 0; k < 4; ++k)
                     for (int b = 0; b < 8; ++b)
                         pl[k*8 + b] = (std::uint8_t)(db[k] >> (8*b));
-                pl[32] = (std::uint8_t)(decree_count + current_epoch * K_ENTRIES);
+                pl[32] = (std::uint8_t)(decree_count + current_epoch * g_k_entries);
                 handle_decree(pl);   // the proven wire path: fold + completion
             }
         }
@@ -1755,8 +1871,8 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             auto D_j = threshold::m2::dec_share(s_canon, de.R);
                             g_dec_shares.push_back(m2env::pt_to_bytes(D_j));
                             g_mempool.push_back(std::move(entry));
-                            std::printf("[mempool] envelope %zu stored (ct=%zu bytes)\n",
-                                g_mempool.size(), de.ct.size());
+                            std::printf("[mempool] envelope %zu/%u stored (ct=%zu bytes)\n",
+                                g_mempool.size(), g_k_entries, de.ct.size());
                             // DEF-391 (CA-R372c): the own share is COMPUTED here
                             // (stored in g_dec_shares) but PUBLISHED only after the
                             // attested lock - the whitepaper ceremony is Lock, THEN
@@ -1765,7 +1881,7 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                             // decrypt before the ordering is attested.
                             if (g_mempool.size() == 1) g_pool_epoch = current_epoch;
                             // the ordering ceremony: when we have 3 envelopes
-                            if (g_mempool.size() >= (std::size_t)K_ENTRIES && !g_order_committed) {
+                            if (g_mempool.size() >= (std::size_t)g_k_entries && !g_order_committed) {
                                 // DEF-390 (CA-R372b): the REAL threshold beacon
                                 // (DEC-200: threshold::beacon is the sole producer).
                                 // The old sort-key entropy was sha256d("beacon_p4") -

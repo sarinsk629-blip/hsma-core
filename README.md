@@ -149,18 +149,20 @@ Ordering committed BEFORE decryption
 
 ### 📐 Pillar 4: Holographic State Folding
 
-**The entire epoch history compresses into 1,600 bytes.**
+**The production epoch folds inside the window — measured, not estimated.**
 
 ```
-41-byte accumulator (O(1) in tx count)
-π_E = 1,600 bytes (2.2% of budget)
-verifiable WITHOUT the witness
-118 ms on ARM64 (phone-class)
+141,002-row entry circuit (measured from the COO)
+k=476 production epoch folded in 117.4 s (5.1× headroom)
+π_E = 5,488 B tau-free wire · verifies in 2.2 ms
+k=1024 in 250 s — per-fold FLAT at 244 ms (linear)
 ```
 
-- HyperNova NIVC over the Pasta 2-cycle
-- The 41-byte accumulator: O(1) in entries
-- Cross-epoch chaining: 3 epochs, 9 steps, ALL SAT
+- HyperNova NIVC over the Pasta 2-cycle — the 41-byte O(1) accumulator governs the live epoch (head → exec×k → close)
+- multifold_v2: the sha256-byte transcript law — 25× the v1 transport at production width; co-exists with the golden-pinned v1 (both SAT, different r streams)
+- The node runs the PROVEN digest chain (P3(HSM_PT_v1) → P3(HSM_FOLD_v1)) — library-exact, light-client compatible
+- WHIR wrap: butterfly ood (bit-identical to the teacher), tau-free wire form, O(nv)-succinct verifier
+- CycleFold measured at depth: 749 µs/absorption × 476 = 357 ms
 - Light client: one pairing per header
 
 </td>

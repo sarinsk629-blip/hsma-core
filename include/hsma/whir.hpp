@@ -70,11 +70,29 @@ inline std::vector<fp::fe> eq_table(const std::vector<fp::fe>& tau) noexcept {
     }
     return e;
 }
+// DEF-406: the PRODUCTION evaluation path. The eq_table materialization
+// (2^nv fe, allocated once per OOD point) is the golden-scale teacher; the
+// butterfly below computes the IDENTICAL field element with O(1) extra
+// memory and ~1.5x fewer multiplications - fold f pairwise per level with
+// the SAME orientation as the teacher: the teacher's level i uses
+// tau[nv-1-i] while BUILDING UP, which lands tau[b] on index bit b (the
+// eq_point law confirms: factor_b uses tau[b]); the butterfly folds bit b
+// (the LSB first) with tau[b].
+// BIT-IDENTITY: field ops are EXACT (DEC-090; no floats cross the numeric
+// core), and both forms evaluate the same multilinear sum - the golden
+// (EP_OOD) pins the value, not the operation order.
 inline fp::fe ood_eval(const std::vector<fp::fe>& f, const std::vector<fp::fe>& tau) noexcept {
-    const std::vector<fp::fe> e = eq_table(tau);   // size == f.size() by construction
-    fp::fe acc = fp::fe_zero();
-    for (std::size_t i = 0; i < f.size(); ++i) acc = fp::fe_add(acc, fp::fe_mul(e[i], f[i]));
-    return acc;
+    std::vector<fp::fe> g(f);                      // the working fold
+    const unsigned nv = (unsigned)tau.size();
+    for (unsigned i = 0; i < nv; ++i) {
+        const std::size_t h = g.size() / 2;
+        const fp::fe t   = tau[i];                 // bit i <-> tau[i] (the teacher's landing)
+        const fp::fe omr = fp::fe_sub(fp::fe_one(), t);
+        for (std::size_t j = 0; j < h; ++j)
+            g[j] = fp::fe_add(fp::fe_mul(g[2*j], omr), fp::fe_mul(g[2*j + 1], t));
+        g.resize(h);
+    }
+    return g.empty() ? fp::fe_zero() : g[0];
 }
 // eq(tau, r): the O(nv) point-evaluation of the eq MLE
 inline fp::fe eq_point(const std::vector<fp::fe>& tau, const std::vector<fp::fe>& r) noexcept {
@@ -90,9 +108,92 @@ inline fp::fe eq_point(const std::vector<fp::fe>& tau, const std::vector<fp::fe>
 struct Proof {
     fp::fe C{}, ood_commit{}, C2{}, v{}, fb_true{};
     pcs::Opening T1{}, T2{};
-    std::vector<std::vector<fp::fe>> tau;          // K_OOD x nv
+    std::vector<std::vector<fp::fe>> tau;          // K_OOD x nv (PROVER-side scratch)
     std::array<fp::fe, K_OOD> ood{};
 };
+
+// ---- DEF-404: the WIRE form ---------------------------------------------
+// The Proof struct carries tau (K_OOD x nv field elements) but the VERIFIER
+// re-derives tau from C (wrap_verify stages 1/5 recompute it from the
+// label law) - tau on the wire is pure redundancy: 8 x nv x 32 bytes, e.g.
+// 5,120 wasted bytes at production nv=20. The wire form omits it.
+//   wire: C | ood_commit | C2 | v | fb_true | T1 | T2 | ood[8]
+//   (tau is RECOMPUTED at decode; the decoded Proof verifies identically)
+inline std::size_t opening_wire_size(const pcs::Opening& O) noexcept {
+    std::size_t s = 4 + 4;                          // nv, d
+    s += (O.nv + 1) * 32;                           // claims
+    s += O.nv * 3 * 32;                             // per-round evals
+    s += 32 + 32;                                   // fa, fb
+    return s;
+}
+inline std::size_t wire_size(const Proof& P) noexcept {
+    return 5 * 32                                   // C, ood_commit, C2, v, fb_true
+         + opening_wire_size(P.T1) + opening_wire_size(P.T2)
+         + K_OOD * 32;                              // ood claims (tau OMITTED)
+}
+inline void _put_fe(std::vector<std::uint8_t>& w, const fp::fe& x) {
+    std::byte b[32]; fp::fe_to_le_bytes(x, b);
+    const auto* p = reinterpret_cast<const std::uint8_t*>(b);
+    w.insert(w.end(), p, p + 32);
+}
+inline bool _get_fe(const std::uint8_t* d, std::size_t n, std::size_t& o, fp::fe& x) {
+    if (o + 32 > n) return false;
+    std::byte b[32];
+    std::memcpy(b, d + o, 32); o += 32;
+    const auto r = fp::fe_from_le_bytes(b);        // DEC-105: non-canonical rejected
+    if (!r.ok) return false;
+    x = r.value; return true;
+}
+inline void _put_opening(std::vector<std::uint8_t>& w, const pcs::Opening& O) {
+    const auto put4 = [&](unsigned v) { for (int i = 0; i < 4; ++i) w.push_back(std::uint8_t(v >> (8 * i))); };
+    put4(O.nv); put4(O.d);
+    for (const auto& c : O.claims) _put_fe(w, c);
+    for (const auto& e : O.evals) for (unsigned t = 0; t < 3; ++t) _put_fe(w, e[t]);
+    _put_fe(w, O.fa); _put_fe(w, O.fb);
+}
+inline bool _get_opening(const std::uint8_t* d, std::size_t n, std::size_t& o, pcs::Opening& O) {
+    const auto get4 = [&](unsigned& v) -> bool {
+        if (o + 4 > n) return false;
+        v = 0; for (int i = 0; i < 4; ++i) v |= (unsigned)d[o + i] << (8 * i); o += 4; return true;
+    };
+    if (!get4(O.nv) || !get4(O.d)) return false;
+    O.claims.resize(O.nv + 1);
+    for (auto& c : O.claims) if (!_get_fe(d, n, o, c)) return false;
+    O.evals.resize(O.nv);
+    for (auto& e : O.evals) for (unsigned t = 0; t < 3; ++t) if (!_get_fe(d, n, o, e[t])) return false;
+    if (!_get_fe(d, n, o, O.fa) || !_get_fe(d, n, o, O.fb)) return false;
+    return true;
+}
+inline std::vector<std::uint8_t> wire_encode(const Proof& P) {
+    std::vector<std::uint8_t> w;
+    w.reserve(wire_size(P));
+    _put_fe(w, P.C); _put_fe(w, P.ood_commit); _put_fe(w, P.C2);
+    _put_fe(w, P.v); _put_fe(w, P.fb_true);
+    _put_opening(w, P.T1); _put_opening(w, P.T2);
+    for (unsigned j = 0; j < K_OOD; ++j) _put_fe(w, P.ood[j]);
+    return w;
+}
+inline bool wire_decode(const std::uint8_t* d, std::size_t n, Proof& P) {
+    std::size_t o = 0;
+    if (!_get_fe(d, n, o, P.C) || !_get_fe(d, n, o, P.ood_commit) ||
+        !_get_fe(d, n, o, P.C2) || !_get_fe(d, n, o, P.v) || !_get_fe(d, n, o, P.fb_true))
+        return false;
+    if (!_get_opening(d, n, o, P.T1) || !_get_opening(d, n, o, P.T2)) return false;
+    for (unsigned j = 0; j < K_OOD; ++j) if (!_get_fe(d, n, o, P.ood[j])) return false;
+    if (o != n) return false;                       // exact-length law
+    // tau is RECOMPUTED from C (the verifier's law) - never transported
+    std::byte cb[32]; fp::fe_to_le_bytes(P.C, cb);
+    const unsigned nv = P.T1.nv;
+    P.tau.assign(K_OOD, {});
+    for (unsigned j = 0; j < K_OOD; ++j)
+        for (unsigned wd = 0; wd < nv; ++wd) {
+            char lab[48];
+            std::snprintf(lab, sizeof(lab), "HSMA_WHIR_TAU|%u|%u", j, wd);
+            std::uint8_t dg[32]; sha_cat(lab, cb, dg);
+            P.tau[j].push_back(digest_scalar(dg));
+        }
+    return true;
+}
 
 inline Proof wrap_open(const std::vector<fp::fe>& evals) noexcept {
     const unsigned nv = evals.empty() ? 0u

@@ -85,3 +85,23 @@ live counts: `grep -c '^## ' docs/DECISIONS.md`
 | P2-P13 | Verification gate (clean build + presence asserts + DEC-090 lint + ctest) | `./scripts/gate.sh` | GATE GREEN |
 
 **Defects owned this package:** DEF-389 (4-slot order freeze) · DEF-390 (constant beacon) · DEF-391 (shares pre-lock, unsigned lock) · DEF-392 (u64 quorum math) · DEF-393 (no vote freshness) · DEF-394 (O(n) pairing scan) · DEF-395 (port identity) · DEF-396 (unbounded sampler) · DEF-397 (limiter leak) · DEF-398 (one-shot ceremony) · DEF-399 (non-canonical root lift) — laws CA-R372a..k.
+
+## P4 production package (Pillar 4: Folding) — evidence
+
+| # | Evidence | Command | Result |
+|---|----------|---------|--------|
+| P4-P1 | The production entry circuit measured from the COO matrices: 141,002 rows / 151,469 vars, SAT | `./build/test_step67` | exact-count + SAT — PASS |
+| P4-P2 | DEF-407: the audit-corrected monolith at k=476 = 67,116,952 rows (SMT priced at the FULL perm) | `./build/test_step67` | measured arithmetic — PASS |
+| P4-P3 | DEF-405: the production epoch FOLDED at k=476 under multifold_v2 — 117.4 s total, 246.7 ms/fold, 5.1× window headroom | `./build/test_step67` | 5 SAT milestones — PASS |
+| P4-P4 | DEF-405: the accumulator O(1) — wire count constant across all 476 folds | `./build/test_step67` | 151,469 wires, constant — PASS |
+| P4-P5 | The production π_E at nv=19: wrap_open 55 s, wrap_verify 2.2 ms, ACCEPT | `./build/test_step67` | stage 0 — PASS |
+| P4-P6 | DEF-404: the tau-free wire form — 5,488 B measured; decode roundtrip verifies; truncated wire rejected; tampered wire rejected | `./build/test_step67` | 4 checks — PASS |
+| P4-P7 | DEF-406: the butterfly ood_eval bit-identical to the eq_table teacher; the full golden suite green after the refactor | `./build/test_step67` + `ctest` | bit-identity + 44/44 — PASS |
+| P4-P8 | CycleFold at production depth: 476 absorptions in 357 ms (749 µs each), final point on-curve affine | `./build/test_step67` | measured — PASS |
+| P4-P9 | v1/v2 co-existence: both transcript laws SAT on the same instances; r streams differ | `./build/test_step67` | 3 checks — PASS |
+| P4-P10 | DEF-401: the NIVC lifecycle at k=476 — head→exec×476→close, digest = P3(FOLD, exec, count) recomputed | `./build/test_step67` | 2 checks — PASS |
+| P4-P11 | DEF-400: the LIVE node folds the production epoch — `--k-entries 476` verified on the node binary | `./epoch_node 31998 --k-entries 476` | 476 entries folded, wrap ACCEPT, wire size measured — PASS |
+| P4-P12 | The headroom receipt: k=1024 (144,386,048-row monolith) folds in 250.1 s, per-fold FLAT (244.3 ms), O(1) accumulator | `tools/p4scale` | ALL PASS |
+| P4-P13 | Full suite after the 8-defect fix package | `ctest` | 44/44 |
+
+**Defects owned this package:** DEF-400 (frozen k) · DEF-401 (dead digest wire) · DEF-402 (XOR chain) · DEF-403 (π_E size literal) · DEF-404 (tau on the wire) · DEF-405 (v1 transcript tax) · DEF-406 (eq-table churn) · DEF-407 (under-priced SMT count) — laws CA-R373a..h.
