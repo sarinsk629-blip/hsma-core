@@ -105,3 +105,21 @@ live counts: `grep -c '^## ' docs/DECISIONS.md`
 | P4-P13 | Full suite after the 8-defect fix package | `ctest` | 44/44 |
 
 **Defects owned this package:** DEF-400 (frozen k) · DEF-401 (dead digest wire) · DEF-402 (XOR chain) · DEF-403 (π_E size literal) · DEF-404 (tau on the wire) · DEF-405 (v1 transcript tax) · DEF-406 (eq-table churn) · DEF-407 (under-priced SMT count) — laws CA-R373a..h.
+
+## P5 production package (the dual-layer integration) — evidence
+
+| # | Evidence | Command | Result |
+|---|----------|---------|--------|
+| P5-P1 | GAP-08 codec: Pasta 32-B + BLS 48-B roundtrips, parity laws, non-canonical/non-residue rejection, infinity — all three fields | `./build/test_step68` (P0) | ALL PASS |
+| P5-P2 | DEF-409: the live committed fold at node shape — 64 entries, the rho label + commit + advance + binding self-check after EVERY fold | `./build/test_step68` (P1) | 64/64 self-checks |
+| P5-P3 | GAP-13: the INDEPENDENT AUDITOR recomputes the whole chain from public data — W and rho BIT-IDENTICAL to the node's | `./build/test_step68` (P2) | bit-exact |
+| P5-P4 | DEF-409: the header v2 (916 B) — recommit(z', rho') == W' and C_piE == Sponge(z'||E'||u); tampered W'/rho'/z' rejected; truncated/non-canonical rejected | `./build/test_step68` (P3) | dual binding + negatives |
+| P5-P5 | DEF-408: v1/v2 co-existence pinned — both SAT, r streams differ, the live path runs v2 | `./build/test_step68` (P5) | co-existence |
+| P5-P6 | THE LIVE RECEIPT: node A folds + gossips the 916-B v2 header; node B independently verifies the commitment binding over the wire | two-node run | `commitment binding AGREES` |
+| P5-P7 | H5 code half: f_exec spec-vs-ship ROW-EXACT (8 rows × 3 matrices from the spec equations) | `./build/test_step69` (P0) | row-exact |
+| P5-P8 | H5: the count law 8 + 1,088 + 2×(64×1,093+1) = 141,002 AND the built gadget's own 1,088-row receipt | `./build/test_step69` (P2) | static_assert + build |
+| P5-P9 | H5: the π_E wire law 256·nv + 624 at nv ∈ {0,1,2,5,8}; the transparent bases; the rho labels; the NIVC lifecycle laws | `./build/test_step69` (P3..P6) | ALL PASS |
+| P5-P10 | Full suite after the P5 package | `ctest` | 46/46 |
+
+**Defects owned this package:** DEF-408 (v1 transcript at the live path) · DEF-409 (the dual-layer integration debt) — laws CA-R374a..f.
+**Gaps closed this package:** GAP-05 (live integration tier) · GAP-08 (transport) · GAP-09 (code half) · GAP-13 (first differential receipt).

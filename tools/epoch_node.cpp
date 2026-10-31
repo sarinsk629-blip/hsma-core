@@ -11,6 +11,7 @@
 #include <hsma/nivc.hpp>
 #include <hsma/fexec_circuit.hpp>
 #include <hsma/whir.hpp>
+#include <hsma/cfold_live.hpp>   // P5: the dual-layer commitment chain (DEC-408)
 #include <hsma/explorer.hpp>
 #include <hsma/verifier.hpp>   // Phase 6.17 v2 s2: the rotating epoch-verifier
 #include <hsma/pouw.hpp>
@@ -67,6 +68,10 @@ static unsigned g_k_entries = K_ENTRIES;
 // the SMT-gated fold_step (real accounts) lands with the fleet integration;
 // the node runs the f_head/exec-absorption/f_close chain verbatim.
 static nivc::Accumulator g_acc{};
+// P5 (DEF-408/409): the dual-layer commitment chain — the running committed
+// instance over the fold state. Advances with the SAME r the v2 transcript
+// produces; self-checked after every fold; published (compressed) on the header.
+static cflive::LiveW g_cw{};
 static unsigned g_entry_seq = 0;             // the per-epoch entry index
 static fp::fe g_epoch_droot = fp::fe_zero(); // testnet: no decree SMT yet (honest)
 
@@ -675,10 +680,29 @@ static void gossip_epoch_header(const whir::Proof& P) {
     fp::fe ocanon = fp::fe_to_canonical(P.v);
     for (int k = 0; k < 4; ++k) p2p::put_u32(hdr.payload, (std::uint32_t)ocanon.l[k]);
     for (int k = 0; k < 4; ++k) g_hash[k] = (std::uint32_t)ocanon.l[k]; // P2-10a: store
+    // P5 (DEF-409): the v2 header tail - the dual-layer binding, measured:
+    // W'(32, compressed Vesta) + rho'(32) + z'(16x32) + E'(8x32) + u(32)
+    // = 864 B on top of the legacy 52 B = 916 B payload. The verifier's three
+    // public checks (recommit / C-link / W-chain continuity) ride on it.
+    std::uint8_t wb[32];
+    if (!cflive::W_put(g_cw.W, wb)) { std::printf("[gossip] W compress FAILED\n"); return; }
+    for (int i = 0; i < 32; ++i) hdr.payload.push_back(wb[i]);
+    std::uint64_t cr4[4];
+    cflive::rho_to_limbs(g_cw.rho, cr4);
+    for (int k = 0; k < 4; ++k)
+        for (int b = 0; b < 8; ++b)
+            hdr.payload.push_back((std::uint8_t)(cr4[k] >> (8 * b)));
+    auto put_fe32 = [&hdr](const fp::fe& v) {
+        std::byte b[32]; fp::fe_to_le_bytes(v, b);
+        for (int i = 0; i < 32; ++i) hdr.payload.push_back(std::to_integer<std::uint8_t>(b[i]));
+    };
+    for (const auto& v : accumulator.z) put_fe32(v);
+    for (const auto& e : accumulator.E) put_fe32(e);
+    put_fe32(accumulator.u);
     g_ns_shared.pi_e_size = (unsigned)wire.size();           // the explorer too
     for (int fd : peer_fds) p2p::send_message(fd, hdr);
-    std::printf("[gossip] epoch %u header sent to %zu peers (pi_E wire %zu B)\n",
-        current_epoch, peer_fds.size(), wire.size());
+    std::printf("[gossip] epoch %u header sent to %zu peers (pi_E wire %zu B, header v2 %zu B, binding W'+rho'+z'+E'+u)\n",
+        current_epoch, peer_fds.size(), wire.size(), hdr.payload.size());
 }
 
 static void handle_decree(const std::vector<std::uint8_t>& payload) {
@@ -699,7 +723,8 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
     
     // witness: the (amount, fee, nonce) terms are a pure function of
     // (epoch, idx); the pt binding and the chain link are library-exact.
-    const auto terms = entry_terms(current_epoch, g_entry_seq++);
+    const unsigned entry_idx = g_entry_seq++;
+    const auto terms = entry_terms(current_epoch, entry_idx);
     const fp::fe pt = entry_pt(terms);
     auto z = build_witness_fe(dprev, dnew, pt);
     
@@ -712,8 +737,29 @@ static void handle_decree(const std::vector<std::uint8_t>& payload) {
         return;
     }
     
-    mfold::MultifoldResult M = mfold::multifold(A, B, C, accumulator, {Ji});
+    // P5 (DEC-408): the dual-layer commitment - rho labeled to the entry,
+    // W_j committed over the FULL z, advanced by the SAME r the transcript
+    // produces, self-checked after the fold (fail-fast, DEF-409's law).
+    std::uint64_t rho4[4];
+    if (!cflive::rho_label(current_epoch, entry_idx, dnew, rho4)) {
+        std::printf("[cfold] rho label REJECTED - skipping\n");
+        digest_chain_fe.pop_back(); digest_chain.pop_back(); --g_entry_seq;
+        return;
+    }
+    std::array<std::uint64_t, 4> rhoa{};
+    for (int k = 0; k < 4; ++k) rhoa[k] = rho4[k];
+    const fp::fe rho_m = fp::fe_from_canonical_limbs(rhoa);
+    const g2v::PtV W_j = cflive::commit_z(z, rho4);
+    
+    // DEF-408: the node folds under the PRODUCTION transcript law (v2) - the
+    // v1 call was the golden-scale shape; the live path runs v2 exclusively.
+    mfold::MultifoldResult2 M = mfold::multifold_v2(A, B, C, accumulator, {Ji});
     accumulator = M.folded;
+    cflive::advance(g_cw, W_j, rho_m, M.r[0]);
+    if (!cflive::self_check(accumulator.z, g_cw.rho, g_cw.W)) {
+        std::printf("[cfold] COMMITMENT INCONSISTENT - the fold is rejected\n");
+        return;                    // fail-fast: never gossip a broken chain
+    }
     ++decree_count;
     
     // DEF-401: the NIVC exec absorption - the same law fold::f_exec applies
@@ -906,6 +952,10 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
         chain_push(d1);
         auto z = build_witness_fe(d0fe, d1, pt0);
         accumulator = mfold::fresh(z, fcirc::NROWS);
+        // P5 (DEC-408): the committed accumulator opens at genesis
+        // (rho = the init label; deterministic network-wide).
+        g_cw = cflive::init_live(z, current_epoch);
+        std::printf("[cfold] committed accumulator opened at genesis (W over %u coords)\n", cflive::NZ_LIVE);
         // DEF-401: the NIVC epoch machine opens here (PC: HEAD -> EXEC)
         nivc::fold_head(g_acc, d0fe, g_epoch_droot);
         g_entry_seq = 1;
@@ -978,7 +1028,8 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
     std::printf("[node] generating %u local decree entries...\n", g_k_entries);
     for (unsigned i = 1; i <= g_k_entries; ++i) {   // genesis + k locals = the original count semantics
         const fp::fe dprev = digest_chain_fe.back();
-        const auto terms = entry_terms(current_epoch, g_entry_seq++);
+        const unsigned entry_idx = g_entry_seq++;
+        const auto terms = entry_terms(current_epoch, entry_idx);
         const fp::fe pt = entry_pt(terms);
         const fp::fe dnew = chain_step(dprev, pt);
         chain_push(dnew);
@@ -991,8 +1042,25 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
             continue;
         }
         
-        mfold::MultifoldResult M = mfold::multifold(A, B, C, accumulator, {Ji});
+        std::uint64_t rho4[4];
+        if (!cflive::rho_label(current_epoch, entry_idx, dnew, rho4)) {
+            std::printf("[cfold] local rho label REJECTED\n");
+            --g_entry_seq;
+            continue;
+        }
+        std::array<std::uint64_t, 4> rhoa{};
+        for (int k = 0; k < 4; ++k) rhoa[k] = rho4[k];
+        const fp::fe rho_m = fp::fe_from_canonical_limbs(rhoa);
+        const g2v::PtV W_j = cflive::commit_z(z, rho4);
+        
+        // DEF-408: the production transcript law (v2) at the live path
+        mfold::MultifoldResult2 M = mfold::multifold_v2(A, B, C, accumulator, {Ji});
         accumulator = M.folded;
+        cflive::advance(g_cw, W_j, rho_m, M.r[0]);
+        if (!cflive::self_check(accumulator.z, g_cw.rho, g_cw.W)) {
+            std::printf("[cfold] COMMITMENT INCONSISTENT at genesis - aborting\n");
+            return 1;
+        }
         ++decree_count;
         // the NIVC exec absorption rides every fold
         g_acc.digest = poseidon3(dom::Dom::HSM_FOLD_v1, g_acc.digest, pt);
@@ -1953,9 +2021,48 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
 
                         // P2-07 (DEC-253): weight consensus by deterministic recomputation.
                         // Pointer accessors - DEFECT-167's second finding, fixed.
+                        bool hdr_v2_ok = true;
                         if (msg.payload.size() >= 52) {
                             const std::uint8_t* pl = msg.payload.data();
                             const std::size_t pln = msg.payload.size();
+                            // P5 (DEF-409): when the v2 dual-layer tail is present
+                            // (payload >= 916), the receiver ALSO runs the GROUP
+                            // binding: recommit(z', rho') == W'. A bad binding is
+                            // DROPPED (never re-gossiped). The legacy 52-B checks
+                            // (weight/digest agreement) run for BOTH header forms.
+                            if (msg.payload.size() >= 916) {
+                                std::uint8_t wb[32];
+                                for (int i = 0; i < 32; ++i) wb[i] = pl[52 + i];
+                                g2v::PtV Wp{};
+                                if (!cflive::W_get(wb, Wp)) {
+                                    std::printf("[state] v2 header: W decompress FAILED - dropped\n");
+                                    hdr_v2_ok = false;
+                                } else {
+                                    std::uint64_t rho4[4] = {0, 0, 0, 0};
+                                    for (int k = 0; k < 4; ++k)
+                                        for (int b = 0; b < 8; ++b)
+                                            rho4[k] |= (std::uint64_t)pl[84 + 8 * k + b] << (8 * b);
+                                    std::vector<fp::fe> z16;
+                                    bool parsok = true;
+                                    for (unsigned i2 = 0; i2 < cflive::NZ_LIVE && parsok; ++i2) {
+                                        std::byte b[32];
+                                        for (int i3 = 0; i3 < 32; ++i3)
+                                            b[i3] = std::byte(pl[116 + 32 * i2 + i3]);
+                                        const auto r2 = fp::fe_from_le_bytes(b);
+                                        if (!r2.ok) { parsok = false; break; }
+                                        z16.push_back(r2.value);
+                                    }
+                                    if (!parsok || z16.size() != cflive::NZ_LIVE) {
+                                        std::printf("[state] v2 header: z' parse FAILED - dropped\n");
+                                        hdr_v2_ok = false;
+                                    } else if (cflive::verify_recommit(z16, rho4, Wp)) {
+                                        std::printf("[state] v2 header: commitment binding AGREES\n");
+                                    } else {
+                                        std::printf("[state] v2 header: commitment binding BAD - dropped\n");
+                                        hdr_v2_ok = false;
+                                    }
+                                }
+                            }
                             // DEFECT-184 (v2): the DERIVED layout - epoch@0(4)
                             // digest@4(4xu32=16) size@20(4) inner@24(4) weight@28(8)
                             // hash@36(4xu32=16) = 52B total (X1/X2/FR receipts).
@@ -2006,10 +2113,11 @@ if (!hsma::threshold::vss::deal(g_dkg_T, /*epoch=*/0, /*n=*/g_cfg_n, /*t=*/g_cfg
                                         peer_epoch, g_hash[0], g_hash[1], g_hash[2], g_hash[3], p0, p1, p2_, p3);
                             }
                         }
-                        // re-gossip to other peers
+                        // re-gossip to other peers (v2 headers only when the
+                        // group binding AGREES - a broken chain never propagates)
 if (seen_or_add(msg.payload))
     std::printf("[gossip] duplicate epoch header - re-gossip suppressed\n");
-else
+else if (hdr_v2_ok)
                         for (std::size_t j = 0; j < peer_fds.size(); ++j) {
                             if (j != i) p2p::send_message(peer_fds[j], msg);
                         }

@@ -7,8 +7,8 @@
 [![HSMA Gate](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml/badge.svg)](https://github.com/sarinsk629-blip/hsma-core/actions/workflows/gate.yml)
 [![Gate](https://img.shields.io/badge/gate-34%2F34_GREEN-brightgreen?style=for-the-badge)](https://github.com/sarinsk629-blip/hsma-core)
 [![Decisions](https://img.shields.io/badge/decisions-288-blue?style=for-the-badge)](docs/DECISIONS.md)
-[![Defects Owned](https://img.shields.io/badge/defects_owned-109-red?style=for-the-badge)](docs/DECISIONS.md)
-[![Laws](https://img.shields.io/badge/laws-317-orange?style=for-the-badge)](docs/DECISIONS.md)
+[![Defects Owned](https://img.shields.io/badge/defects_owned-111-red?style=for-the-badge)](docs/DECISIONS.md)
+[![Laws](https://img.shields.io/badge/laws-320-orange?style=for-the-badge)](docs/DECISIONS.md)
 [![Headers](https://img.shields.io/badge/headers-41-blueviolet?style=for-the-badge)]
 [![π_E](https://img.shields.io/badge/π_E-5,488B_tau_free_measured-brightgreen?style=for-the-badge)]
 [![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)]
@@ -18,7 +18,7 @@ the mempool is cryptographically unreadable before ordering,
 and entire epochs compress into a 5,488-byte recursive proof —
 1.9 KB at testnet scale, logarithmic in state width, 2.2 ms to verify.**
 
-**Built by one person. 109 defects owned. Zero hiding.**
+**Built by one person. 111 defects owned. Zero hiding.**
 
 [📄 Whitepaper PDF](https://github.com/sarinsk629-blip/hsma-core/releases/download/v4.0-whitepaper/Whitepaper_HSMA___Core_Ultimate.pdf) •
 [📝 LaTeX Source](docs/whitepaper_v4.tex) •
@@ -160,6 +160,7 @@ k=1024 in 250 s — per-fold FLAT at 244 ms (linear)
 ```
 
 - HyperNova NIVC over the Pasta 2-cycle — the 41-byte O(1) accumulator governs the live epoch (head → exec×k → close)
+- **The Pedersen dual layer is LIVE** (DEF-408/409): the committed accumulator advances with every fold, the binding self-check runs after every fold, and the 916-B v2 header publishes W' + rho' + the instance opening — a light client recomputes the whole commitment chain from public data alone (the independent-auditor receipt is bit-exact)
 - multifold_v2: the sha256-byte transcript law — 25× the v1 transport at production width; co-exists with the golden-pinned v1 (both SAT, different r streams)
 - The node runs the PROVEN digest chain (P3(HSM_PT_v1) → P3(HSM_FOLD_v1)) — library-exact, light-client compatible
 - WHIR wrap: butterfly ood (bit-identical to the teacher), tau-free wire form, O(nv)-succinct verifier
@@ -516,7 +517,7 @@ MIT
 
 **Built by one person. The Satoshi path: build → publish → verify → wait.**
 
-*109 defects owned. 317 laws. 288 decisions. π_E exists — 5,488 B, measured.*
+*111 defects owned. 320 laws. 288 decisions. π_E exists — 5,488 B, measured. The commitment chain is live and auditable.*
 
 # ***Zero hiding.***
 
